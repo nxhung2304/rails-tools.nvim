@@ -1,6 +1,0 @@
-WRN 2026-04-18T15:56:21.888 ?.74006    server_start:197: Failed to start server: operation not permitted: /var/folders/pq/q36ty9f53y78nw7ym7x_szr40000gn/T/nvim.rightsvn-hung/7muCuc/nvim.74006.0
-WRN 2026-04-18T15:56:22.020 ?.74014    server_start:197: Failed to start server: operation not permitted: /var/folders/pq/q36ty9f53y78nw7ym7x_szr40000gn/T/nvim.rightsvn-hung/G5fq1I/nvim.74014.0
-WRN 2026-04-18T15:56:25.491 ?.74067    server_start:197: Failed to start server: operation not permitted: /var/folders/pq/q36ty9f53y78nw7ym7x_szr40000gn/T/nvim.rightsvn-hung/4n6jNH/nvim.74067.0
-WRN 2026-04-18T15:56:25.607 ?.74071    server_start:197: Failed to start server: operation not permitted: /var/folders/pq/q36ty9f53y78nw7ym7x_szr40000gn/T/nvim.rightsvn-hung/qAVwCc/nvim.74071.0
-WRN 2026-04-18T15:56:25.651 ?.74094    server_start:197: Failed to start server: operation not permitted: /var/folders/pq/q36ty9f53y78nw7ym7x_szr40000gn/T/nvim.rightsvn-hung/BQVlYD/nvim.74094.0
-WRN 2026-04-18T15:56:25.655 ?.74095    server_start:197: Failed to start server: operation not permitted: /var/folders/pq/q36ty9f53y78nw7ym7x_szr40000gn/T/nvim.rightsvn-hung/PlbCHz/nvim.74095.0
