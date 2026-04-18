@@ -1,6 +1,6 @@
 ## **Status:**
 - Review: Approved
-- PR: Todo
+- PR: Draft
 
 ## Metadata
 - **Title:** RSpec/Minitest Detection
@@ -27,24 +27,24 @@ Steps:
 ---
 
 ## Acceptance Criteria
-- [ ] `rspec_detector.detect()` returns "rspec" for RSpec projects
-- [ ] `rspec_detector.detect()` returns "minitest" for Minitest projects
-- [ ] `rspec_detector.detect()` returns nil if neither detected
-- [ ] `rspec_detector.is_rspec()` returns boolean
-- [ ] `rspec_detector.is_minitest()` returns boolean
-- [ ] Correctly handles projects with both spec/ and test/ directories
+- [x] `rspec_detector.detect()` returns "rspec" for RSpec projects
+- [x] `rspec_detector.detect()` returns "minitest" for Minitest projects
+- [x] `rspec_detector.detect()` returns nil if neither detected
+- [x] `rspec_detector.is_rspec()` returns boolean
+- [x] `rspec_detector.is_minitest()` returns boolean
+- [x] Correctly handles projects with both spec/ and test/ directories
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/detectors/test_framework.lua`
-- [ ] Implement `detect()` function
-- [ ] Implement `is_rspec()` function
-- [ ] Implement `is_minitest()` function
-- [ ] Create `tests/detectors/test_framework_spec.lua`
-- [ ] Write tests for RSpec detection
-- [ ] Write tests for Minitest detection
-- [ ] Write tests for edge cases
+- [x] Create `lua/rails-tools/detectors/test_framework.lua`
+- [x] Implement `detect()` function
+- [x] Implement `is_rspec()` function
+- [x] Implement `is_minitest()` function
+- [x] Create `tests/detectors/test_framework_spec.lua`
+- [x] Write tests for RSpec detection
+- [x] Write tests for Minitest detection
+- [x] Write tests for edge cases
 
 ---
 
