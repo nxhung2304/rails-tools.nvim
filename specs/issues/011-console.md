@@ -22,7 +22,7 @@ Steps:
 ## Design
 - No wireframe needed
 - Module: `lua/rails-tools/core/console.lua`
-- Command: `:RailsConsole`
+- Command: `:Rails console`
 
 ---
 
@@ -42,7 +42,7 @@ Steps:
 - [ ] Implement M.toggle() function
 - [ ] Integrate with ui/terminal.lua
 - [ ] Read config.console.command
-- [ ] Register `:RailsConsole` command
+- [ ] Register `:Rails console` subcommand
 - [ ] Create tests for console module
 - [ ] Test console open
 - [ ] Test console toggle

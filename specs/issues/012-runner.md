@@ -22,7 +22,7 @@ Steps:
 ## Design
 - No wireframe needed
 - Module: `lua/rails-tools/core/runner.lua`
-- Commands: `:RailsRunner {code}`, `:RailsRunnerPrompt`
+- Commands: `:Rails runner {code}`, `:Rails runner` (no args = prompt)
 
 ---
 
@@ -43,8 +43,8 @@ Steps:
 - [ ] Implement M.run_visual() function
 - [ ] Integrate with ui/terminal.lua
 - [ ] Read config.runner.command
-- [ ] Register `:RailsRunner {code}` command
-- [ ] Register `:RailsRunnerPrompt` command
+- [ ] Register `:Rails runner {code}` subcommand
+- [ ] Register `:Rails runner` (no args) subcommand for prompt
 - [ ] Create tests for runner module
 - [ ] Test code execution
 - [ ] Test prompt input

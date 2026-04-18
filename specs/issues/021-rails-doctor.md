@@ -22,7 +22,7 @@ Steps:
 ## Design
 - No wireframe needed
 - Module: `lua/rails-tools/core/doctor.lua`
-- Command: `:RailsDoctor`
+- Command: `:Rails doctor`
 
 ---
 

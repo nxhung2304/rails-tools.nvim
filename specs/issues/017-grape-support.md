@@ -22,7 +22,7 @@ Steps:
 ## Design
 - No wireframe needed
 - Module: `lua/rails-tools/integrations/grape.lua`
-- Command: `:RailsGrapeRoutes`
+- Command: `:Rails grape routes`
 
 ---
 
