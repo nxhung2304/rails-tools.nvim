@@ -106,7 +106,8 @@ describe("rails detector", function()
       create_file("Gemfile")
       create_file("bin/rails")
       vim.cmd("cd " .. tmp_dir)
-      assert.equals(tmp_dir, rails.root())
+      -- resolve() handles macOS /var -> /private/var symlink
+      assert.equals(vim.fn.resolve(tmp_dir), vim.fn.resolve(rails.root()))
     end)
 
     it("returns nil for non-Rails project", function()
