@@ -1,1022 +1,676 @@
-# rails-tools.nvim — Đặc tả kỹ thuật hoàn chỉnh
+# rails-tools.nvim - Implementation Checklist
 
-## 1. Tổng quan
+## Overview
 
-**rails-tools.nvim** là một Neovim plugin hỗ trợ phát triển Ruby on Rails, thiết kế theo triết lý **zero-config, discoverable, context-aware**.
-
-- **Ngôn ngữ:** Lua
-- **Neovim tối thiểu:** 0.9+
-- **Dependencies bắt buộc:** Không có
-- **Dependencies tùy chọn:** telescope.nvim, which-key.nvim, toggleterm.nvim
-- **Test framework:** plenary.nvim test harness
-- **License:** MIT
+**rails-tools.nvim** is a Neovim plugin for Ruby on Rails development, written in Lua.
+Design philosophy: **zero-config, discoverable, context-aware, single entry point**.
 
 ---
 
-## 2. Triết lý thiết kế
+## Dependency Layers
 
-1. **Zero-config:** `require("rails-tools").setup()` không truyền gì vẫn hoạt động đầy đủ.
-2. **Single entry point:** Lệnh `:Rails` là điểm truy cập trung tâm.
-3. **Discoverable:** Tích hợp Telescope (optional) và Which-Key.
-4. **Context-aware:** Tự nhận diện loại file và đề xuất hành động phù hợp.
-5. **Convention over configuration:** Theo chuẩn Rails, cho phép override khi cần.
-
----
-
-## 3. Cấu trúc thư mục
+Tasks are organized by dependency order. Lower layers MUST be completed before higher layers.
 
 ```
-rails-tools.nvim/
-├── lua/
-│   └── rails-tools/
-│       ├── init.lua              -- Entry point, setup()
-│       ├── config.lua            -- Default config & merge logic
-│       ├── commands.lua          -- User commands registration
-│       ├── keymaps.lua           -- Keymap registration
-│       ├── utils.lua             -- Shared utilities
-│       ├── cache.lua             -- Cache layer (routes, schema)
-│       ├── detectors/
-│       │   ├── init.lua          -- Detector orchestrator
-│       │   ├── rails.lua         -- Rails project detection
-│       │   ├── rspec.lua         -- RSpec vs Minitest detection
-│       │   └── grape.lua         -- Grape API detection
-│       ├── core/
-│       │   ├── alternate.lua     -- Alternate file navigation
-│       │   ├── finder.lua        -- Resource finder
-│       │   ├── routes.lua        -- Routes parser & navigator
-│       │   ├── generators.lua    -- Rails generators wrapper
-│       │   ├── console.lua       -- Rails console integration
-│       │   └── runner.lua        -- Rails runner
-│       ├── telescope/
-│       │   └── init.lua          -- Telescope pickers
-│       ├── integrations/
-│       │   ├── rspec.lua         -- RSpec runner
-│       │   ├── grape.lua         -- Grape API support
-│       │   └── test_marker.lua   -- Focus/unfocus test
-│       ├── ui/
-│       │   ├── menu.lua          -- :Rails menu (vim.ui.select)
-│       │   └── terminal.lua      -- Terminal abstraction layer
-│       └── health.lua            -- :checkhealth rails-tools
-├── plugin/
-│   └── rails-tools.lua           -- Auto-load, lazy registration
-├── doc/
-│   └── rails-tools.txt           -- Vimdoc help
-├── tests/
-│   ├── minimal_init.lua          -- Minimal config cho test
-│   ├── detectors/
-│   │   ├── rails_spec.lua
-│   │   ├── rspec_spec.lua
-│   │   └── grape_spec.lua
-│   ├── core/
-│   │   ├── alternate_spec.lua
-│   │   ├── finder_spec.lua
-│   │   ├── routes_spec.lua
-│   │   └── generators_spec.lua
-│   └── integrations/
-│       ├── rspec_spec.lua
-│       └── grape_spec.lua
-├── Makefile                      -- Test runner, lint
-├── README.md
-├── LICENSE
-└── .github/
-    └── workflows/
-        └── ci.yml                -- GitHub Actions: test + lint
+Layer 0: Foundation (test environment)
+    ↓
+Layer 1: Core Infrastructure (config, terminal, entry points)
+    ↓
+Layer 2: Detection Layer (project detection)
+    ↓
+Layer 3: Core Features (main functionality)
+    ↓
+Layer 4: Enhanced Navigation (Phase 2)
+    ↓
+Layer 5: Polish & Integrations (Phase 3)
 ```
 
 ---
 
-## 4. Configuration
+## Progress Summary
 
-### 4.1 Default config
+| Layer | Tasks | Completed | Progress |
+|-------|-------|-----------|----------|
+| Layer 0 - Foundation | 1 task | 1 | 100% |
+| Layer 1 - Infrastructure | 4 tasks | 2 | 50% |
+| Layer 2 - Detection | 4 tasks | 2 | 50% |
+| Layer 3 - Core Features | 8 tasks | 1 | 13% |
+| Layer 4 - Enhanced | 6 tasks | 0 | 0% |
+| Layer 5 - Polish | 7 tasks | 0 | 0% |
+
+### Completed Items ✅
+- **L0-000** - Test Application (000-test-app.md)
+- **L1-004** - Configuration System (001-config-system.md)
+- **L2-001** - Rails Detection (003-rails-detection.md)
+- **L2-002** - Test Framework Detection (004-rspec-minitest-detection.md)
+- **L3-003** - Alternate File Navigation (007-alternate-file.md)
+
+### In Progress 🚧
+- **L1-004** - Configuration System (needs full setup(), get(), defaults)
+
+### Next Steps 📋 (In dependency order)
+1. **Complete L1-004** - Config System (setup(), get(), defaults)
+2. **Implement L1-013** - Terminal Abstraction (needed by Console/Runner)
+3. **Implement L1-Entry** - init.lua, commands.lua, utils.lua, plugin/
+4. **Implement L2-005** - Health Check (can verify detectors)
+5. **Continue L3** - Finder, Telescope, Menu, Keymaps, Routes, Console, Runner
+
+---
+
+## Layer 0 — Foundation
+
+### L0-000. Test Application (000-test-app.md)
+- [x] Create test Rails application at `test-app/`
+- [x] Add models, controllers, views, specs
+- [x] Add Grape API endpoints
+- [ ] Setup script for test environment
+
+---
+
+## Layer 1 — Core Infrastructure
+
+**IMPORTANT**: This layer MUST be completed first. All other layers depend on it.
+
+### L1-004. Configuration System (001-config-system.md) ⚠️ CRITICAL PATH
+- [x] Create `lua/rails-tools/config.lua`
+- [ ] Define `M.defaults` with all settings
+- [ ] Implement `M.setup(user_config)` with deep merge
+- [ ] Implement `M.get()` function
+- [ ] Support zero-config (nil config)
+- [ ] Create tests for config module
+- [ ] Default config includes:
+  - [ ] Module enable/disable (all 27 modules)
+  - [ ] Terminal settings (provider, direction, sizes)
+  - [ ] Finder settings (provider, resources, cache_ttl)
+  - [ ] Routes settings (command, args, cache_ttl)
+  - [ ] Console settings (command)
+  - [ ] Runner settings (command)
+  - [ ] Keymaps (enabled, prefix)
+  - [ ] Alternate file mappings (custom_mappings) ✅
+  - [ ] View engine detection
+  - [ ] RSpec settings
+  - [ ] Syntax highlighting settings
+  - [ ] Integration settings
+
+### L1-013. Terminal Abstraction Layer (002-terminal-abstraction.md) ⚠️ NEEDED BY L3-011, L3-012
+- [ ] Create `lua/rails-tools/ui/terminal.lua`
+- [ ] Implement `open(cmd, opts)`, `toggle()`, `send(text)` functions
+- [ ] Implement provider detection (auto, toggleterm, native)
+- [ ] Implement toggleterm backend
+- [ ] Implement native terminal backend
+- [ ] Support directions: float, horizontal, vertical
+- [ ] Configurable sizes: float (width, height), horizontal (rows), vertical (columns)
+- [ ] Create tests for terminal module
+- [ ] Test each provider and direction
+
+### L1-Entry. Plugin Entry Points
+- [ ] Create `lua/rails-tools/init.lua` - Entry point with setup()
+- [ ] Create `lua/rails-tools/commands.lua` - Command dispatcher
+- [ ] Create `lua/rails-tools/utils.lua` - Shared utilities
+- [ ] Create `lua/rails-tools/cache.lua` - Shared cache (needed by Routes, Schema)
+- [ ] Create `plugin/rails-tools.lua` - Lazy-load registration
+- [x] Create Makefile with test, lint targets
+- [x] Setup plenary.nvim test harness
+
+---
+
+## Layer 2 — Detection Layer
+
+**Depends on**: Layer 1 (Config for detector settings)
+
+### L2-001. Rails Detection (003-rails-detection.md)
+- [x] Create `lua/rails-tools/detectors/init.lua`
+- [x] Create `lua/rails-tools/detectors/rails.lua`
+- [x] Implement `detect()`, `root()`, `is_rails()` functions
+- [x] Add caching by root path
+- [ ] Handle monorepos, Rails engines, edge cases
+- [x] Create `tests/detectors/rails_spec.lua`
+
+### L2-002. Test Framework Detection (004-rspec-minitest-detection.md)
+- [x] Create `lua/rails-tools/detectors/test_framework.lua`
+- [x] Implement `detect()`, `is_rspec()`, `is_minitest()` functions
+- [x] Check spec/ directory → RSpec
+- [x] Check test/ directory → Minitest
+- [x] Handle projects with both directories
+- [x] Create `tests/detectors/test_framework_spec.lua`
+
+### L2-005. Health Check (005-health-check.md)
+- [ ] Create `lua/rails-tools/health.lua`
+- [ ] Implement `M.check()` function
+- [ ] Check Neovim version (>= 0.9)
+- [ ] Check Rails detection status
+- [ ] Check Ruby and Rails versions
+- [ ] Check optional dependencies (telescope, toggleterm, which-key)
+- [ ] Check project details (Gemfile, bin/rails, test framework, Grape)
+- [ ] Check module status (enabled/disabled)
+- [ ] Format output with vim.health API
+
+### L2-016. Grape API Detection (016-grape-api-detection.md) [Phase 2]
+- [ ] Create `lua/rails-tools/detectors/grape.lua`
+- [ ] Implement `detect()` function
+- [ ] Check app/api/ directory existence
+- [ ] Check Gemfile for grape gem
+- [ ] Both conditions must be true
+- [ ] Create `tests/detectors/grape_spec.lua`
+
+---
+
+## Layer 3 — Core Features (Phase 1 MVP)
+
+**Depends on**: Layer 1 (Config, Terminal), Layer 2 (Detectors)
+
+### L3-003. Alternate File Navigation (007-alternate-file.md)
+- [x] Create `lua/rails-tools/core/alternate.lua`
+- [x] Implement `open()`, `get(filepath)` functions
+- [x] Add default mappings in config:
+  - [x] Model ↔ Spec
+  - [x] Controller ↔ Request Spec
+  - [x] Service ↔ Spec
+  - [x] Policy ↔ Spec
+  - [x] Job ↔ Spec
+  - [x] Mailer ↔ Spec
+  - [x] Serializer ↔ Spec
+- [x] Support custom_mappings override
+- [ ] Handle nested namespaces
+- [x] Prompt to create file if alternate doesn't exist
+- [x] Create `tests/core/alternate_spec.lua`
+
+### L3-006. Resource Finder (008-resource-finder.md)
+- [ ] Create `lua/rails-tools/core/finder.lua`
+- [ ] Define resource_paths table
+- [ ] Implement `find(resource_type)` function
+- [ ] Implement directory scanning
+- [ ] Integrate with Telescope (when available)
+- [ ] Implement vim.ui.select fallback
+- [ ] Cache results with 30s TTL
+- [ ] Resources: models, controllers, views, services, policies, jobs, mailers, serializers, specs, factories
+- [ ] Create `tests/core/finder_spec.lua`
+
+### L3-007. Telescope Integration (009-telescope-pickers.md)
+- [ ] Create `lua/rails-tools/telescope/init.lua`
+- [ ] Define exports table for Telescope registration
+- [ ] Implement pickers: models, controllers, views, services, specs, routes
+- [ ] Add grape picker (placeholder for Phase 2)
+- [ ] Register extension
+- [ ] Gracefully handle missing telescope.nvim
+- [ ] Test each picker
+
+### L3-008. Rails Menu (010-menu.md)
+- [ ] Create `lua/rails-tools/ui/menu.lua`
+- [ ] Implement `M.open()` function
+- [ ] Define menu items table
+- [ ] Filter items based on enabled modules
+- [ ] Always show: Alternate File, Find Resource
+- [ ] Conditional items based on module config
+- [ ] Register `:Rails` command in commands.lua
+- [ ] Create `:Rails` command dispatch
+
+### L3-009. Keymap Registration (011-keymaps.md)
+- [ ] Create `lua/rails-tools/keymaps.lua`
+- [ ] Implement `M.setup()` function
+- [ ] Define default keymap bindings
+- [ ] Support configurable prefix (default: `<leader>r`)
+- [ ] Check `config.keymaps.enabled` before registering
+- [ ] Keymaps:
+  - [ ] `<leader>rr` - Rails menu
+  - [ ] `<leader>ra` - Alternate file
+  - [ ] `<leader>rf` - Resource finder
+  - [ ] `<leader>ro` - Routes navigator
+  - [ ] `<leader>rc` - Console
+  - [ ] `<leader>rx` - Runner
+- [ ] Create tests for keymap registration
+
+### L3-010. Routes Navigator (012-routes-navigator.md)
+- [ ] Create `lua/rails-tools/core/routes.lua`
+- [ ] Implement `show()`, `refresh()`, `goto_action()` functions
+- [ ] Implement async shell command runner (vim.fn.jobstart)
+- [ ] Parse `bin/rails routes --expanded` output
+- [ ] Parse controller#action → file and method
+- [ ] Implement method line finder
+- [ ] Integrate with cache.lua (from L1-Entry)
+- [ ] Cache with TTL from config (default 300s)
+- [ ] Handle namespaced routes
+- [ ] Show loading indicator
+- [ ] Force refresh with `:Rails routes!`
+- [ ] Create `tests/core/routes_spec.lua`
+
+### L3-011. Rails Console (013-console.md)
+- [ ] Create `lua/rails-tools/core/console.lua`
+- [ ] Implement `open()`, `toggle()` functions
+- [ ] Integrate with ui/terminal.lua (from L1-013)
+- [ ] Read `config.console.command`
+- [ ] Register `:Rails console` subcommand
+- [ ] Create tests for console module
+
+### L3-012. Rails Runner (014-runner.md)
+- [ ] Create `lua/rails-tools/core/runner.lua`
+- [ ] Implement `run(code)`, `run_prompt()`, `run_visual()` functions
+- [ ] Integrate with ui/terminal.lua (from L1-013)
+- [ ] Read `config.runner.command`
+- [ ] Register `:Rails runner {code}` subcommands
+- [ ] Create tests for runner module
+
+---
+
+## Layer 4 — Enhanced Navigation (Phase 2)
+
+**Depends on**: Layer 3 (Core Features)
+
+### L4-014. RSpec Runner (015-rspec-runner.md)
+- [ ] Create `lua/rails-tools/integrations/rspec.lua`
+- [ ] Implement `run_nearest()`, `run_file()`, `run_last()` functions
+- [ ] Display test results
+- [ ] Handle test failures
+- [ ] Cache last executed spec
+- [ ] Register commands: `:Rails spec nearest`, `:Rails spec file`, `:Rails spec last`
+- [ ] Register keymaps: `<leader>rs`, `<leader>rS`
+- [ ] Only active when `modules.rspec = true`
+- [ ] Create tests for RSpec runner
+
+### L4-015. Rails Generators (016-generators.md)
+- [ ] Create `lua/rails-tools/core/generators.lua`
+- [ ] Implement `run(args)` function
+- [ ] Support model, controller, migration generation
+- [ ] Display generator output
+- [ ] Register `:Rails generate {args}` command
+- [ ] Register keymap: `<leader>rg`
+- [ ] Only active when `modules.generators = true`
+- [ ] Create `tests/core/generators_spec.lua`
+
+### L4-017. Grape API Support (017-grape-support.md)
+- [ ] Create `lua/rails-tools/integrations/grape.lua`
+- [ ] Implement Grape routes parser
+- [ ] Implement endpoint finder
+- [ ] Display Grape endpoints in picker
+- [ ] Register `:Rails grape routes` command
+- [ ] Integrate with Telescope
+- [ ] Only active when `modules.grape = true`
+- [ ] Create `tests/integrations/grape_spec.lua`
+
+### L4-018. Test Marker (018-test-marker.md)
+- [ ] Create `lua/rails-tools/integrations/test_marker.lua`
+- [ ] Implement `is_focused()`, `focus()`, `unfocus()`, `toggle()` functions
+- [ ] Support RSpec syntax (fit, fdescribe, fcontext)
+- [ ] Only active when `modules.test_marker = true`
+- [ ] Create tests for test marker
+
+### L4-019. Context-Aware gf (019-context-aware-gf.md)
+- [ ] Create `lua/rails-tools/core/gf.lua`
+- [ ] Implement context detection (Treesitter + regex fallback)
+- [ ] Implement partial path parser: `"shared/header"` → `app/views/shared/_header.html.erb`
+- [ ] Implement fixture finder: `:users` → `test/fixtures/users.yml`
+- [ ] Implement migration finder: `User` → latest `db/migrate/*_create_users.rb`
+- [ ] Implement route finder: route name → controller#action
+- [ ] Support visual selection for complex paths
+- [ ] Detect view engine: .erb, .haml, .slim
+- [ ] Detect format: .html, .json, .xml
+- [ ] Fallback to default `gf` if no Rails context
+- [ ] Only active when `modules.gf = true`
+- [ ] Create `tests/core/gf_spec.lua`
+
+### L4-020. Controller-View Navigation (020-controller-view-navigation.md)
+- [ ] Create `lua/rails-tools/core/controller_view.lua`
+- [ ] Implement `to_view()` - Controller action → View
+- [ ] Implement `views_for_controller()` - List all views
+- [ ] Implement `from_view()` - View → Controller
+- [ ] Implement related files: helper, schema, layout, fixture, migration
+- [ ] Implement `related_menu()` - Show available related files
+- [ ] Register `:R [type]` and `:Rails related [type]` commands
+- [ ] Register keymap: `<leader>rv`
+- [ ] Smart view engine detection (.erb, .haml, .slim)
+- [ ] Smart format detection (.html, .json, .xml)
+- [ ] Handle namespaced controllers
+- [ ] Prompt to create missing views
+- [ ] Only active when `modules.controller_view = true`
+- [ ] Create `tests/core/controller_view_spec.lua`
+
+---
+
+## Layer 5 — Polish & Integrations (Phase 3)
+
+**Depends on**: Layer 4 (Enhanced Navigation)
+
+### L5-021. Schema Inspector (021-schema-inspector.md)
+- [ ] Create `lua/rails-tools/core/schema.lua`
+- [ ] Implement schema parser for db/schema.rb
+- [ ] Display table structures
+- [ ] Show column names and types
+- [ ] Show indexes
+- [ ] Integrate with cache.lua
+- [ ] Integrate with Telescope
+- [ ] Only active when `modules.schema = true`
+- [ ] Create `tests/core/schema_spec.lua`
+
+### L5-022. Log Viewer (022-log-viewer.md)
+- [ ] Create `lua/rails-tools/core/log_viewer.lua`
+- [ ] Implement log parser
+- [ ] Implement filter by level (debug, info, warn, error)
+- [ ] Auto-detect log directory
+- [ ] Support tailing logs
+- [ ] Integrate with Telescope
+- [ ] Only active when `modules.log_viewer = true`
+- [ ] Create tests for log viewer
+
+### L5-023. Rails Doctor (023-rails-doctor.md)
+- [ ] Create `lua/rails-tools/core/doctor.lua`
+- [ ] Implement migration check
+- [ ] Implement gem check
+- [ ] Implement other diagnostic checks
+- [ ] Display diagnostic results with suggestions
+- [ ] Run async with TTL cache
+- [ ] Register `:Rails doctor` command
+- [ ] Only active when `modules.doctor = true`
+- [ ] Create tests for Rails doctor
+
+### L5-024. Documentation (024-documentation.md)
+- [ ] Complete README.md with all features
+- [ ] Complete doc/rails-tools.txt (Vimdoc)
+- [ ] Document all commands
+- [ ] Document all keymaps
+- [ ] Provide usage examples
+- [ ] Create migration guide
+- [ ] Review documentation completeness
+
+### L5-025. Code Extraction (025-code-extraction.md)
+- [ ] Create `lua/rails-tools/core/extractor.lua`
+- [ ] Implement `extract_visual(filename, mode)` function
+- [ ] Implement partial extraction (views)
+- [ ] Implement concern extraction (models/controllers)
+- [ ] Implement helper extraction
+- [ ] Detect and prompt for local variables
+- [ ] Register `:Extract {filename}` and `:Rails extract {filename}` commands
+- [ ] Support .erb, .haml, .slim engines
+- [ ] Only active when `modules.extractor = true`
+- [ ] Create `tests/core/extractor_spec.lua`
+
+### L5-026. Syntax Highlighting (026-syntax-highlighting.md)
+- [ ] Create `lua/rails-tools/core/syntax.lua`
+- [ ] Create `syntax/rails.vim`
+- [ ] Create `after/syntax/ruby/rails.vim`
+- [ ] Define Rails keyword groups
+- [ ] Create highlight groups: RailsAssociation, RailsValidation, RailsCallback, RailsHelper, RailsMacro
+- [ ] Create Treesitter queries for Rails methods
+- [ ] Implement regex fallback for older Neovim
+- [ ] Support user-defined keywords via config
+- [ ] Add `config.syntax` settings
+- [ ] Create `tests/core/syntax_spec.lua`
+
+### L5-027. Optional Integrations (027-optional-integrations.md)
+- [ ] Create `lua/rails-tools/integrations/detector.lua` - Detect installed plugins
+- [ ] Create `lua/rails-tools/integrations/manager.lua` - Manage integrations
+- [ ] Database Integration (vim-dadbod)
+  - [ ] Create `lua/rails-tools/integrations/dadbod.lua`
+  - [ ] Implement db browser, console, schema commands
+  - [ ] Parse config/database.yml
+  - [ ] Create tests
+- [ ] LSP Integration
+  - [ ] Create `lua/rails-tools/integrations/lsp.lua`
+  - [ ] Enhance go-to-definition for Rails conventions
+  - [ ] Add Rails-specific code actions
+  - [ ] Create tests
+- [ ] Telescope Integration (Enhanced)
+  - [ ] Add schemas, migrations, helpers, fixtures pickers
+  - [ ] Implement caching
+  - [ ] Create tests
+- [ ] Snippet Integration
+  - [ ] Create `lua/rails-tools/integrations/snippets.lua`
+  - [ ] Implement model, controller, migration, view templates
+  - [ ] Support user customization
+  - [ ] Create tests
+- [ ] Test Integration (neotest)
+  - [ ] Create `lua/rails-tools/integrations/neotest.lua`
+  - [ ] Implement adapters for RSpec and Minitest
+  - [ ] Create tests
+- [ ] Completion Integration (nvim-cmp)
+  - [ ] Create `lua/rails-tools/integrations/cmp.lua`
+  - [ ] Implement context-aware completion
+  - [ ] Create tests
+- [ ] Add `config.integrations` section
+
+---
+
+## Configuration Reference
+
+### Default Configuration Structure
 
 ```lua
--- lua/rails-tools/config.lua
-
-local M = {}
-
-M.defaults = {
-  -- Bật/tắt từng module
+{
+  -- Module enable/disable
   modules = {
+    -- Layer 3 - Phase 1 (default: true)
     alternate = true,
     finder = true,
     routes = true,
     console = true,
     runner = true,
-    generators = false,   -- Phase 2
-    rspec = false,         -- Phase 2
-    grape = false,         -- Phase 2
-    test_marker = false,   -- Phase 2
+
+    -- Layer 4 - Phase 2 (default: false)
+    rspec = false,
+    generators = false,
+    grape = false,
+    test_marker = false,
+    gf = false,
+    controller_view = false,
+
+    -- Layer 5 - Phase 3 (default: false)
+    schema = false,
+    log_viewer = false,
+    doctor = false,
+    extractor = false,
+    syntax = false,
   },
 
-  -- Alternate file mappings
-  -- Pattern: regex capture group, Replacement: %1 là capture
-  alternate = {
-    mappings = {
-      -- Model <-> Spec
-      { pattern = "app/models/(.+).rb$",           target = "spec/models/%1_spec.rb" },
-      { pattern = "spec/models/(.+)_spec.rb$",     target = "app/models/%1.rb" },
-
-      -- Controller <-> Request Spec
-      { pattern = "app/controllers/(.+)_controller.rb$", target = "spec/requests/%1_spec.rb" },
-      { pattern = "spec/requests/(.+)_spec.rb$",         target = "app/controllers/%1_controller.rb" },
-
-      -- Service <-> Spec
-      { pattern = "app/services/(.+).rb$",          target = "spec/services/%1_spec.rb" },
-      { pattern = "spec/services/(.+)_spec.rb$",    target = "app/services/%1.rb" },
-
-      -- Policy <-> Spec
-      { pattern = "app/policies/(.+)_policy.rb$",   target = "spec/policies/%1_policy_spec.rb" },
-      { pattern = "spec/policies/(.+)_policy_spec.rb$", target = "app/policies/%1_policy.rb" },
-
-      -- Job <-> Spec
-      { pattern = "app/jobs/(.+)_job.rb$",          target = "spec/jobs/%1_job_spec.rb" },
-      { pattern = "spec/jobs/(.+)_job_spec.rb$",    target = "app/jobs/%1_job.rb" },
-
-      -- Mailer <-> Spec
-      { pattern = "app/mailers/(.+)_mailer.rb$",    target = "spec/mailers/%1_mailer_spec.rb" },
-      { pattern = "spec/mailers/(.+)_mailer_spec.rb$", target = "app/mailers/%1_mailer.rb" },
-
-      -- Serializer <-> Spec
-      { pattern = "app/serializers/(.+)_serializer.rb$", target = "spec/serializers/%1_serializer_spec.rb" },
-      { pattern = "spec/serializers/(.+)_serializer_spec.rb$", target = "app/serializers/%1_serializer.rb" },
-    },
-
-    -- User có thể thêm custom mappings
-    -- Custom mappings được ưu tiên hơn default
-    custom_mappings = {},
-  },
-
-  -- Terminal configuration
+  -- Terminal settings (L1-013)
   terminal = {
-    provider = "auto",    -- "auto" | "toggleterm" | "native"
-                          -- auto: dùng toggleterm nếu có, fallback native
-    direction = "float",  -- "float" | "horizontal" | "vertical"
-    float_opts = {
-      width = 0.8,        -- % of screen
-      height = 0.8,
-    },
-    size = {
-      horizontal = 15,
-      vertical = 80,
-    },
+    provider = "auto",  -- auto, toggleterm, native
+    direction = "float",  -- float, horizontal, vertical
+    float = { width = 0.8, height = 0.8 },
+    horizontal = { size = 15 },
+    vertical = { size = 80 },
   },
 
-  -- Finder configuration
+  -- Finder settings (L3-006)
   finder = {
-    provider = "auto",    -- "auto" | "telescope" | "native"
-                          -- auto: dùng telescope nếu có, fallback vim.ui.select
+    provider = "auto",  -- auto, telescope, native
+    resources = { "models", "controllers", "views", "services", "policies", "jobs", "mailers", "serializers", "specs", "factories" },
+    cache_ttl = 30,
   },
 
-  -- Routes
+  -- Routes settings (L3-010)
   routes = {
-    cache_ttl = 300,      -- Cache routes 5 phút (giây)
+    command = "bin/rails routes",
+    args = "--expanded",
+    cache_ttl = 300,
   },
 
-  -- Keymaps
+  -- Console settings (L3-011)
+  console = {
+    command = "rails console",
+  },
+
+  -- Runner settings (L3-012)
+  runner = {
+    command = "rails runner",
+  },
+
+  -- Keymap settings (L3-009)
   keymaps = {
     enabled = true,
     prefix = "<leader>r",
   },
 
-  -- Console
-  console = {
-    command = "rails console", -- Override nếu cần (ví dụ: "bundle exec rails c")
-  },
-
-  -- Runner
-  runner = {
-    command = "rails runner",
-  },
-}
-
---- Merge user config với defaults (deep merge)
----@param user_config table|nil
----@return table
-function M.setup(user_config)
-  M.current = vim.tbl_deep_extend("force", M.defaults, user_config or {})
-  return M.current
-end
-
---- Get current config
----@return table
-function M.get()
-  return M.current or M.defaults
-end
-
-return M
-```
-
-### 4.2 Ví dụ sử dụng
-
-```lua
--- Minimal: zero-config
-require("rails-tools").setup()
-
--- Custom: bật Grape, đổi terminal
-require("rails-tools").setup({
-  modules = {
-    grape = true,
-    rspec = true,
-  },
-  terminal = {
-    direction = "horizontal",
-  },
+  -- Alternate file settings (L3-003)
   alternate = {
-    custom_mappings = {
-      { pattern = "app/forms/(.+)_form.rb$", target = "spec/forms/%1_form_spec.rb" },
-      { pattern = "spec/forms/(.+)_form_spec.rb$", target = "app/forms/%1_form.rb" },
-    },
+    custom_mappings = {},
   },
-})
-```
 
----
+  -- View settings (L4-020)
+  view = {
+    engine = "auto",  -- auto, erb, haml, slim
+    priority = { "erb", "haml", "slim" },
+  },
 
-## 5. Module specs
+  -- RSpec settings (L4-014)
+  rspec = {
+    command = "bundle exec rspec",
+    save_last = true,
+  },
 
-### 5.1 Rails Detector (`detectors/rails.lua`)
+  -- Syntax highlighting (L5-026)
+  syntax = {
+    enabled = true,
+    associations = true,
+    validations = true,
+    callbacks = true,
+    helpers = true,
+    macros = true,
+    custom_keywords = {},
+  },
 
-**Mục đích:** Xác định thư mục hiện tại có phải Rails project không.
-
-**Logic:**
-
-```
-is_rails_project() -> boolean
-  1. Tìm root directory bằng cách đi lên từ cwd
-  2. Kiểm tra tồn tại: Gemfile AND (bin/rails OR script/rails)
-  3. Cache kết quả theo root path
-  4. Return true/false
-```
-
-**API:**
-
-```lua
-local detector = require("rails-tools.detectors.rails")
-
-detector.detect()          -- -> { is_rails = true, root = "/path/to/project" } | nil
-detector.root()            -- -> "/path/to/project" | nil
-detector.is_rails()        -- -> boolean
-```
-
-**Kiểm tra bổ sung (lazy, chỉ khi cần):**
-
-- `Gemfile` chứa gem `'rails'` → xác nhận chắc chắn
-- Tồn tại `config/application.rb` → xác nhận chắc chắn
-- Tồn tại `config/routes.rb` → xác nhận chắc chắn
-
-**Edge cases:**
-
-- Monorepo: mỗi subfolder có Gemfile riêng → detect từ file đang mở, không phải cwd
-- Engine: có `lib/engine_name/engine.rb` → detect là engine, không phải full app
-- Không phải Rails → tất cả commands bị disable, hiển thị warning một lần
-
----
-
-### 5.2 RSpec Detector (`detectors/rspec.lua`)
-
-**Mục đích:** Xác định project dùng RSpec hay Minitest.
-
-**Logic:**
-
-```
-detect() -> "rspec" | "minitest" | nil
-  1. Kiểm tra tồn tại: spec/ directory → "rspec"
-  2. Kiểm tra tồn tại: test/ directory → "minitest"
-  3. Nếu cả hai tồn tại → kiểm tra Gemfile: gem 'rspec-rails' → "rspec"
-  4. Fallback: nil
-```
-
-**API:**
-
-```lua
-local rspec_detector = require("rails-tools.detectors.rspec")
-
-rspec_detector.detect()        -- -> "rspec" | "minitest" | nil
-rspec_detector.is_rspec()      -- -> boolean
-rspec_detector.is_minitest()   -- -> boolean
-```
-
----
-
-### 5.3 Grape Detector (`detectors/grape.lua`)
-
-**Mục đích:** Xác định project có dùng Grape API không.
-
-**Logic:**
-
-```
-detect() -> boolean
-  1. Kiểm tra tồn tại: app/api/ directory
-  2. Kiểm tra Gemfile chứa gem 'grape'
-  3. Cả hai đều đúng → true
-```
-
----
-
-### 5.4 Alternate File (`core/alternate.lua`)
-
-**Mục đích:** Chuyển đổi giữa file implementation và file test/spec tương ứng.
-
-**API:**
-
-```lua
-local alternate = require("rails-tools.core.alternate")
-
-alternate.open()               -- Mở alternate file của file hiện tại
-alternate.get(filepath)        -- -> string|nil: trả về path alternate, không mở
-```
-
-**Logic:**
-
-```
-open()
-  1. Lấy relative path của file hiện tại (so với Rails root)
-  2. Duyệt custom_mappings trước, rồi default mappings
-  3. Với mỗi mapping: match pattern → tạo target path
-  4. Nếu target file tồn tại → mở
-  5. Nếu target file KHÔNG tồn tại → hỏi user có muốn tạo không (vim.ui.input)
-  6. Nếu không match mapping nào → thông báo "No alternate file found"
-```
-
-**Edge cases:**
-
-- File nằm ngoài Rails root → bỏ qua
-- Nested namespaces: `app/models/admin/user.rb` → `spec/models/admin/user_spec.rb`
-- File không có mapping → thông báo rõ ràng, không crash
-
----
-
-### 5.5 Finder (`core/finder.lua`)
-
-**Mục đích:** Tìm kiếm Rails resources bằng Telescope hoặc vim.ui.select.
-
-**API:**
-
-```lua
-local finder = require("rails-tools.core.finder")
-
-finder.find("models")         -- Mở picker với tất cả models
-finder.find("controllers")    -- Mở picker với tất cả controllers
-finder.find("views")          -- Mở picker với tất cả views
-finder.find("specs")          -- Mở picker với tất cả specs
-finder.find("services")       -- Mở picker với tất cả services
-finder.find("jobs")           -- Mở picker với tất cả jobs
-finder.find("all")            -- Mở picker với tất cả Rails files
-```
-
-**Resource paths (convention):**
-
-```lua
-local resource_paths = {
-  models      = "app/models",
-  controllers = "app/controllers",
-  views       = "app/views",
-  services    = "app/services",
-  policies    = "app/policies",
-  jobs        = "app/jobs",
-  mailers     = "app/mailers",
-  serializers = "app/serializers",
-  specs       = "spec",
-  factories   = "spec/factories",
+  -- Optional integrations (L5-027)
+  integrations = {
+    dadbod = { enabled = true },
+    lsp = { enabled = true },
+    telescope = { enabled = true, cached = true },
+    snippets = { enabled = true },
+    neotest = { enabled = true },
+    cmp = { enabled = true },
+  },
 }
 ```
 
-**Logic:**
+---
+
+## Commands Reference
+
+### Primary Command
+- `:Rails` - Open central menu (L3-008)
+
+### Subcommands
+- `:Rails alternate` - Toggle alternate file (L3-003)
+- `:Rails find {resource}` - Find resource by type (L3-006)
+- `:Rails routes` - View routes (L3-010)
+- `:Rails console` - Open Rails console (L3-011)
+- `:Rails runner {code}` - Run code (L3-012)
+- `:Rails runner` - Prompt for code (L3-012)
+- `:Rails spec nearest` - Run nearest spec (L4-014)
+- `:Rails spec file` - Run spec file (L4-014)
+- `:Rails spec last` - Re-run last spec (L4-014)
+- `:Rails generate {args}` - Run generator (L4-015)
+- `:Rails grape routes` - View Grape routes (L4-017)
+- `:Rails doctor` - Run diagnostics (L5-023)
+- `:R [type]` - Jump to related file (L4-020)
+
+### Telescope Commands
+- `:Telescope rails models` (L3-007)
+- `:Telescope rails controllers` (L3-007)
+- `:Telescope rails views` (L3-007)
+- `:Telescope rails services` (L3-007)
+- `:Telescope rails specs` (L3-007)
+- `:Telescope rails routes` (L3-007)
+- `:Telescope rails grape` (L4-017)
+- `:Telescope rails schemas` (L5-027)
+- `:Telescope rails migrations` (L5-027)
+
+### Health Check
+- `:checkhealth rails-tools` (L2-005)
+
+---
+
+## Keymaps Reference
+
+### Default Prefix: `<leader>r`
+
+| Keymap | Action | Layer |
+|--------|--------|-------|
+| `<leader>rr` | Rails menu | L3-008 |
+| `<leader>ra` | Alternate file | L3-003 |
+| `<leader>rf` | Resource finder | L3-006 |
+| `<leader>ro` | Routes navigator | L3-010 |
+| `<leader>rc` | Console | L3-011 |
+| `<leader>rx` | Runner prompt | L3-012 |
+| `<leader>rg` | Generator | L4-015 |
+| `<leader>rs` | Run nearest spec | L4-014 |
+| `<leader>rS` | Run spec file | L4-014 |
+| `<leader>rv` | Related view | L4-020 |
+
+---
+
+## File Structure (Target)
 
 ```
-find(resource_type)
-  1. Xác định directory từ resource_paths
-  2. Scan tất cả .rb files (recursive)
-  3. Nếu Telescope available → telescope picker
-  4. Nếu không → vim.ui.select
-  5. User chọn → mở file
+lua/rails-tools/
+├── init.lua                  -- Entry point: setup() (L1-Entry)
+├── config.lua                -- Default config + deep merge (L1-004)
+├── commands.lua              -- :Rails command dispatcher (L1-Entry)
+├── keymaps.lua               -- Keymap registration (L3-009)
+├── utils.lua                 -- Shared utilities (L1-Entry)
+├── cache.lua                 -- TTL cache (L1-Entry)
+├── health.lua                -- :checkhealth rails-tools (L2-005)
+├── detectors/                -- Auto-detection modules (L2)
+│   ├── init.lua             -- Detector orchestrator (L2-001)
+│   ├── rails.lua            -- Rails project detection (L2-001)
+│   ├── test_framework.lua   -- RSpec vs Minitest (L2-002)
+│   └── grape.lua            -- Grape API detection (L2-016)
+├── core/                     -- Feature modules (L3, L4, L5)
+│   ├── alternate.lua        -- Toggle impl ↔ spec (L3-003)
+│   ├── finder.lua           -- Resource picker (L3-006)
+│   ├── routes.lua           -- Parse and navigate routes (L3-010)
+│   ├── console.lua          -- Rails console (L3-011)
+│   ├── runner.lua           -- Rails runner (L3-012)
+│   ├── generators.lua       -- Rails generators (L4-015)
+│   ├── gf.lua               -- Context-aware gf (L4-019)
+│   ├── controller_view.lua  -- Controller-View navigation (L4-020)
+│   ├── schema.lua           -- Schema inspector (L5-021)
+│   ├── log_viewer.lua       -- Log viewer (L5-022)
+│   ├── doctor.lua           -- Rails doctor (L5-023)
+│   ├── extractor.lua        -- Code extraction (L5-025)
+│   └── syntax.lua           -- Syntax highlighting (L5-026)
+├── integrations/             -- Test framework & optional integrations (L4, L5)
+│   ├── rspec.lua            -- RSpec runner (L4-014)
+│   ├── grape.lua            -- Grape support (L4-017)
+│   ├── test_marker.lua      -- Test focus/unfocus (L4-018)
+│   ├── detector.lua         -- Plugin detection (L5-027)
+│   ├── manager.lua          -- Integration manager (L5-027)
+│   ├── dadbod.lua           -- vim-dadbod integration (L5-027)
+│   ├── lsp.lua              -- LSP integration (L5-027)
+│   ├── snippets.lua         -- Snippet templates (L5-027)
+│   ├── neotest.lua          -- neotest adapter (L5-027)
+│   └── cmp.lua              -- nvim-cmp source (L5-027)
+├── ui/
+│   ├── menu.lua             -- :Rails central menu (L3-008)
+│   └── terminal.lua         -- Terminal abstraction (L1-013)
+└── telescope/
+    └── init.lua             -- Telescope extension (L3-007)
+
+plugin/
+└── rails-tools.lua          -- Lazy-load registration (L1-Entry)
+
+tests/                        -- mirrors lua/ structure
+├── detectors/
+├── core/
+├── integrations/
+└── ui/
+
+doc/
+└── rails-tools.txt          -- Vimdoc (L5-024)
+
+syntax/
+├── rails.vim                -- Main syntax (L5-026)
+└── after/syntax/ruby/
+    └── rails.vim            -- Ruby extension (L5-026)
 ```
 
 ---
 
-### 5.6 Routes Navigator (`core/routes.lua`)
-
-**Mục đích:** Parse và hiển thị Rails routes, cho phép nhảy đến controller#action.
-
-**API:**
-
-```lua
-local routes = require("rails-tools.core.routes")
-
-routes.show()          -- Hiển thị routes trong picker
-routes.refresh()       -- Xóa cache, parse lại
-routes.goto_action()   -- Nhảy đến controller#action từ route đang chọn
-```
-
-**Logic:**
-
-```
-show()
-  1. Kiểm tra cache (TTL từ config)
-  2. Nếu cache hết hạn hoặc chưa có:
-     - Chạy `bin/rails routes --expanded` (async, dùng vim.fn.jobstart)
-     - Parse output thành list: { method, path, controller_action, name }
-     - Lưu cache
-  3. Hiển thị trong picker (Telescope hoặc vim.ui.select)
-  4. Khi user chọn route → parse controller#action → mở file tại method tương ứng
-```
-
-**Parse format:**
-
-```
-GET    /users          users#index
-POST   /users          users#create
-GET    /users/:id      users#show
-```
-
-→ Chuyển `users#index` thành `app/controllers/users_controller.rb` và nhảy đến method `def index`.
-
-**Edge cases:**
-
-- Namespaced routes: `admin/users#index` → `app/controllers/admin/users_controller.rb`
-- `rails routes` chậm trên project lớn → chạy async, hiển thị loading
-- `rails routes` fail → hiển thị error message rõ ràng
-
----
-
-### 5.7 Console (`core/console.lua`)
-
-**Mục đích:** Mở Rails console trong terminal tích hợp.
-
-**API:**
-
-```lua
-local console = require("rails-tools.core.console")
-
-console.open()         -- Mở rails console
-console.toggle()       -- Toggle console window
-```
-
-**Logic:**
-
-```
-open()
-  1. Lấy command từ config (default: "rails console")
-  2. Mở terminal qua ui/terminal.lua
-  3. Chạy command
-```
-
----
-
-### 5.8 Runner (`core/runner.lua`)
-
-**Mục đích:** Chạy Rails runner cho code snippets nhanh.
-
-**API:**
-
-```lua
-local runner = require("rails-tools.core.runner")
-
-runner.run(code)             -- Chạy code string: runner.run("User.count")
-runner.run_prompt()          -- Mở input prompt, chạy code user nhập
-runner.run_visual()          -- Chạy visual selection
-```
-
----
-
-### 5.9 Terminal Abstraction (`ui/terminal.lua`)
-
-**Mục đích:** Abstract layer cho terminal, hỗ trợ toggleterm và native.
-
-**API:**
-
-```lua
-local terminal = require("rails-tools.ui.terminal")
-
-terminal.open(cmd, opts)     -- Mở terminal và chạy cmd
-terminal.toggle()            -- Toggle terminal window
-terminal.send(text)          -- Gửi text vào terminal đang mở
-```
-
-**Logic:**
-
-```
-open(cmd, opts)
-  1. Kiểm tra provider config
-  2. Nếu "auto":
-     - pcall(require, "toggleterm") thành công → dùng toggleterm
-     - Thất bại → dùng native
-  3. Nếu "toggleterm" → dùng toggleterm API
-  4. Nếu "native":
-     - direction == "float" → vim.api.nvim_open_win (floating)
-     - direction == "horizontal" → botright split
-     - direction == "vertical" → botright vsplit
-     - vim.fn.termopen(cmd)
-```
-
----
-
-### 5.10 Menu (`ui/menu.lua`)
-
-**Mục đích:** Menu trung tâm cho lệnh `:Rails`.
-
-**API:**
-
-```lua
-local menu = require("rails-tools.ui.menu")
-
-menu.open()     -- Hiển thị menu chính
-```
-
-**Menu items (dynamic dựa trên modules enabled):**
-
-```
-Rails Tools
-───────────
-Alternate File         (luôn hiển thị)
-Find Resource          (luôn hiển thị)
-View Routes            (nếu modules.routes)
-Open Console           (nếu modules.console)
-Run Code               (nếu modules.runner)
-Run Generator          (nếu modules.generators)
-Run Nearest Spec       (nếu modules.rspec)
-Run Spec File          (nếu modules.rspec)
-Grape Endpoints        (nếu modules.grape)
-```
-
----
-
-## 6. User Commands
-
-```lua
--- Luôn available
-:Rails                       -- Menu trung tâm
-:Rails alternate             -- Mở alternate file
-:Rails find {type}           -- Tìm resource (models, controllers, ...)
-
--- Theo module
-:Rails routes                -- Routes navigator (modules.routes)
-:Rails routes!               -- Force refresh routes cache
-:Rails console               -- Mở console (modules.console)
-:Rails runner {code}         -- Chạy code (modules.runner)
-:Rails runner                -- Chạy code qua prompt
-:Rails generate {args}       -- Chạy generator (modules.generators)
-:Rails spec nearest          -- Chạy spec gần nhất (modules.rspec)
-:Rails spec file             -- Chạy spec file hiện tại (modules.rspec)
-:Rails spec last             -- Chạy lại spec cuối (modules.rspec)
-:Rails grape routes          -- Grape routes (modules.grape)
-:Rails doctor                -- Chẩn đoán project issues
-```
-
----
-
-## 7. Keymaps (mặc định, tắt được)
-
-```lua
--- Prefix: <leader>r
-<leader>rr    :Rails                 -- Menu
-<leader>ra    :Rails alternate       -- Alternate file
-<leader>rf    :Rails find            -- Find resource
-<leader>ro    :Rails routes          -- Routes
-<leader>rc    :Rails console         -- Console
-<leader>rx    :Rails runner          -- Runner (prompt)
-
--- Phase 2 (khi module enabled)
-<leader>rs    :Rails spec nearest    -- Nearest spec
-<leader>rS    :Rails spec file       -- Spec file
-<leader>rg    :Rails generate        -- Generator
-```
-
----
-
-## 8. Telescope Integration
-
-Khi telescope.nvim có sẵn, các picker tự động dùng Telescope.
-
-```vim
-:Telescope rails models
-:Telescope rails controllers
-:Telescope rails views
-:Telescope rails services
-:Telescope rails specs
-:Telescope rails routes
-:Telescope rails grape          " Phase 2
-```
-
-Khi không có Telescope → tất cả fallback về `vim.ui.select`.
-
----
-
-## 9. Health Check
-
-```vim
-:checkhealth rails-tools
-```
-
-**Output:**
-
-```
-rails-tools: require("rails-tools.health").check()
-========================================
-## Environment
-  - OK: Neovim >= 0.9
-  - OK: Rails project detected at /path/to/project
-  - OK: Ruby 3.2.0
-  - OK: Rails 7.1.0
-  - WARNING: telescope.nvim not found (using vim.ui.select fallback)
-  - OK: toggleterm.nvim found
-
-## Project
-  - OK: Gemfile found
-  - OK: bin/rails found
-  - OK: Test framework: rspec
-  - OK: Grape API detected
-  - WARNING: Approved migrations (3)
-
-## Modules
-  - OK: alternate (enabled)
-  - OK: finder (enabled)
-  - OK: routes (enabled)
-  - DISABLED: rspec
-  - DISABLED: grape
-```
-
----
-
-## 10. Error Handling
-
-**Nguyên tắc:**
-
-1. **Không bao giờ crash Neovim.** Mọi lỗi đều được bắt bằng `pcall`.
-2. **Thông báo rõ ràng.** Dùng `vim.notify` với level phù hợp (INFO, WARN, ERROR).
-3. **Graceful degradation.** Nếu một module lỗi, các module khác vẫn hoạt động.
-4. **Không phải Rails project → disable im lặng.** Chỉ thông báo một lần khi user gọi command.
-
-```lua
--- Pattern chuẩn cho mọi command
-local function safe_call(fn, ...)
-  local ok, err = pcall(fn, ...)
-  if not ok then
-    vim.notify("[rails-tools] " .. tostring(err), vim.log.levels.ERROR)
-  end
-end
-```
-
----
-
-## 11. Caching Strategy
-
-**Mục đích:** Tránh chạy lại `rails routes` hoặc scan file system liên tục.
-
-```lua
--- lua/rails-tools/cache.lua
-
-local M = {}
-local _cache = {}
-
---- Set cache với TTL
----@param key string
----@param value any
----@param ttl number|nil  TTL tính bằng giây, nil = không hết hạn
-function M.set(key, value, ttl)
-  _cache[key] = {
-    value = value,
-    expires_at = ttl and (os.time() + ttl) or nil,
-  }
-end
-
---- Get cache
----@param key string
----@return any|nil
-function M.get(key)
-  local entry = _cache[key]
-  if not entry then return nil end
-  if entry.expires_at and os.time() > entry.expires_at then
-    _cache[key] = nil
-    return nil
-  end
-  return entry.value
-end
-
---- Xóa cache
----@param key string|nil  nil = xóa tất cả
-function M.clear(key)
-  if key then
-    _cache[key] = nil
-  else
-    _cache = {}
-  end
-end
-
-return M
-```
-
-**Cái gì cache:**
-
-| Dữ liệu | TTL | Invalidation |
-|---|---|---|
-| Rails root path | Không hết hạn | Khi đổi cwd |
-| Detector results | Không hết hạn | Khi đổi cwd |
-| Routes | 5 phút (configurable) | `:RailsRoutes!` force refresh |
-| File list (finder) | 30 giây | Tự động |
-
----
-
-## 12. Async Strategy
-
-**Nguyên tắc:** Mọi lệnh shell đều chạy async để không block UI.
-
-```lua
--- Pattern chuẩn cho async shell command
-local function async_cmd(cmd, on_done)
-  local output = {}
-  vim.fn.jobstart(cmd, {
-    stdout_buffered = true,
-    on_stdout = function(_, data)
-      if data then
-        vim.list_extend(output, data)
-      end
-    end,
-    on_exit = function(_, exit_code)
-      vim.schedule(function()
-        on_done(output, exit_code)
-      end)
-    end,
-  })
-end
-```
-
-**Commands chạy async:**
-
-- `rails routes`
-- `rails console` (interactive, trong terminal)
-- `rails runner`
-- `rails generate`
-- RSpec runner
-
----
-
-## 13. Roadmap
-
-### Phase 1 — MVP (v0.1 → v0.3)
-
-| Version | Tính năng | Module |
-|---|---|---|
-| v0.1 | Rails Detection | `detectors/rails.lua` |
-| v0.1 | RSpec/Minitest Detection | `detectors/rspec.lua` |
-| v0.1 | Alternate File | `core/alternate.lua` |
-| v0.1 | Config system | `config.lua` |
-| v0.1 | Health check | `health.lua` |
-| v0.2 | Resource Finder | `core/finder.lua` |
-| v0.2 | Telescope pickers | `telescope/init.lua` |
-| v0.2 | Menu `:Rails` | `ui/menu.lua` |
-| v0.2 | Keymaps | `keymaps.lua` |
-| v0.3 | Routes Navigator | `core/routes.lua` |
-| v0.3 | Console | `core/console.lua` |
-| v0.3 | Runner | `core/runner.lua` |
-| v0.3 | Terminal abstraction | `ui/terminal.lua` |
-
-### Phase 2 — Mở rộng (v0.4 → v0.7)
-
-| Version | Tính năng | Module |
-|---|---|---|
-| v0.4 | RSpec Runner (nearest, file, last) | `integrations/rspec.lua` |
-| v0.5 | Generators | `core/generators.lua` |
-| v0.6 | Grape API Detection | `detectors/grape.lua` |
-| v0.6 | Grape Support | `integrations/grape.lua` |
-| v0.7 | Test Marker (focus/unfocus) | `integrations/test_marker.lua` |
-
-### Phase 3 — Polish (v0.8 → v1.0)
-
-| Version | Tính năng |
-|---|---|
-| v0.8 | Schema Inspector |
-| v0.8 | Log Viewer |
-| v0.9 | Rails Doctor |
-| v1.0 | Documentation hoàn chỉnh, stable release |
-
-### Post v1.0
-
-- Gem Navigator
-- Engines & Monorepo support
-- Community-driven features
-
----
-
-## 14. Testing Strategy
-
-**Framework:** plenary.nvim test harness
-
-**Chạy test:**
-
-```bash
-make test                    # Chạy tất cả
-make test FILE=tests/core/alternate_spec.lua  # Chạy một file
-```
-
-**Makefile:**
-
-```makefile
-TESTS_DIR := tests
-MINIMAL_INIT := tests/minimal_init.lua
-
-test:
-	nvim --headless -u $(MINIMAL_INIT) \
-		-c "PlenaryBustedDirectory $(TESTS_DIR) { minimal_init = '$(MINIMAL_INIT)' }"
-
-test-file:
-	nvim --headless -u $(MINIMAL_INIT) \
-		-c "PlenaryBustedFile $(FILE) { minimal_init = '$(MINIMAL_INIT)' }"
-
-lint:
-	luacheck lua/ tests/
-
-.PHONY: test test-file lint
-```
-
-**Ví dụ test:**
-
-```lua
--- tests/detectors/rails_spec.lua
-local detector = require("rails-tools.detectors.rails")
-
-describe("rails detector", function()
-  it("detects rails project with Gemfile and bin/rails", function()
-    -- Setup: tạo temp directory với Gemfile và bin/rails
-    -- ...
-    local result = detector.detect()
-    assert.is_true(result.is_rails)
-    assert.is_not_nil(result.root)
-  end)
-
-  it("returns nil for non-rails project", function()
-    local result = detector.detect()
-    assert.is_nil(result)
-  end)
-end)
-```
-
-```lua
--- tests/core/alternate_spec.lua
-local alternate = require("rails-tools.core.alternate")
-
-describe("alternate file", function()
-  it("maps model to spec", function()
-    local result = alternate.get("app/models/user.rb")
-    assert.equals("spec/models/user_spec.rb", result)
-  end)
-
-  it("maps spec to model", function()
-    local result = alternate.get("spec/models/user_spec.rb")
-    assert.equals("app/models/user.rb", result)
-  end)
-
-  it("handles nested namespaces", function()
-    local result = alternate.get("app/models/admin/user.rb")
-    assert.equals("spec/models/admin/user_spec.rb", result)
-  end)
-
-  it("maps controller to request spec", function()
-    local result = alternate.get("app/controllers/users_controller.rb")
-    assert.equals("spec/requests/users_spec.rb", result)
-  end)
-
-  it("returns nil for unknown file", function()
-    local result = alternate.get("README.md")
-    assert.is_nil(result)
-  end)
-
-  it("uses custom mappings with higher priority", function()
-    -- Setup custom mapping
-    local config = require("rails-tools.config")
-    config.setup({
-      alternate = {
-        custom_mappings = {
-          { pattern = "app/forms/(.+)_form.rb$", target = "spec/forms/%1_form_spec.rb" },
-        },
-      },
-    })
-
-    local result = alternate.get("app/forms/registration_form.rb")
-    assert.equals("spec/forms/registration_form_spec.rb", result)
-  end)
-end)
-```
-
----
-
-## 15. CI/CD
-
-```yaml
-# .github/workflows/ci.yml
-name: CI
-
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        neovim-version: ['v0.9.5', 'v0.10.0', 'nightly']
-    steps:
-      - uses: actions/checkout@v4
-      - uses: rhysd/action-setup-vim@v1
-        with:
-          neovim: true
-          version: ${{ matrix.neovim-version }}
-
-      - name: Install plenary.nvim
-        run: |
-          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim \
-            ~/.local/share/nvim/site/pack/test/start/plenary.nvim
-
-      - name: Run tests
-        run: make test
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: JohnnyMorganz/stylua-action@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --check lua/ tests/
-```
-
----
-
-## 16. Plugin Entry Point
-
-```lua
--- lua/rails-tools/init.lua
-
-local M = {}
-
----@param user_config table|nil
-function M.setup(user_config)
-  local config = require("rails-tools.config")
-  config.setup(user_config)
-
-  -- Detect Rails project
-  local detector = require("rails-tools.detectors.rails")
-  if not detector.is_rails() then
-    -- Không phải Rails project, chỉ đăng ký command :Rails để thông báo
-    vim.api.nvim_create_user_command("Rails", function()
-      vim.notify("[rails-tools] Not a Rails project", vim.log.levels.WARN)
-    end, {})
-    return
-  end
-
-  -- Register commands
-  require("rails-tools.commands").setup()
-
-  -- Register keymaps (nếu enabled)
-  if config.get().keymaps.enabled then
-    require("rails-tools.keymaps").setup()
-  end
-
-  -- Register Telescope extension (nếu available)
-  local has_telescope = pcall(require, "telescope")
-  if has_telescope then
-    require("telescope").register_extension({
-      exports = require("rails-tools.telescope").exports,
-    })
-  end
-end
-
-return M
-```
-
----
-
-## 17. Ví dụ lazy.nvim Installation
-
-```lua
--- Minimal
-{
-  "your-username/rails-tools.nvim",
-  dependencies = {
-    "nvim-lua/plenary.nvim",           -- Required (test + async)
-  },
-  ft = "ruby",                          -- Lazy load khi mở file Ruby
-  config = function()
-    require("rails-tools").setup()
-  end,
-}
-
--- Full featured
-{
-  "your-username/rails-tools.nvim",
-  dependencies = {
-    "nvim-lua/plenary.nvim",
-    "nvim-telescope/telescope.nvim",    -- Optional: better picker
-    "akinsho/toggleterm.nvim",          -- Optional: better terminal
-    "folke/which-key.nvim",             -- Optional: keymap hints
-  },
-  ft = "ruby",
-  config = function()
-    require("rails-tools").setup({
-      modules = {
-        rspec = true,
-        grape = true,
-      },
-    })
-  end,
-}
-```
+## Notes
+
+- All modules degrade gracefully if optional dependencies are missing
+- Telescope is optional — falls back to vim.ui.select
+- Toggleterm is optional — falls back to native terminal
+- Phase 2+ modules are disabled by default
+- Uses `vim.tbl_deep_extend("force", defaults, user_config)` for config merge
+- All detectors cache their results for performance
+- Cache is keyed by Rails root path
+- Uses plenary.nvim test harness
+- Minimum Neovim version: 0.9+
