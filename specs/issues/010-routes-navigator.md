@@ -26,7 +26,7 @@ Steps:
 ## Design
 - No wireframe needed
 - Module: `lua/rails-tools/core/routes.lua`
-- Command: `:RailsRoutes`
+- Command: `:Rails routes`
 
 ---
 
@@ -66,4 +66,4 @@ Steps:
 - Uses vim.fn.jobstart for async command
 - Parse output line by line
 - Cache TTL from config (default 300s)
-- Force refresh with `:RailsRoutes!`
+- Force refresh with `:Rails routes!`

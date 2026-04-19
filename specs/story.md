@@ -545,19 +545,22 @@ Grape Endpoints        (nếu modules.grape)
 
 ```lua
 -- Luôn available
-:Rails                    -- Menu trung tâm
-:RailsAlternate           -- Mở alternate file
-:RailsFind {type}         -- Tìm resource (models, controllers, ...)
+:Rails                       -- Menu trung tâm
+:Rails alternate             -- Mở alternate file
+:Rails find {type}           -- Tìm resource (models, controllers, ...)
 
 -- Theo module
-:RailsRoutes              -- Routes navigator (modules.routes)
-:RailsConsole             -- Mở console (modules.console)
-:RailsRunner {code}       -- Chạy code (modules.runner)
-:RailsGenerate {args}     -- Chạy generator (modules.generators)
-:RailsSpecNearest         -- Chạy spec gần nhất (modules.rspec)
-:RailsSpecFile            -- Chạy spec file hiện tại (modules.rspec)
-:RailsSpecLast            -- Chạy lại spec cuối (modules.rspec)
-:RailsGrapeRoutes         -- Grape routes (modules.grape)
+:Rails routes                -- Routes navigator (modules.routes)
+:Rails routes!               -- Force refresh routes cache
+:Rails console               -- Mở console (modules.console)
+:Rails runner {code}         -- Chạy code (modules.runner)
+:Rails runner                -- Chạy code qua prompt
+:Rails generate {args}       -- Chạy generator (modules.generators)
+:Rails spec nearest          -- Chạy spec gần nhất (modules.rspec)
+:Rails spec file             -- Chạy spec file hiện tại (modules.rspec)
+:Rails spec last             -- Chạy lại spec cuối (modules.rspec)
+:Rails grape routes          -- Grape routes (modules.grape)
+:Rails doctor                -- Chẩn đoán project issues
 ```
 
 ---
@@ -567,16 +570,16 @@ Grape Endpoints        (nếu modules.grape)
 ```lua
 -- Prefix: <leader>r
 <leader>rr    :Rails                 -- Menu
-<leader>ra    :RailsAlternate        -- Alternate file
-<leader>rf    :RailsFind             -- Find resource
-<leader>ro    :RailsRoutes           -- Routes
-<leader>rc    :RailsConsole          -- Console
-<leader>rx    :RailsRunner           -- Runner (prompt)
+<leader>ra    :Rails alternate       -- Alternate file
+<leader>rf    :Rails find            -- Find resource
+<leader>ro    :Rails routes          -- Routes
+<leader>rc    :Rails console         -- Console
+<leader>rx    :Rails runner          -- Runner (prompt)
 
 -- Phase 2 (khi module enabled)
-<leader>rs    :RailsSpecNearest      -- Nearest spec
-<leader>rS    :RailsSpecFile         -- Spec file
-<leader>rg    :RailsGenerate         -- Generator
+<leader>rs    :Rails spec nearest    -- Nearest spec
+<leader>rS    :Rails spec file       -- Spec file
+<leader>rg    :Rails generate        -- Generator
 ```
 
 ---

@@ -43,7 +43,14 @@ describe("test framework detector", function()
       assert.is_nil(detector.detect(tmp_dir))
     end)
 
-    it("returns rspec when both directories exist and Gemfile includes rspec-rails", function()
+    it("returns both when both spec and test directories exist", function()
+      create_dir("spec")
+      create_dir("test")
+
+      assert.equals("both", detector.detect(tmp_dir))
+    end)
+
+    it("returns both when both directories exist regardless of Gemfile", function()
       create_dir("spec")
       create_dir("test")
       create_file("Gemfile", {
@@ -52,25 +59,7 @@ describe("test framework detector", function()
         "gem 'rspec-rails'",
       })
 
-      assert.equals("rspec", detector.detect(tmp_dir))
-    end)
-
-    it("returns minitest when both directories exist and Gemfile does not include rspec-rails", function()
-      create_dir("spec")
-      create_dir("test")
-      create_file("Gemfile", {
-        "source 'https://rubygems.org'",
-        "gem 'rails'",
-      })
-
-      assert.equals("minitest", detector.detect(tmp_dir))
-    end)
-
-    it("returns minitest when both directories exist and Gemfile is missing", function()
-      create_dir("spec")
-      create_dir("test")
-
-      assert.equals("minitest", detector.detect(tmp_dir))
+      assert.equals("both", detector.detect(tmp_dir))
     end)
 
     it("detects from a nested directory by traversing up to the project root", function()
@@ -94,6 +83,60 @@ describe("test framework detector", function()
 
       create_dir("spec")
       assert.is_nil(detector.detect(tmp_dir))
+    end)
+  end)
+
+  describe("has_both()", function()
+    it("returns true when both frameworks exist", function()
+      create_dir("spec")
+      create_dir("test")
+
+      assert.is_true(detector.has_both(tmp_dir))
+    end)
+
+    it("returns false when only spec exists", function()
+      create_dir("spec")
+
+      assert.is_false(detector.has_both(tmp_dir))
+    end)
+
+    it("returns false when only test exists", function()
+      create_dir("test")
+
+      assert.is_false(detector.has_both(tmp_dir))
+    end)
+
+    it("returns false when neither exists", function()
+      assert.is_false(detector.has_both(tmp_dir))
+    end)
+  end)
+
+  describe("available_frameworks()", function()
+    it("returns both rspec and minitest when both directories exist", function()
+      create_dir("spec")
+      create_dir("test")
+
+      local frameworks = detector.available_frameworks(tmp_dir)
+      assert.are.same({ "rspec", "minitest" }, frameworks)
+    end)
+
+    it("returns only rspec when only spec exists", function()
+      create_dir("spec")
+
+      local frameworks = detector.available_frameworks(tmp_dir)
+      assert.are.same({ "rspec" }, frameworks)
+    end)
+
+    it("returns only minitest when only test exists", function()
+      create_dir("test")
+
+      local frameworks = detector.available_frameworks(tmp_dir)
+      assert.are.same({ "minitest" }, frameworks)
+    end)
+
+    it("returns empty table when neither exists", function()
+      local frameworks = detector.available_frameworks(tmp_dir)
+      assert.are.same({}, frameworks)
     end)
   end)
 

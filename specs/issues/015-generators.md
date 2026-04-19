@@ -22,7 +22,7 @@ Steps:
 ## Design
 - No wireframe needed
 - Module: `lua/rails-tools/core/generators.lua`
-- Command: `:RailsGenerate {args}`
+- Command: `:Rails generate {args}`
 - Keymap: `<leader>rg`
 
 ---

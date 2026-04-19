@@ -23,7 +23,7 @@ Steps:
 ## Design
 - No wireframe needed
 - Module: `lua/rails-tools/integrations/rspec.lua`
-- Commands: `:RailsSpecNearest`, `:RailsSpecFile`, `:RailsSpecLast`
+- Commands: `:Rails spec nearest`, `:Rails spec file`, `:Rails spec last`
 - Keymaps: `<leader>rs`, `<leader>rS`
 
 ---
