@@ -47,13 +47,13 @@ local function find_project_dir(start_dir)
 end
 
 ---@param dir string
----@return "rspec"|"minitest"|nil
+---@return "rspec"|"minitest"|"both"|nil
 local function detect_in_dir(dir)
   local has_spec = vim.fn.isdirectory(dir .. "/spec") == 1
   local has_test = vim.fn.isdirectory(dir .. "/test") == 1
 
   if has_spec and has_test then
-    return has_rspec_rails_gem(dir) and "rspec" or "minitest"
+    return "both"
   end
 
   if has_spec then
@@ -68,7 +68,7 @@ local function detect_in_dir(dir)
 end
 
 ---@param cwd? string
----@return "rspec"|"minitest"|nil
+---@return "rspec"|"minitest"|"both"|nil
 function M.detect(cwd)
   local start_dir = cwd or vim.fn.getcwd()
   if cache[start_dir] ~= nil then
@@ -95,6 +95,26 @@ end
 ---@return boolean
 function M.is_minitest(cwd)
   return M.detect(cwd) == "minitest"
+end
+
+---@param cwd? string
+---@return boolean
+function M.has_both(cwd)
+  return M.detect(cwd) == "both"
+end
+
+---@return string[]
+function M.available_frameworks(cwd)
+  local detected = M.detect(cwd)
+  if detected == "both" then
+    return { "rspec", "minitest" }
+  elseif detected == "rspec" then
+    return { "rspec" }
+  elseif detected == "minitest" then
+    return { "minitest" }
+  else
+    return {}
+  end
 end
 
 return M
