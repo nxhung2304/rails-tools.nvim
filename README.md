@@ -2,6 +2,32 @@
 
 A Neovim plugin for Ruby on Rails development. Zero-config, discoverable, context-aware.
 
+## Status
+
+🚧 **Under active development.** Everything from [Installation](#installation)
+onward describes the **target** feature set — see
+[specs/story.md](specs/story.md) for the full tracker and
+[specs/issues/](specs/issues/) for per-feature specs.
+
+**Implemented:**
+- [x] Rails project detection
+- [x] RSpec/Minitest detection
+- [x] Alternate file navigation (app ↔ spec)
+
+**Not implemented yet** (README below documents the plan, not current behavior):
+- [ ] Plugin entry point — `init.lua`, `setup()`, `plugin/`, the `:Rails` command
+- [ ] Configuration system (`config.lua` exists but isn't wired up as the
+      single source of truth yet — `core/alternate.lua` still hardcodes its
+      own copy of the mapping table)
+- [ ] Terminal abstraction, health check
+- [ ] Resource finder, Telescope pickers, central menu, keymaps
+- [ ] Routes navigator, console, runner
+- [ ] RSpec runner, generators, Grape support (Phase 2)
+- [ ] Schema inspector — table structure display, hover/`nvim-cmp`
+      completion/go-to-definition for ActiveRecord attributes, log viewer,
+      Rails doctor (Phase 3 — see
+      [021-schema-inspector.md](specs/issues/021-schema-inspector.md))
+
 ## Requirements
 
 - Neovim 0.9+
