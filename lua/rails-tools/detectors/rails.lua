@@ -50,9 +50,10 @@ function M.detect(cwd)
   return nil
 end
 
+---@param cwd? string
 ---@return string|nil
-function M.root()
-  local result = M.detect()
+function M.root(cwd)
+  local result = M.detect(cwd)
   return result and result.root or nil
 end
 

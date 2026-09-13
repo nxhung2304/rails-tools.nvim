@@ -17,6 +17,7 @@ function M.setup(opts)
   config.setup(opts)
   commands.setup()
 
+  require("rails-tools.core.schema").setup()
   require("rails-tools.integrations.lsp").setup()
   require("rails-tools.integrations.cmp").setup()
 end

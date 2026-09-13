@@ -102,8 +102,15 @@ function M.setup()
       if filetype ~= "ruby" and filetype ~= "eruby" then
         return
       end
-      attach_hover(args.buf)
-      attach_goto_definition(args.buf)
+      -- Neovim fires `LspAttach` before running the client config's own
+      -- `on_attach` (see Client:on_attach in $VIMRUNTIME/lua/vim/lsp/client.lua),
+      -- so a host that also sets `K`/`gd` in `on_attach` would clobber these
+      -- right after this callback returns. Deferring to the next tick makes
+      -- ours the last write, regardless of registration order.
+      vim.schedule(function()
+        attach_hover(args.buf)
+        attach_goto_definition(args.buf)
+      end)
     end,
   })
 end

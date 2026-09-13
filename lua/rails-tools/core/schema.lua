@@ -152,4 +152,20 @@ function M.invalidate(root)
   end
 end
 
+---Invalidate the resolved-schema cache whenever a model file or
+---`db/schema.rb` is saved, so `gd`/hover/completion never serve data for
+---columns or annotate blocks that no longer exist on disk.
+function M.setup()
+  vim.api.nvim_create_autocmd("BufWritePost", {
+    group = vim.api.nvim_create_augroup("rails_tools_schema_cache", { clear = true }),
+    pattern = "*.rb",
+    callback = function(args)
+      if not (args.file:match("app/models/.+%.rb$") or args.file:match("db/schema%.rb$")) then
+        return
+      end
+      M.invalidate(rails.root(vim.fn.fnamemodify(args.file, ":p:h")))
+    end,
+  })
+end
+
 return M
