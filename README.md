@@ -88,57 +88,54 @@ Opens an interactive menu showing all available actions for the current file con
 
 ### Commands
 
-| Command | Description |
-|---------|-------------|
-| `:Rails` | Open central menu |
-| `:Rails alternate` | Toggle between implementation and spec file |
-| `:Rails find {type}` | Find resources (`models`, `controllers`, `views`, `specs`, …) |
-| `:Rails routes` | Browse and navigate routes |
-| `:Rails routes!` | Force refresh routes cache |
-| `:Rails console` | Open Rails console |
-| `:Rails runner {code}` | Run a Ruby snippet via `rails runner` |
-| `:Rails runner` | Open prompt to enter code |
-| `:Rails generate {args}` | Run a Rails generator |
-| `:Rails spec nearest` | Run the spec nearest to cursor |
-| `:Rails spec file` | Run the current spec file |
-| `:Rails spec last` | Re-run the last spec |
-| `:Rails grape routes` | Browse Grape API endpoints |
-| `:Rails doctor` | Diagnose project issues |
+None of these are wired up yet — there is no `plugin/`, `init.lua`, or
+`commands.lua` registering `:Rails` (see [Status](#status)).
+
+- [ ] `:Rails` — Open central menu
+- [ ] `:Rails alternate` — Toggle between implementation and spec file
+      (the underlying logic exists in `core/alternate.lua`, just not exposed
+      as a command)
+- [ ] `:Rails find {type}` — Find resources (`models`, `controllers`,
+      `views`, `specs`, …)
+- [ ] `:Rails routes` — Browse and navigate routes
+- [ ] `:Rails routes!` — Force refresh routes cache
+- [ ] `:Rails console` — Open Rails console
+- [ ] `:Rails runner {code}` — Run a Ruby snippet via `rails runner`
+- [ ] `:Rails runner` — Open prompt to enter code
+- [ ] `:Rails generate {args}` — Run a Rails generator
+- [ ] `:Rails spec nearest` — Run the spec nearest to cursor
+- [ ] `:Rails spec file` — Run the current spec file
+- [ ] `:Rails spec last` — Re-run the last spec
+- [ ] `:Rails grape routes` — Browse Grape API endpoints
+- [ ] `:Rails doctor` — Diagnose project issues
 
 ### Keymaps
 
-Default prefix: `<leader>r`
+Default prefix: `<leader>r` — not implemented, no `keymaps.lua` exists yet.
 
-| Keymap | Action |
-|--------|--------|
-| `<leader>rr` | `:Rails` — Open menu |
-| `<leader>ra` | `:Rails alternate` |
-| `<leader>rf` | `:Rails find` |
-| `<leader>ro` | `:Rails routes` |
-| `<leader>rc` | `:Rails console` |
-| `<leader>rx` | `:Rails runner` (prompt) |
-| `<leader>rs` | `:Rails spec nearest` _(requires `modules.rspec = true`)_ |
-| `<leader>rS` | `:Rails spec file` _(requires `modules.rspec = true`)_ |
-| `<leader>rg` | `:Rails generate` _(requires `modules.generators = true`)_ |
+- [ ] `<leader>rr` — `:Rails` (open menu)
+- [ ] `<leader>ra` — `:Rails alternate`
+- [ ] `<leader>rf` — `:Rails find`
+- [ ] `<leader>ro` — `:Rails routes`
+- [ ] `<leader>rc` — `:Rails console`
+- [ ] `<leader>rx` — `:Rails runner` (prompt)
+- [ ] `<leader>rs` — `:Rails spec nearest` _(requires `modules.rspec = true`)_
+- [ ] `<leader>rS` — `:Rails spec file` _(requires `modules.rspec = true`)_
+- [ ] `<leader>rg` — `:Rails generate` _(requires `modules.generators = true`)_
 
 ### Telescope Integration
 
-When telescope.nvim is installed, all pickers automatically use Telescope:
+Not implemented yet — no `telescope/init.lua` extension exists.
 
-```vim
-:Telescope rails models
-:Telescope rails controllers
-:Telescope rails routes
-:Telescope rails specs
-```
-
-Falls back to `vim.ui.select` when Telescope is not available.
+- [ ] `:Telescope rails models`
+- [ ] `:Telescope rails controllers`
+- [ ] `:Telescope rails routes`
+- [ ] `:Telescope rails specs`
+- [ ] Falls back to `vim.ui.select` when Telescope is not available
 
 ### Health Check
 
-```vim
-:checkhealth rails-tools
-```
+- [ ] `:checkhealth rails-tools` — no `health.lua` module exists yet
 
 ## License
 
