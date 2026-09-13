@@ -1,19 +1,25 @@
 ## **Status:**
-- Review: Todo
+- Review: Approved
 - PR: Todo
 
 ## Metadata
 - **Title:** Schema Inspector
 - **Phase:** Phase 3 — Polish v0.8
-- **GitHub Issue:** #19
+- **GitHub Issue:** #28
 
 ---
 
 ## Description
-Implement schema inspector to view database table structures, and use that
-same schema data to power ActiveRecord-attribute-aware editor features:
-hover documentation, `nvim-cmp` completion, and go-to-definition — since
-none of those are real Ruby methods an LSP can see.
+Implement the schema data layer and use it to power ActiveRecord-attribute-
+aware editor features: hover documentation, `nvim-cmp` completion, and
+go-to-definition — since none of those are real Ruby methods an LSP can see.
+
+> Table-structure browsing (a `:Rails schema {table}` command + Telescope
+> picker) is a separate, independent feature built on top of this same
+> parser. It is **not** required for hover/completion/gd to work and has
+> been split out to
+> [028-schema-display.md](028-schema-display.md) so this issue can ship
+> without waiting on command/UI/Telescope work.
 
 Steps:
 - Parse `db/schema.rb` as the canonical, always-up-to-date source of
@@ -25,7 +31,6 @@ Steps:
   an annotate block for a column, **prefer jumping to that comment line**
   over `db/schema.rb` (annotate lives right next to the code the dev is
   reading; `db/schema.rb` is the fallback when annotate is absent/stale)
-- Display table structures (columns, types, indexes)
 - Expose the parsed data to:
   - Hover (`K`) on `receiver.column` or a bare `column` inside the owning
     model — show type/constraints instead of LSP's "No information available"
@@ -41,8 +46,11 @@ Steps:
 - No wireframe needed
 - Module: `lua/rails-tools/core/schema.lua` — parsing + cache, returns per
   table: `{ columns = { name = { type, signature, indexes } }, source }`
+- Module: `lua/rails-tools/core/annotate.lua` — parses one model file's
+  annotate comment block into `{ table_name, columns = { name = {
+  signature, lnum, col } } }`
 - Module: `lua/rails-tools/core/model_context.lua` — receiver → model
-  inference shared by hover/cmp/gd:
+  inference shared by hover/cmp/gd (done — see Implementation Checklist):
   - `self` / bare identifier (no receiver) → model of the current buffer
     (only valid inside `app/models/**/*.rb`)
   - `<var>.column` → camelize/singularize `<var>`, match against known
@@ -54,7 +62,6 @@ Steps:
 - Integration: hover and `gd` are wired in the existing LSP `on_attach`
   path, buffer-local for `ruby`/`eruby`, falling back to
   `vim.lsp.buf.hover()` / `vim.lsp.buf.definition()` when no schema match
-- Command: `:Rails schema {table}` — display a single table's structure
 - Config: `modules.schema` (default `true` — this is core Rails ergonomics,
   not an optional integration like rspec/grape)
 
@@ -64,10 +71,9 @@ Steps:
 - [ ] Parses `db/schema.rb` (columns, types, indexes) as the primary source
 - [ ] Parses `annotate` schema comment blocks in `app/models/**/*.rb`
       (column signatures + `# Table name:` → model/table mapping)
-- [ ] `:Rails schema {table}` displays table structure
-- [ ] Shows column names and types
-- [ ] Shows indexes
-- [ ] Integrates with Telescope (`:Telescope rails schema`)
+- [x] Model inference handles: `self`, bare identifier (current buffer's
+      own model only), `snake_case_var`, simple pluralization
+      (`users` → `User`)
 - [ ] Hover (`K`) on `receiver.column` / bare `column` inside its own model
       shows the column's type + full signature (default/null/etc.), not
       "No information available"
@@ -82,9 +88,6 @@ Steps:
       implicit (`id`, `created_at`, `updated_at`)
 - [ ] `gd`/hover fall back to `vim.lsp.buf.definition()` /
       `vim.lsp.buf.hover()` for anything that isn't a recognized column
-- [ ] Model inference handles: `self`, bare identifier (current buffer's
-      own model only), `snake_case_var`, simple pluralization
-      (`users` → `User`)
 
 ---
 
@@ -92,26 +95,23 @@ Steps:
 - [ ] Create `lua/rails-tools/core/schema.lua` (db/schema.rb parser)
 - [ ] Create `lua/rails-tools/core/annotate.lua` (annotate block parser:
       signatures + table name + comment line location, per model)
-- [ ] Create `lua/rails-tools/core/model_context.lua` (receiver → model
+- [x] Create `lua/rails-tools/core/model_context.lua` (receiver → model
       inference, reused by hover/cmp/gd)
 - [ ] Integrate with `lua/rails-tools/cache.lua` for schema + annotate
       caching (TTL, keyed by Rails root, invalidate on `db/schema.rb` /
-      model file write)
-- [ ] Implement table display + `:Rails schema {table}` command
-- [ ] Integrate with Telescope picker
+      model file write) — `cache.lua` does not exist yet, create it here
 - [ ] Create `lua/rails-tools/integrations/cmp.lua` (`rails_schema` source)
 - [ ] Wire hover (`K`) override into the ruby/eruby `on_attach`
 - [ ] Wire go-to-definition (`gd`) override into the ruby/eruby `on_attach`
 - [ ] Create `tests/core/schema_spec.lua`
 - [ ] Create `tests/core/annotate_spec.lua`
-- [ ] Create `tests/core/model_context_spec.lua`
+- [x] Create `tests/core/model_context_spec.lua`
 - [ ] Test schema.rb parsing
 - [ ] Test annotate block parsing (signature + table name + line location)
-- [ ] Test model inference (self, bare word, var name, pluralization,
+- [x] Test model inference (self, bare word, var name, pluralization,
       unresolvable → current-buffer-model-only, never project-wide)
 - [ ] Test cmp completion scoping (no cross-model leakage)
 - [ ] Test gd priority order (annotate → schema.rb column → create_table)
-- [ ] Test display functionality
 
 ---
 
@@ -126,3 +126,5 @@ Steps:
   current buffer's own model — this was a real bug during prototyping:
   treating every bare word as "show every model with a matching column"
   caused false positives outside model files
+- Table-structure display + `:Rails schema` command + Telescope picker:
+  see [028-schema-display.md](028-schema-display.md)
