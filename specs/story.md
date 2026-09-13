@@ -103,12 +103,14 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Create tests for terminal module
 - [ ] Test each provider and direction
 
-### L1-Entry. Plugin Entry Points
-- [ ] Create `lua/rails-tools/init.lua` - Entry point with setup()
-- [ ] Create `lua/rails-tools/commands.lua` - Command dispatcher
-- [ ] Create `lua/rails-tools/utils.lua` - Shared utilities
-- [ ] Create `lua/rails-tools/cache.lua` - Shared cache (needed by Routes, Schema)
-- [ ] Create `plugin/rails-tools.lua` - Lazy-load registration
+### L1-Entry. Plugin Entry Points (029-plugin-entry-point.md)
+- [x] Create `lua/rails-tools/init.lua` - Entry point with setup()
+- [x] Create `lua/rails-tools/commands.lua` - Command dispatcher
+- [x] Create `lua/rails-tools/utils.lua` - Shared utilities
+- [x] Create `lua/rails-tools/cache.lua` - Shared cache (built ahead of
+      schedule as part of 021-schema-inspector.md, since schema.lua needed
+      it and it didn't exist yet)
+- [x] Create `plugin/rails-tools.lua` - Lazy-load registration
 - [x] Create Makefile with test, lint targets
 - [x] Setup plenary.nvim test harness
 

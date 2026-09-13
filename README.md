@@ -13,12 +13,11 @@ onward describes the **target** feature set — see
 - [x] Rails project detection
 - [x] RSpec/Minitest detection
 - [x] Alternate file navigation (app ↔ spec)
+- [x] Plugin entry point — `init.lua`, `setup()`, `plugin/`, the `:Rails alternate` command
+- [x] Configuration system (`config.lua` is the single source of truth for
+      alternate mappings; `core/alternate.lua` reads from it)
 
 **Not implemented yet** (README below documents the plan, not current behavior):
-- [ ] Plugin entry point — `init.lua`, `setup()`, `plugin/`, the `:Rails` command
-- [ ] Configuration system (`config.lua` exists but isn't wired up as the
-      single source of truth yet — `core/alternate.lua` still hardcodes its
-      own copy of the mapping table)
 - [ ] Terminal abstraction, health check
 - [ ] Resource finder, Telescope pickers, central menu, keymaps
 - [ ] Routes navigator, console, runner
@@ -88,13 +87,12 @@ Opens an interactive menu showing all available actions for the current file con
 
 ### Commands
 
-None of these are wired up yet — there is no `plugin/`, `init.lua`, or
-`commands.lua` registering `:Rails` (see [Status](#status)).
+`:Rails` is wired up with a subcommand dispatch table; only `alternate` is
+registered so far, the rest are still `010-menu.md`+ scope (see
+[Status](#status)).
 
-- [ ] `:Rails` — Open central menu
-- [ ] `:Rails alternate` — Toggle between implementation and spec file
-      (the underlying logic exists in `core/alternate.lua`, just not exposed
-      as a command)
+- [ ] `:Rails` — Open central menu (currently a no-op with no subcommand)
+- [x] `:Rails alternate` — Toggle between implementation and spec file
 - [ ] `:Rails find {type}` — Find resources (`models`, `controllers`,
       `views`, `specs`, …)
 - [ ] `:Rails routes` — Browse and navigate routes
