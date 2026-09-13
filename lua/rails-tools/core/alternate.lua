@@ -1,6 +1,7 @@
 local M = {}
 local uv = vim.loop
 local framework_detector = require("rails-tools.detectors.test_framework")
+local config = require("rails-tools.config")
 
 ---@return boolean
 local function has_telescope()
@@ -22,52 +23,11 @@ local function relpath(filepath)
   return filepath
 end
 
----@param framework string
----@return table[]
-local function get_mappings_for(framework)
-  if framework == "rspec" then
-    return {
-      { from = [[^app/models/(.+)%.rb$]], to = "spec/models/%1_spec.rb" },
-      { from = [[^app/controllers/(.+)_controller%.rb$]], to = "spec/requests/%1_spec.rb" },
-      { from = [[^app/services/(.+)%.rb$]], to = "spec/services/%1_spec.rb" },
-      { from = [[^app/policies/(.+)%.rb$]], to = "spec/policies/%1_spec.rb" },
-      { from = [[^app/jobs/(.+)%.rb$]], to = "spec/jobs/%1_spec.rb" },
-      { from = [[^app/mailers/(.+)%.rb$]], to = "spec/mailers/%1_spec.rb" },
-      { from = [[^app/serializers/(.+)%.rb$]], to = "spec/serializers/%1_spec.rb" },
-      { from = [[^spec/models/(.+)_spec%.rb$]], to = "app/models/%1.rb" },
-      { from = [[^spec/requests/(.+)_spec%.rb$]], to = "app/controllers/%1_controller.rb" },
-      { from = [[^spec/services/(.+)_spec%.rb$]], to = "app/services/%1.rb" },
-      { from = [[^spec/policies/(.+)_spec%.rb$]], to = "app/policies/%1.rb" },
-      { from = [[^spec/jobs/(.+)_spec%.rb$]], to = "app/jobs/%1.rb" },
-      { from = [[^spec/mailers/(.+)_spec%.rb$]], to = "app/mailers/%1.rb" },
-      { from = [[^spec/serializers/(.+)_spec%.rb$]], to = "app/serializers/%1.rb" },
-    }
-  elseif framework == "minitest" then
-    return {
-      { from = [[^app/models/(.+)%.rb$]], to = "test/models/%1_test.rb" },
-      { from = [[^app/controllers/(.+)_controller%.rb$]], to = "test/controllers/%1_controller_test.rb" },
-      { from = [[^app/services/(.+)%.rb$]], to = "test/services/%1_test.rb" },
-      { from = [[^app/policies/(.+)%.rb$]], to = "test/policies/%1_test.rb" },
-      { from = [[^app/jobs/(.+)%.rb$]], to = "test/jobs/%1_test.rb" },
-      { from = [[^app/mailers/(.+)%.rb$]], to = "test/mailers/%1_test.rb" },
-      { from = [[^app/serializers/(.+)%.rb$]], to = "test/serializers/%1_test.rb" },
-      { from = [[^test/models/(.+)_test%.rb$]], to = "app/models/%1.rb" },
-      { from = [[^test/controllers/(.+)_controller_test%.rb$]], to = "app/controllers/%1_controller.rb" },
-      { from = [[^test/services/(.+)_test%.rb$]], to = "app/services/%1.rb" },
-      { from = [[^test/policies/(.+)_test%.rb$]], to = "app/policies/%1.rb" },
-      { from = [[^test/jobs/(.+)_test%.rb$]], to = "app/jobs/%1.rb" },
-      { from = [[^test/mailers/(.+)_test%.rb$]], to = "app/mailers/%1.rb" },
-      { from = [[^test/serializers/(.+)_test%.rb$]], to = "app/serializers/%1.rb" },
-    }
-  end
-  return {}
-end
-
 ---@param framework string|nil
 ---@return string|nil alternate_path
 local function find_alternate(filepath, framework)
   local path = relpath(filepath)
-  local maps = get_mappings_for(framework or "rspec")
+  local maps = config.alternate_mappings(framework or "rspec")
 
   for _, m in ipairs(maps) do
     local from = m.from
@@ -125,7 +85,7 @@ local function open_target(choices)
   if has_telescope() then
     local pickers = require("telescope.pickers")
     local finders = require("telescope.finders")
-    local config = require("telescope.config").values
+    local telescope_config = require("telescope.config").values
     local actions = require("telescope.actions")
     local action_state = require("telescope.actions.state")
 
@@ -141,7 +101,7 @@ local function open_target(choices)
           }
         end,
       }),
-      sorter = config.generic_sorter(),
+      sorter = telescope_config.generic_sorter(),
       attach_mappings = function(prompt_bufnr, map)
         actions.select_default:replace(function()
           local selection = action_state.get_selected_entry()
