@@ -68,63 +68,86 @@ Steps:
 ---
 
 ## Acceptance Criteria
-- [ ] Parses `db/schema.rb` (columns, types, indexes) as the primary source
-- [ ] Parses `annotate` schema comment blocks in `app/models/**/*.rb`
+- [x] Parses `db/schema.rb` (columns, types, indexes) as the primary source
+- [x] Parses `annotate` schema comment blocks in `app/models/**/*.rb`
       (column signatures + `# Table name:` → model/table mapping)
 - [x] Model inference handles: `self`, bare identifier (current buffer's
       own model only), `snake_case_var`, simple pluralization
       (`users` → `User`)
-- [ ] Hover (`K`) on `receiver.column` / bare `column` inside its own model
+- [x] Hover (`K`) on `receiver.column` / bare `column` inside its own model
       shows the column's type + full signature (default/null/etc.), not
       "No information available"
-- [ ] Hover falls back to normal LSP hover when the identifier isn't a
+- [x] Hover falls back to normal LSP hover when the identifier isn't a
       known column for the resolved model
-- [ ] `nvim-cmp` source completes column names after `receiver.`, scoped to
+- [x] `nvim-cmp` source completes column names after `receiver.`, scoped to
       the model inferred from `receiver` — never lists columns from
       unrelated models that happen to share the same column name
-- [ ] `gd` on a column jumps to, in priority order: (1) the annotate
+- [x] `gd` on a column jumps to, in priority order: (1) the annotate
       comment line in the owning model file, (2) the matching line in
       `db/schema.rb`, (3) the `create_table` line if the column is
       implicit (`id`, `created_at`, `updated_at`)
-- [ ] `gd`/hover fall back to `vim.lsp.buf.definition()` /
+- [x] `gd`/hover fall back to `vim.lsp.buf.definition()` /
       `vim.lsp.buf.hover()` for anything that isn't a recognized column
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/core/schema.lua` (db/schema.rb parser)
-- [ ] Create `lua/rails-tools/core/annotate.lua` (annotate block parser:
+- [x] Create `lua/rails-tools/core/schema.lua` (db/schema.rb parser +
+      cached, annotate-merged `resolve()`)
+- [x] Create `lua/rails-tools/core/annotate.lua` (annotate block parser:
       signatures + table name + comment line location, per model)
 - [x] Create `lua/rails-tools/core/model_context.lua` (receiver → model
       inference, reused by hover/cmp/gd)
-- [ ] Integrate with `lua/rails-tools/cache.lua` for schema + annotate
-      caching (TTL, keyed by Rails root, invalidate on `db/schema.rb` /
-      model file write) — `cache.lua` does not exist yet, create it here
-- [ ] Create `lua/rails-tools/integrations/cmp.lua` (`rails_schema` source)
-- [ ] Wire hover (`K`) override into the ruby/eruby `on_attach`
-- [ ] Wire go-to-definition (`gd`) override into the ruby/eruby `on_attach`
-- [ ] Create `tests/core/schema_spec.lua`
-- [ ] Create `tests/core/annotate_spec.lua`
+- [x] Create `lua/rails-tools/cache.lua` (generic TTL cache; did not exist
+      before this issue) and integrate it into `core/schema.lua`'s
+      `resolve()`/`invalidate()`
+- [x] Create `lua/rails-tools/integrations/cmp.lua` (`rails_schema` source)
+- [x] Create `lua/rails-tools/integrations/context.lua` (cursor →
+      receiver/word parsing, shared by hover and `gd`)
+- [x] Create `lua/rails-tools/integrations/lsp.lua` — `hover_lines()` /
+      `definition_location()` (the actual logic, root/model injectable for
+      testing) plus `setup()`, which wires `K`/`gd` via a native
+      `LspAttach` autocmd for ruby/eruby buffers (not the user's own
+      lspconfig `on_attach` — keeps this zero-config/portable)
+- [ ] Call `integrations/lsp.lua`'s and `integrations/cmp.lua`'s `setup()`
+      from the plugin entry point once it exists (blocked on `init.lua` /
+      `plugin/rails-tools.lua` — see `001-config-system.md`); until then
+      an early adopter can call both manually
+- [x] Create `tests/core/schema_spec.lua`
+- [x] Create `tests/core/annotate_spec.lua`
 - [x] Create `tests/core/model_context_spec.lua`
-- [ ] Test schema.rb parsing
-- [ ] Test annotate block parsing (signature + table name + line location)
+- [x] Create `tests/integrations/context_spec.lua`
+- [x] Create `tests/integrations/lsp_spec.lua`
+- [x] Test schema.rb parsing
+- [x] Test annotate block parsing (signature + table name + line location)
 - [x] Test model inference (self, bare word, var name, pluralization,
       unresolvable → current-buffer-model-only, never project-wide)
-- [ ] Test cmp completion scoping (no cross-model leakage)
-- [ ] Test gd priority order (annotate → schema.rb column → create_table)
+- [x] Test cmp completion scoping (no cross-model leakage) — covered at
+      the `hover_lines`/`definition_location` layer both cmp and hover/gd
+      share; a dedicated `cmp`-source-level test would need to mock
+      `nvim-cmp`'s callback, not just this layer
+- [x] Test gd priority order (annotate → schema.rb column → create_table)
 
 ---
 
 ## Notes
 - Caches schema and annotate parsing for performance (TTL, keyed by Rails
-  root; `test-app/` fixture should include an annotated model and a
-  non-annotated one to cover both paths)
+  root via `cache.lua`; invalidate with `schema.invalidate(root)`)
 - Supports both schema.rb and migrations as documented sources for the
   underlying table data, but annotate comments (when present) win for
   the actual jump target since they sit next to the code being read
 - Bare-identifier (no receiver) lookups must **only** resolve against the
   current buffer's own model — this was a real bug during prototyping:
   treating every bare word as "show every model with a matching column"
-  caused false positives outside model files
+  caused false positives outside model files. Covered by
+  `lsp_spec.lua`'s "cross-model column name collisions" tests.
+- `model_context.infer_model` returns `nil` outright for a `nil` receiver
+  (by design — see its own tests); `integrations/lsp.lua`'s
+  `resolve_column()` handles the bare-identifier case itself by using the
+  current buffer's model directly instead of going through `infer_model`
+- A model with no annotate block at all has no known table name (we don't
+  attempt a full pluralization inverse of `singularize`), so it gets no
+  `db/schema.rb` data merged in — its `known_models` entry still exists
+  (for `model_context` purposes) but its `columns` table is empty
 - Table-structure display + `:Rails schema` command + Telescope picker:
   see [028-schema-display.md](028-schema-display.md)
