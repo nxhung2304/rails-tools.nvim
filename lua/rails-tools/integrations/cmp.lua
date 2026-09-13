@@ -67,15 +67,23 @@ function source:complete(params, callback)
   callback({ items = items, isIncomplete = false })
 end
 
+local registered = false
+
 ---Register the `rails_schema` nvim-cmp source. No-ops (returns false)
----when nvim-cmp isn't installed.
+---when nvim-cmp isn't installed. Safe to call more than once: only
+---registers the source once, since `cmp.register_source` adds a new
+---source instance on every call instead of replacing the previous one.
 ---@return boolean registered
 function M.setup()
+  if registered then
+    return true
+  end
   local ok, cmp = pcall(require, "cmp")
   if not ok then
     return false
   end
   cmp.register_source("rails_schema", source.new())
+  registered = true
   return true
 end
 

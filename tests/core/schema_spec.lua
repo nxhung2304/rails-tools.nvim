@@ -206,3 +206,62 @@ describe("schema.resolve", function()
     assert.is_true(resolved.known_models.Order)
   end)
 end)
+
+describe("schema.setup", function()
+  local tmp_dir
+
+  before_each(function()
+    tmp_dir = vim.fn.tempname()
+    vim.fn.mkdir(tmp_dir .. "/app/models", "p")
+    vim.fn.mkdir(tmp_dir .. "/db", "p")
+    vim.fn.writefile({ "" }, tmp_dir .. "/Gemfile")
+    vim.fn.mkdir(tmp_dir .. "/bin", "p")
+    vim.fn.writefile({ "" }, tmp_dir .. "/bin/rails")
+    schema.setup()
+  end)
+
+  after_each(function()
+    vim.cmd("silent! bwipeout!")
+    schema.invalidate(tmp_dir)
+    vim.fn.delete(tmp_dir, "rf")
+  end)
+
+  it("invalidates the resolved cache when a saved model file drops its annotate block", function()
+    local model_path = tmp_dir .. "/app/models/user.rb"
+    vim.fn.writefile({
+      "# == Schema Information",
+      "#",
+      "# Table name: users",
+      "#",
+      "#  email  :string not null",
+      "#",
+      "class User < ApplicationRecord",
+      "end",
+    }, model_path)
+
+    local before = schema.resolve(tmp_dir)
+    assert.is_not_nil(before.models.User.columns.email)
+
+    vim.cmd("edit " .. model_path)
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "class User < ApplicationRecord", "end" })
+    vim.cmd("write")
+
+    local after = schema.resolve(tmp_dir)
+    assert.is_nil(after.models.User.columns.email)
+  end)
+
+  it("does not invalidate for a .rb file outside app/models or db/schema.rb", function()
+    vim.fn.mkdir(tmp_dir .. "/app/services", "p")
+    local other_path = tmp_dir .. "/app/services/user_service.rb"
+    vim.fn.writefile({ "class UserService", "end" }, other_path)
+
+    local before = schema.resolve(tmp_dir)
+
+    vim.cmd("edit " .. other_path)
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "class UserService", "def call; end", "end" })
+    vim.cmd("write")
+
+    local after = schema.resolve(tmp_dir)
+    assert.are.equal(before, after)
+  end)
+end)

@@ -114,6 +114,12 @@ describe("rails detector", function()
       vim.cmd("cd " .. tmp_dir)
       assert.is_nil(rails.root())
     end)
+
+    it("accepts an explicit cwd, independent of the process cwd", function()
+      create_file("Gemfile")
+      create_file("bin/rails")
+      assert.equals(vim.fn.resolve(tmp_dir), vim.fn.resolve(rails.root(tmp_dir)))
+    end)
   end)
 
   describe("is_rails()", function()
