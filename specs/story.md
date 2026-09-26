@@ -36,7 +36,8 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 2 - Detection | 4 tasks | 2 | 50% |
 | Layer 3 - Core Features | 8 tasks | 1 | 13% |
 | Layer 4 - Enhanced | 6 tasks | 0 | 0% |
-| Layer 5 - Polish | 7 tasks | 0 | 0% |
+| Layer 5 - Polish | 4 tasks | 1 | 25% |
+| Backlog - Experimental | 4 tasks | — | not scheduled |
 
 ### Completed Items ✅
 - **L0-000** - Test Application (000-test-app.md)
@@ -44,6 +45,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L2-001** - Rails Detection (003-rails-detection.md)
 - **L2-002** - Test Framework Detection (004-rspec-minitest-detection.md)
 - **L3-003** - Alternate File Navigation (007-alternate-file.md)
+- **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### In Progress 🚧
 - **L1-004** - Configuration System (needs full setup(), get(), defaults)
@@ -79,7 +81,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Support zero-config (nil config)
 - [ ] Create tests for config module
 - [ ] Default config includes:
-  - [ ] Module enable/disable (all 27 modules)
+  - [ ] Module enable/disable (`schema` + opt-in Phase 2 modules only)
   - [ ] Terminal settings (provider, direction, sizes)
   - [ ] Finder settings (provider, resources, cache_ttl)
   - [ ] Routes settings (command, args, cache_ttl)
@@ -89,8 +91,6 @@ Layer 5: Polish & Integrations (Phase 3)
   - [ ] Alternate file mappings (custom_mappings) ✅
   - [ ] View engine detection
   - [ ] RSpec settings
-  - [ ] Syntax highlighting settings
-  - [ ] Integration settings
 
 ### L1-013. Terminal Abstraction Layer (002-terminal-abstraction.md) ⚠️ NEEDED BY L3-011, L3-012
 - [ ] Create `lua/rails-tools/ui/terminal.lua`
@@ -147,7 +147,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Check module status (enabled/disabled)
 - [ ] Format output with vim.health API
 
-### L2-016. Grape API Detection (016-grape-api-detection.md) [Phase 2]
+### L2-016. Grape API Detection (006-grape-api-detection.md) [Phase 2]
 - [ ] Create `lua/rails-tools/detectors/grape.lua`
 - [ ] Implement `detect()` function
 - [ ] Check app/api/ directory existence
@@ -333,36 +333,17 @@ Layer 5: Polish & Integrations (Phase 3)
 **Depends on**: Layer 4 (Enhanced Navigation)
 
 ### L5-021. Schema Inspector (021-schema-inspector.md)
-- [ ] Create `lua/rails-tools/core/schema.lua`
-- [ ] Implement schema parser for db/schema.rb
-- [ ] Display table structures
-- [ ] Show column names and types
-- [ ] Show indexes
-- [ ] Integrate with cache.lua
-- [ ] Integrate with Telescope
-- [ ] Only active when `modules.schema = true`
-- [ ] Create `tests/core/schema_spec.lua`
+- [x] Create `lua/rails-tools/core/schema.lua`
+- [x] Parse `db/schema.rb` (columns, types, indexes)
+- [x] Parse `annotate` gem blocks in `app/models/**/*.rb` and merge with `db/schema.rb`
+- [x] Integrate with cache.lua, invalidate on save
+- [x] Hover (`K`) and go-to-definition (`gd`) for ActiveRecord columns
+- [x] `nvim-cmp` completion source for ActiveRecord columns
+- [x] Create `tests/core/schema_spec.lua`
 
-### L5-022. Log Viewer (022-log-viewer.md)
-- [ ] Create `lua/rails-tools/core/log_viewer.lua`
-- [ ] Implement log parser
-- [ ] Implement filter by level (debug, info, warn, error)
-- [ ] Auto-detect log directory
-- [ ] Support tailing logs
-- [ ] Integrate with Telescope
-- [ ] Only active when `modules.log_viewer = true`
-- [ ] Create tests for log viewer
-
-### L5-023. Rails Doctor (023-rails-doctor.md)
-- [ ] Create `lua/rails-tools/core/doctor.lua`
-- [ ] Implement migration check
-- [ ] Implement gem check
-- [ ] Implement other diagnostic checks
-- [ ] Display diagnostic results with suggestions
-- [ ] Run async with TTL cache
-- [ ] Register `:Rails doctor` command
-- [ ] Only active when `modules.doctor = true`
-- [ ] Create tests for Rails doctor
+### L5-028. Schema Display (028-schema-display.md)
+- [ ] `:Rails schema {table}` shows columns, types, indexes
+- [ ] Telescope picker for tables
 
 ### L5-024. Documentation (024-documentation.md)
 - [ ] Complete README.md with all features
@@ -372,30 +353,6 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Provide usage examples
 - [ ] Create migration guide
 - [ ] Review documentation completeness
-
-### L5-025. Code Extraction (025-code-extraction.md)
-- [ ] Create `lua/rails-tools/core/extractor.lua`
-- [ ] Implement `extract_visual(filename, mode)` function
-- [ ] Implement partial extraction (views)
-- [ ] Implement concern extraction (models/controllers)
-- [ ] Implement helper extraction
-- [ ] Detect and prompt for local variables
-- [ ] Register `:Extract {filename}` and `:Rails extract {filename}` commands
-- [ ] Support .erb, .haml, .slim engines
-- [ ] Only active when `modules.extractor = true`
-- [ ] Create `tests/core/extractor_spec.lua`
-
-### L5-026. Syntax Highlighting (026-syntax-highlighting.md)
-- [ ] Create `lua/rails-tools/core/syntax.lua`
-- [ ] Create `syntax/rails.vim`
-- [ ] Create `after/syntax/ruby/rails.vim`
-- [ ] Define Rails keyword groups
-- [ ] Create highlight groups: RailsAssociation, RailsValidation, RailsCallback, RailsHelper, RailsMacro
-- [ ] Create Treesitter queries for Rails methods
-- [ ] Implement regex fallback for older Neovim
-- [ ] Support user-defined keywords via config
-- [ ] Add `config.syntax` settings
-- [ ] Create `tests/core/syntax_spec.lua`
 
 ### L5-027. Optional Integrations (027-optional-integrations.md)
 - [ ] Create `lua/rails-tools/integrations/detector.lua` - Detect installed plugins
@@ -427,7 +384,59 @@ Layer 5: Polish & Integrations (Phase 3)
   - [ ] Create `lua/rails-tools/integrations/cmp.lua`
   - [ ] Implement context-aware completion
   - [ ] Create tests
-- [ ] Add `config.integrations` section
+- [ ] Add a `config.integrations` entry per integration as it ships
+
+---
+
+## Backlog — Experimental (not scheduled)
+
+Out of the current roadmap to keep scope on navigation, execution and
+schema-aware editing. Revisit only after Layers 1–5 ship.
+
+### L5-022. Log Viewer (022-log-viewer.md)
+- [ ] Create `lua/rails-tools/core/log_viewer.lua`
+- [ ] Implement log parser
+- [ ] Implement filter by level (debug, info, warn, error)
+- [ ] Auto-detect log directory
+- [ ] Support tailing logs
+- [ ] Integrate with Telescope
+- [ ] Only active when `modules.log_viewer = true`
+- [ ] Create tests for log viewer
+
+### L5-023. Rails Doctor (023-rails-doctor.md)
+- [ ] Create `lua/rails-tools/core/doctor.lua`
+- [ ] Implement migration check
+- [ ] Implement gem check
+- [ ] Implement other diagnostic checks
+- [ ] Display diagnostic results with suggestions
+- [ ] Run async with TTL cache
+- [ ] Register `:Rails doctor` command
+- [ ] Only active when `modules.doctor = true`
+- [ ] Create tests for Rails doctor
+
+### L5-025. Code Extraction (025-code-extraction.md)
+- [ ] Create `lua/rails-tools/core/extractor.lua`
+- [ ] Implement `extract_visual(filename, mode)` function
+- [ ] Implement partial extraction (views)
+- [ ] Implement concern extraction (models/controllers)
+- [ ] Implement helper extraction
+- [ ] Detect and prompt for local variables
+- [ ] Register `:Extract {filename}` and `:Rails extract {filename}` commands
+- [ ] Support .erb, .haml, .slim engines
+- [ ] Only active when `modules.extractor = true`
+- [ ] Create `tests/core/extractor_spec.lua`
+
+### L5-026. Syntax Highlighting (026-syntax-highlighting.md)
+- [ ] Create `lua/rails-tools/core/syntax.lua`
+- [ ] Create `syntax/rails.vim`
+- [ ] Create `after/syntax/ruby/rails.vim`
+- [ ] Define Rails keyword groups
+- [ ] Create highlight groups: RailsAssociation, RailsValidation, RailsCallback, RailsHelper, RailsMacro
+- [ ] Create Treesitter queries for Rails methods
+- [ ] Implement regex fallback for older Neovim
+- [ ] Support user-defined keywords via config
+- [ ] Add `config.syntax` settings
+- [ ] Create `tests/core/syntax_spec.lua`
 
 ---
 
@@ -437,29 +446,17 @@ Layer 5: Polish & Integrations (Phase 3)
 
 ```lua
 {
-  -- Module enable/disable
+  -- Only features that may need turning off. Phase 1 features are always on.
   modules = {
-    -- Layer 3 - Phase 1 (default: true)
-    alternate = true,
-    finder = true,
-    routes = true,
-    console = true,
-    runner = true,
+    schema = true,  -- L5-021 / L5-028
 
-    -- Layer 4 - Phase 2 (default: false)
+    -- Phase 2, opt-in
     rspec = false,
     generators = false,
     grape = false,
     test_marker = false,
     gf = false,
     controller_view = false,
-
-    -- Layer 5 - Phase 3 (default: false)
-    schema = false,
-    log_viewer = false,
-    doctor = false,
-    extractor = false,
-    syntax = false,
   },
 
   -- Terminal settings (L1-013)
@@ -474,7 +471,18 @@ Layer 5: Polish & Integrations (Phase 3)
   -- Finder settings (L3-006)
   finder = {
     provider = "auto",  -- auto, telescope, native
-    resources = { "models", "controllers", "views", "services", "policies", "jobs", "mailers", "serializers", "specs", "factories" },
+    resources = {
+      models = { paths = { "app/models" } },
+      controllers = { paths = { "app/controllers" } },
+      views = { paths = { "app/views" } },
+      services = { paths = { "app/services" } },
+      policies = { paths = { "app/policies" } },
+      jobs = { paths = { "app/jobs" } },
+      mailers = { paths = { "app/mailers" } },
+      serializers = { paths = { "app/serializers" } },
+      specs = { paths = { "spec", "test" } },
+      factories = { paths = { "spec/factories", "test/factories" } },
+    },
     cache_ttl = 30,
   },
 
@@ -518,25 +526,9 @@ Layer 5: Polish & Integrations (Phase 3)
     save_last = true,
   },
 
-  -- Syntax highlighting (L5-026)
-  syntax = {
-    enabled = true,
-    associations = true,
-    validations = true,
-    callbacks = true,
-    helpers = true,
-    macros = true,
-    custom_keywords = {},
-  },
-
-  -- Optional integrations (L5-027)
-  integrations = {
-    dadbod = { enabled = true },
-    lsp = { enabled = true },
-    telescope = { enabled = true, cached = true },
-    snippets = { enabled = true },
-    neotest = { enabled = true },
-    cmp = { enabled = true },
+  -- nvim-cmp source (L5-021)
+  cmp = {
+    dedupe_with_lsp = {},  -- LSP client names that already complete columns, e.g. { "ruby_lsp" }
   },
 }
 ```
@@ -560,7 +552,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - `:Rails spec last` - Re-run last spec (L4-014)
 - `:Rails generate {args}` - Run generator (L4-015)
 - `:Rails grape routes` - View Grape routes (L4-017)
-- `:Rails doctor` - Run diagnostics (L5-023)
+- `:Rails doctor` - Run diagnostics (L5-023, backlog)
 - `:R [type]` - Jump to related file (L4-020)
 
 ### Telescope Commands

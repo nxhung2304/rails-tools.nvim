@@ -1,15 +1,9 @@
+local rails = require("rails-tools.detectors.rails")
+
 local M = {}
 
 ---@type table<string, "rspec"|"minitest"|false>
 local cache = {}
-
----@param dir string
----@param name string
----@return boolean
-local function path_exists(dir, name)
-  local path = dir .. "/" .. name
-  return vim.fn.filereadable(path) == 1 or vim.fn.isdirectory(path) == 1
-end
 
 ---@param dir string
 ---@return boolean
@@ -26,24 +20,6 @@ local function has_rspec_rails_gem(dir)
   end
 
   return false
-end
-
----@param start_dir string
----@return string
-local function find_project_dir(start_dir)
-  local dir = start_dir
-
-  while true do
-    if path_exists(dir, "Gemfile") or path_exists(dir, "spec") or path_exists(dir, "test") then
-      return dir
-    end
-
-    local parent = vim.fn.fnamemodify(dir, ":h")
-    if parent == dir then
-      return start_dir
-    end
-    dir = parent
-  end
 end
 
 ---@param dir string
@@ -75,7 +51,7 @@ function M.detect(cwd)
     return cache[start_dir] or nil
   end
 
-  local project_dir = find_project_dir(start_dir)
+  local project_dir = rails.root(start_dir) or start_dir
   if cache[project_dir] == nil then
     cache[project_dir] = detect_in_dir(project_dir) or false
   end

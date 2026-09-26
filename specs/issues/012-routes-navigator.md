@@ -15,10 +15,13 @@ Implement Rails routes parser and navigator to view and jump to controller#actio
 Steps:
 - Check cache with TTL from config
 - If cache expired: run `bin/rails routes --expanded` async
-- Parse output into list: { method, path, controller_action, name }
+- Parse the `--expanded` block output (one `--[ Route N ]--` block per route)
+  into a list: { name, verb, path, controller_action, source_location }
 - Save cache
 - Display in picker (Telescope or vim.ui.select)
-- Parse controller#action → file and method
+- Map `controller#action` → file and method. The output already resolves
+  `namespace` / `scope module:`, so `admin/users#index` →
+  `app/controllers/admin/users_controller.rb` is a direct path mapping
 - Open file at method
 
 ---
@@ -36,9 +39,13 @@ Steps:
 - [ ] `routes.goto_action()` jumps to controller#action from selected route
 - [ ] Routes are cached with TTL from config
 - [ ] `rails routes --expanded` runs async (non-blocking)
-- [ ] Parse format: `GET /users users#index`
-- [ ] Handles namespaced routes: `admin/users#index`
-- [ ] Opens `app/controllers/users_controller.rb` at `def index` method
+- [ ] Parses `--expanded` blocks: `Prefix | users`, `Verb | GET`,
+      `URI | /users(.:format)`, `Controller#Action | users#index`
+- [ ] Reads `Source Location` when present (Rails 7.1+); works without it on older Rails
+- [ ] `users#index` opens `app/controllers/users_controller.rb` at `def index`
+- [ ] Namespaced `admin/users#index` opens `app/controllers/admin/users_controller.rb` at `def index`
+- [ ] Routes without a `controller#action` (mounted engines / Rack apps,
+      `redirect(...)`) are listed but not navigable, with a notice instead of an error
 - [ ] Shows loading indicator while parsing
 - [ ] Shows error message if routes command fails
 
@@ -46,7 +53,7 @@ Steps:
 
 ## Implementation Checklist
 - [ ] Create `lua/rails-tools/core/routes.lua`
-- [ ] Create `lua/rails-tools/cache.lua` (shared cache module for all modules)
+- [x] Create `lua/rails-tools/cache.lua` (shared cache module — already exists, reuse it)
 - [ ] Implement M.show() function
 - [ ] Implement M.refresh() function
 - [ ] Implement M.goto_action() function
@@ -64,6 +71,7 @@ Steps:
 
 ## Notes
 - Uses vim.fn.jobstart for async command
-- Parse output line by line
+- Parse output block by block (`--expanded` format), not line by line
+- Error message on failure includes exit code and stderr
 - Cache TTL from config (default 300s)
 - Force refresh with `:Rails routes!`

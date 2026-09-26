@@ -16,16 +16,20 @@ onward describes the **target** feature set — see
 - [x] Plugin entry point — `init.lua`, `setup()`, `plugin/`, the `:Rails alternate` command
 - [x] Configuration system (`config.lua` is the single source of truth for
       alternate mappings; `core/alternate.lua` reads from it)
+- [x] Schema-aware editing for ActiveRecord columns, from `db/schema.rb` +
+      `annotate` blocks: hover (`K`), go-to-definition (`gd`), `nvim-cmp`
+      completion (see
+      [021-schema-inspector.md](specs/issues/021-schema-inspector.md))
 
 **Not implemented yet** (README below documents the plan, not current behavior):
 - [ ] Terminal abstraction, health check
 - [ ] Resource finder, Telescope pickers, central menu, keymaps
 - [ ] Routes navigator, console, runner
 - [ ] RSpec runner, generators, Grape support (Phase 2)
-- [ ] Schema inspector — table structure display, hover/`nvim-cmp`
-      completion/go-to-definition for ActiveRecord attributes, log viewer,
-      Rails doctor (Phase 3 — see
-      [021-schema-inspector.md](specs/issues/021-schema-inspector.md))
+- [ ] Schema table display — `:Rails schema {table}` (Phase 3 — see
+      [028-schema-display.md](specs/issues/028-schema-display.md))
+- Log viewer, Rails doctor, code extraction, syntax highlighting are in the
+  experimental backlog, not scheduled
 
 ## Requirements
 
@@ -72,6 +76,9 @@ require("rails-tools").setup({
       { pattern = "spec/forms/(.+)_form_spec.rb$", target = "app/forms/%1_form.rb" },
     },
   },
+  cmp = {
+    dedupe_with_lsp = { "ruby_lsp" },  -- skip the rails_schema source when these LSP clients are attached
+  },
 })
 ```
 
@@ -105,7 +112,7 @@ registered so far, the rest are still `010-menu.md`+ scope (see
 - [ ] `:Rails spec file` — Run the current spec file
 - [ ] `:Rails spec last` — Re-run the last spec
 - [ ] `:Rails grape routes` — Browse Grape API endpoints
-- [ ] `:Rails doctor` — Diagnose project issues
+- [ ] `:Rails doctor` — Diagnose project issues _(experimental backlog)_
 
 ### Keymaps
 

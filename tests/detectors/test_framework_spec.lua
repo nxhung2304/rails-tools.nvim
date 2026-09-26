@@ -62,9 +62,10 @@ describe("test framework detector", function()
       assert.equals("both", detector.detect(tmp_dir))
     end)
 
-    it("detects from a nested directory by traversing up to the project root", function()
+    it("detects from a nested directory by traversing up to the Rails root", function()
       create_dir("spec/models")
       create_file("Gemfile", { "gem 'rspec-rails'" })
+      create_file("bin/rails")
       create_dir("app/models")
 
       assert.equals("rspec", detector.detect(tmp_dir .. "/app/models"))

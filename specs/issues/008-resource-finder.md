@@ -13,8 +13,8 @@
 Implement resource finder to quickly locate and open Rails files by type.
 
 Steps:
-- Define resource paths for different Rails resources
-- Scan directory for .rb files (recursive)
+- Read resource paths from `config.finder.resources` (each type has `paths`)
+- Scan those directories recursively
 - Use Telescope if available, otherwise vim.ui.select
 - Allow user to select and open file
 
@@ -38,12 +38,14 @@ Steps:
 - [ ] Uses Telescope picker when available
 - [ ] Falls back to vim.ui.select when Telescope not available
 - [ ] Opens selected file in current buffer
+- [ ] A resource type with custom `paths` in config (e.g. services in
+      `app/services` + `app/interactors`) lists files from all its paths
 
 ---
 
 ## Implementation Checklist
 - [ ] Create `lua/rails-tools/core/finder.lua`
-- [ ] Define resource_paths table
+- [ ] Read resource paths from `config.finder.resources`
 - [ ] Implement find(resource_type) function
 - [ ] Implement directory scanning logic
 - [ ] Integrate with Telescope (when available)
@@ -57,5 +59,5 @@ Steps:
 
 ## Notes
 - Resource paths follow Rails conventions
-- Uses plenary scandir for file listing
+- Uses `vim.fs.dir` for file listing (plenary is a test-only dependency)
 - Results are cached with 30s TTL

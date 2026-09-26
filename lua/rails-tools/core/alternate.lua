@@ -1,6 +1,7 @@
 local M = {}
 local uv = vim.loop
 local framework_detector = require("rails-tools.detectors.test_framework")
+local rails = require("rails-tools.detectors.rails")
 local config = require("rails-tools.config")
 
 ---@return boolean
@@ -11,11 +12,18 @@ end
 
 ---@param filepath string
 ---@return string
-local function relpath(filepath)
+local function project_root(filepath)
+  local dir = filepath ~= "" and vim.fn.fnamemodify(filepath, ":p:h") or nil
+  return rails.root(dir) or uv.cwd()
+end
+
+---@param filepath string
+---@param root string
+---@return string
+local function relpath(filepath, root)
   if not filepath or filepath == "" then return "" end
-  local cwd = uv.cwd()
-  if filepath:sub(1, #cwd + 1) == cwd .. '/' then
-    return filepath:sub(#cwd + 2)
+  if filepath:sub(1, #root + 1) == root .. '/' then
+    return filepath:sub(#root + 2)
   end
   if filepath:sub(1,1) == '/' then
     return filepath:sub(2)
@@ -23,10 +31,12 @@ local function relpath(filepath)
   return filepath
 end
 
+---@param filepath string
 ---@param framework string|nil
----@return string|nil alternate_path
-local function find_alternate(filepath, framework)
-  local path = relpath(filepath)
+---@param root string
+---@return string|nil alternate_path relative to `root`
+local function find_alternate(filepath, framework, root)
+  local path = relpath(filepath, root)
   local maps = config.alternate_mappings(framework or "rspec")
 
   for _, m in ipairs(maps) do
@@ -44,15 +54,35 @@ end
 ---@param framework string|nil
 ---@return string|nil
 function M.get(filepath, framework)
+  local root = project_root(filepath)
   if not framework then
-    local detected = framework_detector.detect()
+    local detected = framework_detector.detect(root)
     framework = detected or "rspec"
   end
-  return find_alternate(filepath, framework)
+  return find_alternate(filepath, framework, root)
 end
 
+---@param root string
+---@param path string relative to `root`
+local function open_or_create(root, path)
+  local target_abs = root .. "/" .. path
+
+  if uv.fs_stat(target_abs) then
+    vim.cmd("edit " .. vim.fn.fnameescape(target_abs))
+    return
+  end
+
+  local input_choice = vim.fn.input("Create " .. path .. " ? (y/N): ")
+  if input_choice:lower():match("^y") then
+    vim.fn.mkdir(vim.fn.fnamemodify(target_abs, ":h"), "p")
+    vim.fn.writefile({}, target_abs)
+    vim.cmd("edit " .. vim.fn.fnameescape(target_abs))
+  end
+end
+
+---@param root string
 ---@param choices table[] { path = string, label = string }
-local function open_target(choices)
+local function open_target(root, choices)
   if #choices == 0 then
     vim.notify("No alternate found", vim.log.levels.INFO)
     return
@@ -60,24 +90,7 @@ local function open_target(choices)
 
   -- If only one choice, open it directly
   if #choices == 1 then
-    local choice = choices[1]
-    local cwd = uv.cwd()
-    local target_abs = cwd .. "/" .. choice.path
-
-    if uv.fs_stat(target_abs) then
-      vim.cmd("edit " .. target_abs)
-    else
-      local input_choice = vim.fn.input("Create " .. choice.path .. " ? (y/N): ")
-      if input_choice:lower():match("^y") then
-        local dir = target_abs:match("^(.+)/[^/]+$")
-        if dir then
-          os.execute("mkdir -p " .. dir)
-        end
-        local fh = io.open(target_abs, "w")
-        if fh then fh:write("") fh:close() end
-        vim.cmd("edit " .. target_abs)
-      end
-    end
+    open_or_create(root, choices[1].path)
     return
   end
 
@@ -106,25 +119,7 @@ local function open_target(choices)
         actions.select_default:replace(function()
           local selection = action_state.get_selected_entry()
           actions.close(prompt_bufnr)
-
-          local choice = selection.value
-          local cwd = uv.cwd()
-          local target_abs = cwd .. "/" .. choice.path
-
-          if uv.fs_stat(target_abs) then
-            vim.cmd("edit " .. target_abs)
-          else
-            local input_choice = vim.fn.input("Create " .. choice.path .. " ? (y/N): ")
-            if input_choice:lower():match("^y") then
-              local dir = target_abs:match("^(.+)/[^/]+$")
-              if dir then
-                os.execute("mkdir -p " .. dir)
-              end
-              local fh = io.open(target_abs, "w")
-              if fh then fh:write("") fh:close() end
-              vim.cmd("edit " .. target_abs)
-            end
-          end
+          open_or_create(root, selection.value.path)
         end)
         return true
       end,
@@ -140,37 +135,21 @@ local function open_target(choices)
       if not choice then
         return
       end
-
-      local cwd = uv.cwd()
-      local target_abs = cwd .. "/" .. choice.path
-
-      if uv.fs_stat(target_abs) then
-        vim.cmd("edit " .. target_abs)
-      else
-        local input_choice = vim.fn.input("Create " .. choice.path .. " ? (y/N): ")
-        if input_choice:lower():match("^y") then
-          local dir = target_abs:match("^(.+)/[^/]+$")
-          if dir then
-            os.execute("mkdir -p " .. dir)
-          end
-          local fh = io.open(target_abs, "w")
-          if fh then fh:write("") fh:close() end
-          vim.cmd("edit " .. target_abs)
-        end
-      end
+      open_or_create(root, choice.path)
     end)
   end
 end
 
 function M.open()
   local bufname = vim.api.nvim_buf_get_name(0)
-  local detected = framework_detector.detect()
+  local root = project_root(bufname)
+  local detected = framework_detector.detect(root)
   local choices = {}
 
   if detected == "both" then
     -- Find both rspec and minitest alternates
-    local rspec_alt = find_alternate(bufname, "rspec")
-    local minitest_alt = find_alternate(bufname, "minitest")
+    local rspec_alt = find_alternate(bufname, "rspec", root)
+    local minitest_alt = find_alternate(bufname, "minitest", root)
 
     if rspec_alt then
       table.insert(choices, { path = rspec_alt, label = "RSpec: " .. rspec_alt })
@@ -181,13 +160,13 @@ function M.open()
   else
     -- Single framework or none detected
     local framework = detected or "rspec"
-    local alt = find_alternate(bufname, framework)
+    local alt = find_alternate(bufname, framework, root)
     if alt then
       table.insert(choices, { path = alt, label = alt })
     end
   end
 
-  open_target(choices)
+  open_target(root, choices)
 end
 
 return M

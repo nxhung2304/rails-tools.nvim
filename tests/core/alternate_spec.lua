@@ -98,4 +98,25 @@ describe("alternate.get", function()
       assert.are.equal("spec/models/user_spec.rb", result)
     end)
   end)
+
+  describe("absolute paths", function()
+    local tmp_root
+
+    before_each(function()
+      tmp_root = vim.fn.resolve(vim.fn.tempname())
+      vim.fn.mkdir(tmp_root .. "/bin", "p")
+      vim.fn.mkdir(tmp_root .. "/app/models", "p")
+      vim.fn.writefile({}, tmp_root .. "/Gemfile")
+      vim.fn.writefile({}, tmp_root .. "/bin/rails")
+    end)
+
+    after_each(function()
+      vim.fn.delete(tmp_root, "rf")
+    end)
+
+    it("resolves relative to the Rails root even when cwd is outside the project", function()
+      assert.are_not.equal(tmp_root, vim.fn.getcwd())
+      assert.are.equal("spec/models/user_spec.rb", alternate.get(tmp_root .. "/app/models/user.rb", "rspec"))
+    end)
+  end)
 end)
