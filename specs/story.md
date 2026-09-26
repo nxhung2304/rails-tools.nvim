@@ -302,6 +302,10 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Implement partial path parser: `"shared/header"` → `app/views/shared/_header.html.erb`
 - [ ] Implement fixture finder: `:users` → `test/fixtures/users.yml`
 - [ ] Implement migration finder: `User` → latest `db/migrate/*_create_users.rb`
+- [ ] Implement table → model finder in migrations: cursor on a table symbol/string
+      (`create_table :course_progresses`, `change_table`, `add_column :users, ...`)
+      → `app/models/course_progress.rb`; `t.references :enrollment` → `app/models/enrollment.rb`.
+      Prefer the annotate `# Table name:` mapping (custom `self.table_name`), else singularize + camelize
 - [ ] Implement route finder: route name → controller#action
 - [ ] Support visual selection for complex paths
 - [ ] Detect view engine: .erb, .haml, .slim
@@ -316,6 +320,8 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Implement `views_for_controller()` - List all views
 - [ ] Implement `from_view()` - View → Controller
 - [ ] Implement related files: helper, schema, layout, fixture, migration
+- [ ] Implement `from_migration()` - Migration → model of the table it creates/changes
+      (first `create_table` / `change_table` / `add_column` table in the file), listed in `related_menu()`
 - [ ] Implement `related_menu()` - Show available related files
 - [ ] Register `:R [type]` and `:Rails related [type]` commands
 - [ ] Register keymap: `<leader>rv`

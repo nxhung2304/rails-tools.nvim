@@ -9,6 +9,8 @@ Implement specialized navigation between controllers and their associated views.
 - [ ] Implement `views_for_controller()` - List all views
 - [ ] Implement `from_view()` - View → Controller
 - [ ] Implement related files: helper, schema, layout, fixture, migration
+- [ ] Implement `from_migration()` - Migration → model of the table it creates/changes
+      (first `create_table` / `change_table` / `add_column` table in the file), listed in `related_menu()`
 - [ ] Implement `related_menu()` - Show available related files
 - [ ] Smart view engine detection (.erb, .haml, .slim)
 - [ ] Smart format detection (.html, .json, .xml)

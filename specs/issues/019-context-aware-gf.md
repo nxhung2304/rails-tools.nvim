@@ -9,6 +9,10 @@ Implement a context-aware `gf` (go to file) command that understands Rails conve
 - [ ] Implement partial path parser: `"shared/header"` → `app/views/shared/_header.html.erb`
 - [ ] Implement fixture finder: `:users` → `test/fixtures/users.yml`
 - [ ] Implement migration finder: `User` → latest `db/migrate/*_create_users.rb`
+- [ ] Implement table → model finder in migrations: cursor on a table symbol/string
+      (`create_table :course_progresses`, `change_table`, `add_column :users, ...`)
+      → `app/models/course_progress.rb`; `t.references :enrollment` → `app/models/enrollment.rb`.
+      Prefer the annotate `# Table name:` mapping (custom `self.table_name`), else singularize + camelize
 - [ ] Implement route finder: route name → controller#action
 - [ ] Support visual selection for complex paths
 - [ ] Detect view engine: .erb, .haml, .slim
