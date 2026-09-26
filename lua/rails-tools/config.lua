@@ -54,6 +54,9 @@ M.defaults = {
   alternate = {
     custom_mappings = {},
   },
+  cmp = {
+    dedupe_with_lsp = {},
+  },
 }
 
 ---@type table|nil

@@ -1,7 +1,21 @@
 local schema = require("rails-tools.core.schema")
 local model_context = require("rails-tools.core.model_context")
+local config = require("rails-tools.config")
 
 local M = {}
+
+---True when an LSP client the user has listed under `cmp.dedupe_with_lsp`
+---(e.g. `ruby_lsp` with its Rails addon) is already attached to the
+---current buffer and covering ActiveRecord column completion itself.
+---@param bufnr integer
+---@return boolean
+local function lsp_already_covers_columns(bufnr)
+  local names = config.get().cmp.dedupe_with_lsp
+  if #names == 0 then
+    return false
+  end
+  return #vim.lsp.get_clients({ bufnr = bufnr, name = names }) > 0
+end
 
 ---@return string|nil
 local function receiver_before_cursor(cursor_before_line)
@@ -41,7 +55,7 @@ end
 
 function source:complete(params, callback)
   local receiver = receiver_before_cursor(params.context.cursor_before_line)
-  if not receiver then
+  if not receiver or lsp_already_covers_columns(params.context.bufnr) then
     callback({ items = {}, isIncomplete = false })
     return
   end
@@ -86,5 +100,7 @@ function M.setup()
   registered = true
   return true
 end
+
+M._source = source
 
 return M
