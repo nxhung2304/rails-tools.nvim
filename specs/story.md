@@ -65,7 +65,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Create test Rails application at `test-app/`
 - [x] Add models, controllers, views, specs
 - [x] Add Grape API endpoints
-- [ ] Setup script for test environment
+- [x] Setup script for test environment
 
 ---
 

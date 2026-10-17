@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REQUIRED_RUBY_VERSION="$(cat "$APP_ROOT/.ruby-version")"
+
+check_ruby_version() {
+  local current_version
+  current_version="$(ruby -e 'print RUBY_VERSION')"
+
+  if [ "$current_version" != "$REQUIRED_RUBY_VERSION" ]; then
+    echo "Warning: expected Ruby $REQUIRED_RUBY_VERSION, found $current_version" >&2
+  fi
+}
+
+install_dependencies() {
+  cd "$APP_ROOT"
+  bundle check || bundle install
+}
+
+print_next_steps() {
+  cat <<EOF
+
+Setup complete. Try:
+  cd test-app
+  nvim app/models/user.rb
+  :Rails alternate
+EOF
+}
+
+check_ruby_version
+install_dependencies
+print_next_steps

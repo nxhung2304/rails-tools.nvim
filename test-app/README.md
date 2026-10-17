@@ -12,6 +12,13 @@ This test application serves as:
 
 ## Usage
 
+### Setup
+
+```bash
+cd test-app
+bin/setup
+```
+
 ### Quick Test
 
 ```bash
