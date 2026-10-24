@@ -1,6 +1,6 @@
 ## **Status:**
-- Review: Todo
-- PR: Todo
+- Review: Done
+- PR: Done
 
 ## Metadata
 - **Title:** Configuration System
@@ -27,30 +27,30 @@ Steps:
 ---
 
 ## Acceptance Criteria
-- [ ] `config.setup()` accepts nil or user config table
-- [ ] `config.setup()` returns merged configuration
-- [ ] Default config includes all modules and their settings
-- [ ] `config.get()` returns current or default config
-- [ ] User config deeply merges with defaults
-- [ ] User can enable/disable individual modules
-- [ ] User can customize terminal settings
-- [ ] User can customize finder settings
-- [ ] User can customize routes cache TTL
-- [ ] User can customize keymaps
-- [ ] User can add custom alternate mappings
+- [x] `config.setup()` accepts nil or user config table
+- [x] `config.setup()` returns merged configuration
+- [x] Default config includes all modules and their settings
+- [x] `config.get()` returns current or default config
+- [x] User config deeply merges with defaults
+- [x] User can enable/disable individual modules
+- [x] User can customize terminal settings
+- [x] User can customize finder settings
+- [x] User can customize routes cache TTL
+- [x] User can customize keymaps
+- [x] User can add custom alternate mappings
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/config.lua`
-- [ ] Define M.defaults with all default settings
-- [ ] Implement M.setup(user_config) with deep merge
-- [ ] Implement M.get() to return current config
-- [ ] Create tests for config module
-- [ ] Test nil config (zero-config)
-- [ ] Test partial config override
-- [ ] Test custom alternate mappings
-- [ ] Test module enable/disable
+- [x] Create `lua/rails-tools/config.lua`
+- [x] Define M.defaults with all default settings
+- [x] Implement M.setup(user_config) with deep merge
+- [x] Implement M.get() to return current config
+- [x] Create tests for config module
+- [x] Test nil config (zero-config)
+- [x] Test partial config override
+- [x] Test custom alternate mappings
+- [x] Test module enable/disable
 
 ---
 

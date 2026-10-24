@@ -39,13 +39,74 @@ local built_in_mappings = {
 ---@type table
 M.defaults = {
   modules = {
+    schema = true,
     rspec = false,
     generators = false,
     grape = false,
+    test_marker = false,
+    gf = false,
+    controller_view = false,
   },
   terminal = {
     provider = "auto",
     direction = "float",
+    float = {
+      width = 0.8,
+      height = 0.8,
+    },
+    horizontal = {
+      size = 15,
+    },
+    vertical = {
+      size = 80,
+    },
+  },
+  finder = {
+    provider = "auto",
+    resources = {
+      models = {
+        paths = { "app/models" },
+      },
+      controllers = {
+        paths = { "app/controllers" },
+      },
+      views = {
+        paths = { "app/views" },
+      },
+      services = {
+        paths = { "app/services" },
+      },
+      policies = {
+        paths = { "app/policies" },
+      },
+      jobs = {
+        paths = { "app/jobs" },
+      },
+      mailers = {
+        paths = { "app/mailers" },
+      },
+      serializers = {
+        paths = { "app/serializers" },
+      },
+      specs = {
+        paths = { "spec", "test" },
+      },
+      factories = {
+        paths = { "spec/factories", "test/factories" },
+      },
+    },
+    cache_ttl = 30,
+  },
+  routes = {
+    command = "bin/rails routes",
+    args = "--expanded",
+    cache_ttl = 300,
+  },
+  console = {
+    command = "rails console",
+  },
+  runner = {
+    command = "rails runner",
   },
   keymaps = {
     enabled = true,
@@ -53,6 +114,14 @@ M.defaults = {
   },
   alternate = {
     custom_mappings = {},
+  },
+  view = {
+    engine = "auto",
+    priority = { "erb", "haml", "slim" },
+  },
+  rspec = {
+    command = "bundle exec rspec",
+    save_last = true,
   },
   cmp = {
     dedupe_with_lsp = {},

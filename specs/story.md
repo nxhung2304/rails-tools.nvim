@@ -32,7 +32,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer | Tasks | Completed | Progress |
 |-------|-------|-----------|----------|
 | Layer 0 - Foundation | 1 task | 1 | 100% |
-| Layer 1 - Infrastructure | 4 tasks | 2 | 50% |
+| Layer 1 - Infrastructure | 4 tasks | 3 | 75% |
 | Layer 2 - Detection | 4 tasks | 2 | 50% |
 | Layer 3 - Core Features | 8 tasks | 1 | 13% |
 | Layer 4 - Enhanced | 6 tasks | 0 | 0% |
@@ -48,14 +48,13 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### In Progress 🚧
-- **L1-004** - Configuration System (needs full setup(), get(), defaults)
+- **L1-Entry** - init.lua, commands.lua, utils.lua, plugin/ (Partially complete: skeleton exists)
 
 ### Next Steps 📋 (In dependency order)
-1. **Complete L1-004** - Config System (setup(), get(), defaults)
-2. **Implement L1-013** - Terminal Abstraction (needed by Console/Runner)
-3. **Implement L1-Entry** - init.lua, commands.lua, utils.lua, plugin/
-4. **Implement L2-005** - Health Check (can verify detectors)
-5. **Continue L3** - Finder, Telescope, Menu, Keymaps, Routes, Console, Runner
+1. **Implement L1-013** - Terminal Abstraction (needed by Console/Runner)
+2. **Implement L1-Entry** - init.lua, commands.lua, utils.lua, plugin/
+3. **Implement L2-005** - Health Check (can verify detectors)
+4. **Continue L3** - Finder, Telescope, Menu, Keymaps, Routes, Console, Runner
 
 ---
 
@@ -73,24 +72,24 @@ Layer 5: Polish & Integrations (Phase 3)
 
 **IMPORTANT**: This layer MUST be completed first. All other layers depend on it.
 
-### L1-004. Configuration System (001-config-system.md) ⚠️ CRITICAL PATH
+### L1-004. Configuration System (001-config-system.md) ✅ COMPLETE
 - [x] Create `lua/rails-tools/config.lua`
-- [ ] Define `M.defaults` with all settings
-- [ ] Implement `M.setup(user_config)` with deep merge
-- [ ] Implement `M.get()` function
-- [ ] Support zero-config (nil config)
-- [ ] Create tests for config module
-- [ ] Default config includes:
-  - [ ] Module enable/disable (`schema` + opt-in Phase 2 modules only)
-  - [ ] Terminal settings (provider, direction, sizes)
-  - [ ] Finder settings (provider, resources, cache_ttl)
-  - [ ] Routes settings (command, args, cache_ttl)
-  - [ ] Console settings (command)
-  - [ ] Runner settings (command)
-  - [ ] Keymaps (enabled, prefix)
-  - [ ] Alternate file mappings (custom_mappings) ✅
-  - [ ] View engine detection
-  - [ ] RSpec settings
+- [x] Define `M.defaults` with all settings
+- [x] Implement `M.setup(user_config)` with deep merge
+- [x] Implement `M.get()` function
+- [x] Support zero-config (nil config)
+- [x] Create tests for config module
+- [x] Default config includes:
+  - [x] Module enable/disable (`schema` + opt-in Phase 2 modules only)
+  - [x] Terminal settings (provider, direction, sizes)
+  - [x] Finder settings (provider, resources, cache_ttl)
+  - [x] Routes settings (command, args, cache_ttl)
+  - [x] Console settings (command)
+  - [x] Runner settings (command)
+  - [x] Keymaps (enabled, prefix)
+  - [x] Alternate file mappings (custom_mappings) ✅
+  - [x] View engine detection
+  - [x] RSpec settings
 
 ### L1-013. Terminal Abstraction Layer (002-terminal-abstraction.md) ⚠️ NEEDED BY L3-011, L3-012
 - [ ] Create `lua/rails-tools/ui/terminal.lua`
