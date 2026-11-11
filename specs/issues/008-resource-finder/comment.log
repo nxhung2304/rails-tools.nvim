@@ -1,0 +1,68 @@
+Tóm tắt: 2 MUST / 4 SHOULD / 0 NIT · 1 giả định · 0 chờ xác nhận · 2 spec cần xem lại · 3 ngoài phạm vi / không cần sửa.
+Nguồn: review-branch 3 · code-review 4 · spec-review 6 (đã gộp trùng).
+Ghi chú: A và B chạy trong worktree, nhưng `specs/` đã được commit nên vẫn có trong worktree (cả hai được dặn không đọc). Không có `gh` để đọc comment trên issue/PR. Các nguồn được gọi theo các bước của skill review-issue.
+
+### 1. MUST — Cấu hình resource không có `paths` (hoặc `jobs = false`) làm `:Rails find all` crash
+- **Nguồn:** `review-branch`, `code-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/finder.lua (resource_paths, cache key)
+- **Vấn đề:** `finder = { resources = { jobs = false } }` là cách tự nhiên để tắt một loại, nhưng `:Rails find all` báo lỗi "attempt to index a boolean value". Resource tự thêm mà không có `paths` cũng crash ở `vim.list_extend` / `table.concat`.
+- **Cách sửa:** Thêm `configured_paths(resource)`, trả về `nil` khi giá trị không phải bảng có `paths`. "all" bỏ qua các mục này. Gọi riêng một loại như vậy thì báo "unknown resource type".
+
+### 2. MUST — Test theo từng loại không kiểm tra thứ tự sắp xếp
+- **Nguồn:** `spec-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** tests/core/finder_spec.lua (vòng lặp "lists <type>")
+- **Vấn đề:** implement.md ghi "Each default type ... lists its files, root-relative, sorted", nhưng mỗi test chỉ tạo 1 file nên không kiểm được thứ tự.
+- **Cách sửa:** Mỗi loại tạo thêm `a_first.rb` cùng thư mục và kiểm tra nó đứng trước.
+
+### 3. SHOULD — "all" quét lại thư mục con đã nằm trong thư mục cha
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/finder.lua (resource_paths)
+- **Vấn đề:** Với cấu hình mặc định, `spec/factories` và `test/factories` bị quét lần hai sau khi `spec`, `test` đã quét xong. Kết quả không sai (đã khử trùng), nhưng chậm hơn trên luồng chính.
+- **Cách sửa:** Sau khi sort, bỏ những path nằm bên trong một path đã giữ (`outermost_paths`).
+
+### 4. SHOULD — Thư mục ẩn vẫn bị duyệt hết rồi mới lọc từng file
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/finder.lua (scan_files)
+- **Vấn đề:** Một thư mục cache ẩn có hàng nghìn file trong `spec/` sẽ bị duyệt hết mỗi lần cache hết hạn, làm đơ UI.
+- **Cách sửa:** Truyền `skip` cho `vim.fs.dir` (có trên 0.9.5, `fs.lua:88`) để không đi vào thư mục ẩn.
+
+### 5. SHOULD (giả định) — Ngoài Rails, gõ sai loại thì báo lỗi loại thay vì "not a Rails project"
+- **Nguồn:** `spec-review`
+- **Phân loại:** Trong phạm vi · Giả định · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/finder.lua (M.find)
+- **Vấn đề:** Thứ tự D1 (root) rồi D2 (loại) trong implement.md có thể là thứ tự kiểm tra, cũng có thể không. Spec không nói rõ.
+- **Cách sửa:** Cần xác minh trước: nếu D1→D2 không phải thứ tự kiểm tra thì bỏ qua được. Đã chọn kiểm tra root trước để báo lỗi gốc rễ, chi phí bằng 0.
+
+### 6. SHOULD — `project_root()` chép nguyên từ runner.lua
+- **Nguồn:** `code-review`
+- **Phân loại:** Một phần trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/finder.lua:13-23, lua/rails-tools/core/runner.lua:21-31
+- **Vấn đề:** Hai bản sẽ lệch nhau nếu sau này sửa cách tìm root.
+- **Cách sửa:** Không sửa trong PR này. Gộp lại phải sửa runner.lua (code cũ, ngoài phạm vi) và cần anh duyệt. Nếu muốn thì chuyển hàm thành `rails.root_for_current_buffer()` trong detectors/rails.lua ở một PR riêng.
+- **Trả lời reviewer:** "Giữ bản sao để PR không đụng runner; sẽ gộp vào detectors/rails.lua ở PR riêng."
+
+## Spec cần xem lại
+- **File symlink không được liệt kê.** Nguồn: `review-branch`, `code-review`. File: lua/rails-tools/core/finder.lua (scan_files).
+  - Spec: implement.md R6 "Symlinked files are skipped (only type `"file"` kept). Accepted; noted."
+  - Câu hỏi: spec chọn bỏ qua symlink, code cũng vậy (0.9.5 trả về type `"link"`). Quyết định này còn giữ không?
+- **File mới tạo có thể chưa hiện ra trong tối đa 30s.** Nguồn: `code-review`. File: lua/rails-tools/core/finder.lua (files_cache).
+  - Spec: 008-resource-finder.md "Results are cached with 30s TTL".
+  - Câu hỏi: spec chọn cache 30s, nên file vừa tạo bằng generator sẽ chưa có ngay. Quyết định này còn giữ không?
+
+## Ngoài phạm vi / không cần sửa
+- lua/rails-tools/core/finder.lua (use_telescope), provider gõ sai được xử lý như `auto` mà không cảnh báo — `spec-review`. Giống hành vi có sẵn của `terminal.resolve_provider()` (ui/terminal.lua:156-176).
+- lua/rails-tools/commands.lua, `:Rails find <Tab>` không gợi ý loại — `review-branch`. Có sẵn từ trước: `:Rails` chưa có completion cho lệnh con nào, spec cũng không yêu cầu.
+- specs/issues/008-resource-finder.md "Review: Approved" và phần tổng kết trong specs/story.md — `spec-review`. Cách cập nhật giống commit L3-012 (8fd7e05).
+
+## Trạng thái sau khi sửa
+Kiểm tra: `finder_spec` pass 33/33, `commands_spec` pass 13/13 (Neovim 0.9.5), luacheck các file thay đổi sạch. Các sửa đổi nằm trong commit thứ hai của nhánh.
+1. Đã sửa. Test: "ignores resources without paths when listing 'all'", "warns for a resource type turned off or without paths".
+2. Đã sửa. Test: "lists <type> sorted" (10 loại).
+3. Đã sửa (`outermost_paths`). Kết quả "all" không đổi, có test "lists every resource file once for 'all'".
+4. Đã sửa (`skip = should_descend`). Test "skips hidden files and hidden directories" vẫn pass.
+5. Đã sửa (kiểm tra root trước). Test: "warns about the project before the resource type outside a Rails project".
+6. Không sửa, lý do ở trên.

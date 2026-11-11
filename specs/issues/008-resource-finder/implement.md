@@ -55,3 +55,9 @@ Pick and open a Rails file by resource type (models, controllers, ...) from the 
 - R5 — Synchronous scan can pause the UI on large `spec/fixtures` or `all`. Accepted for MVP; cached 30s.
 - R6 — Symlinked files are skipped (only type `"file"` kept). Accepted; noted.
 - R7 — Telescope is not installed in the test environment; Telescope path is tested only with fake modules.
+
+## Decided after review
+- Resources set to `false` or without `paths` are ignored by `"all"` and warn as unknown when asked for directly.
+- `"all"` scans only the outermost paths (`spec` covers `spec/factories`); hidden directories are not walked (`vim.fs.dir` `skip`).
+- Root is checked before the resource type, so outside Rails the warning is always "not a Rails project".
+- `project_root()` stays duplicated with `core/runner.lua`; merging it touches runner and is left for a separate PR.

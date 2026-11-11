@@ -22,26 +22,67 @@ local function project_root()
   return rails.root()
 end
 
+---@param resource any
+---@return string[]|nil
+local function configured_paths(resource)
+  if type(resource) == "table" and type(resource.paths) == "table" then
+    return resource.paths
+  end
+  return nil
+end
+
+---@param path string
+---@param parent string
+---@return boolean
+local function is_inside(path, parent)
+  return path:sub(1, #parent + 1) == parent .. "/"
+end
+
+---@param sorted_paths string[]
+---@return string[]
+local function outermost_paths(sorted_paths)
+  local outermost = {}
+  for _, path in ipairs(sorted_paths) do
+    local is_covered = false
+    for _, kept in ipairs(outermost) do
+      if path == kept or is_inside(path, kept) then
+        is_covered = true
+        break
+      end
+    end
+    if not is_covered then
+      table.insert(outermost, path)
+    end
+  end
+  return outermost
+end
+
 ---@param resources table<string, {paths: string[]}>
 ---@param resource_type string
 ---@return string[]
 local function resource_paths(resources, resource_type)
   if resource_type ~= ALL_RESOURCES then
-    return resources[resource_type].paths
+    return configured_paths(resources[resource_type]) or {}
   end
 
   local paths = {}
   for _, resource in pairs(resources) do
-    vim.list_extend(paths, resource.paths)
+    vim.list_extend(paths, configured_paths(resource) or {})
   end
   table.sort(paths)
-  return paths
+  return outermost_paths(paths)
 end
 
 ---@param relative_path string
 ---@return boolean
 local function is_hidden(relative_path)
   return relative_path:match("^%.") ~= nil or relative_path:match("/%.") ~= nil
+end
+
+---@param relative_dir string
+---@return boolean
+local function should_descend(relative_dir)
+  return not is_hidden(relative_dir)
 end
 
 ---@param root string
@@ -54,7 +95,7 @@ local function scan_files(root, paths)
   for _, path in ipairs(paths) do
     local dir = root .. "/" .. path
     if vim.fn.isdirectory(dir) == 1 then
-      for name, entry_type in vim.fs.dir(dir, { depth = UNLIMITED_DEPTH }) do
+      for name, entry_type in vim.fs.dir(dir, { depth = UNLIMITED_DEPTH, skip = should_descend }) do
         local relative_file = path .. "/" .. name
         if entry_type == "file" and not is_hidden(name) and not seen[relative_file] then
           seen[relative_file] = true
@@ -150,15 +191,15 @@ function M.find(resource_type)
     return
   end
 
-  local finder_config = config.get().finder
-  if resource_type ~= ALL_RESOURCES and not finder_config.resources[resource_type] then
-    vim.notify(("Rails: unknown resource type '%s'"):format(resource_type), vim.log.levels.WARN)
-    return
-  end
-
   local root = project_root()
   if not root then
     vim.notify("Rails: not a Rails project", vim.log.levels.WARN)
+    return
+  end
+
+  local finder_config = config.get().finder
+  if resource_type ~= ALL_RESOURCES and not configured_paths(finder_config.resources[resource_type]) then
+    vim.notify(("Rails: unknown resource type '%s'"):format(resource_type), vim.log.levels.WARN)
     return
   end
 

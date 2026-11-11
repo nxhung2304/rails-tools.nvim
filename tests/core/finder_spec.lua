@@ -113,13 +113,15 @@ describe("rails-tools.core.finder", function()
     for _, case in ipairs(cases) do
       local resource_type, file = case[1], case[2]
 
-      it("lists " .. resource_type, function()
+      it("lists " .. resource_type .. " sorted", function()
+        local first_file = vim.fn.fnamemodify(file, ":h") .. "/a_first.rb"
         create_file(file)
+        create_file(first_file)
         create_file("lib/tasks/other.rake")
 
         finder.find(resource_type)
 
-        assert.are.same({ file }, listed_items())
+        assert.are.same({ first_file, file }, listed_items())
       end)
     end
 
@@ -168,6 +170,20 @@ describe("rails-tools.core.finder", function()
       finder.find("specs")
 
       assert.are.same({ "spec/models/user_spec.rb" }, listed_items())
+    end)
+
+    it("ignores resources without paths when listing 'all'", function()
+      config.setup({
+        finder = {
+          provider = "native",
+          resources = { jobs = false, widgets = {} },
+        },
+      })
+      create_file("app/models/user.rb")
+
+      finder.find("all")
+
+      assert.are.same({ "app/models/user.rb" }, listed_items())
     end)
 
     it("lists every resource file once for 'all'", function()
@@ -243,6 +259,32 @@ describe("rails-tools.core.finder", function()
 
       assert.are.equal(0, #select_calls)
       assert.are.same({ msg = "Rails: unknown resource type 'widgets'", level = vim.log.levels.WARN }, notifications[1])
+    end)
+
+    it("warns for a resource type turned off or without paths", function()
+      config.setup({
+        finder = {
+          provider = "native",
+          resources = { jobs = false, widgets = {} },
+        },
+      })
+
+      finder.find("jobs")
+      finder.find("widgets")
+
+      assert.are.equal(0, #select_calls)
+      assert.are.same({
+        { msg = "Rails: unknown resource type 'jobs'", level = vim.log.levels.WARN },
+        { msg = "Rails: unknown resource type 'widgets'", level = vim.log.levels.WARN },
+      }, notifications)
+    end)
+
+    it("warns about the project before the resource type outside a Rails project", function()
+      vim.fn.delete(tmp_dir .. "/Gemfile")
+
+      finder.find("widgets")
+
+      assert.are.same({ { msg = "Rails: not a Rails project", level = vim.log.levels.WARN } }, notifications)
     end)
 
     it("warns when no resource type is given", function()
