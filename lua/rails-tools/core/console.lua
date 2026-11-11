@@ -26,6 +26,10 @@ function M.open()
   end
 
   if not is_console_active(root) then
+    if not terminal.confirm_replace() then
+      return
+    end
+
     terminal.open(console_command(), { cwd = root })
     console_root = root
     return

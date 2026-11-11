@@ -17,6 +17,19 @@ local function last_char_end_col(line, col)
   return col + math.max(#last_char, 1) - 1
 end
 
+---@return string|nil
+local function project_root()
+  if vim.bo.buftype == "" then
+    local file = vim.api.nvim_buf_get_name(0)
+    local file_root = file ~= "" and rails.root(vim.fn.fnamemodify(file, ":p:h")) or nil
+    if file_root then
+      return file_root
+    end
+  end
+
+  return rails.root()
+end
+
 ---@return string
 local function visual_selection()
   local start_pos = vim.fn.getpos("'<")
@@ -44,9 +57,13 @@ function M.run(code)
     return
   end
 
-  local root = rails.root()
+  local root = project_root()
   if not root then
     vim.notify("Rails: not a Rails project", vim.log.levels.WARN)
+    return
+  end
+
+  if not terminal.confirm_replace() then
     return
   end
 

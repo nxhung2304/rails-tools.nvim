@@ -22,7 +22,9 @@ The spec allows "terminal or notification"; the checklist says "Integrate with u
 ## Behaviour — `core/runner.lua`
 - `M.run(code)`:
   - `code` nil or only whitespace → `vim.notify("Rails: no code to run", WARN)`, return.
-  - Not in a Rails project (`rails.root()` nil) → `vim.notify("Rails: not a Rails project", WARN)`, return (same wording as console).
+  - Project root: the Rails project of the current file (normal buffer with a name), else the cwd project (decided after risk-issue).
+  - Not in a Rails project (no root) → `vim.notify("Rails: not a Rails project", WARN)`, return (same wording as console).
+  - A job still running in the terminal (`terminal.is_running()`) → `terminal.confirm_replace()` asks "'<cmd>' is still running. Stop it?"; No → return. Console does the same before replacing (decided after risk-issue).
   - Else `terminal.open(config.get().runner.command .. " " .. vim.fn.shellescape(code), { cwd = root })`. Read the command at call time.
 - `M.run_prompt()`: `vim.ui.input({ prompt = "Rails runner: " }, fn)`; input nil (cancelled) → nothing; otherwise `M.run(input)` (empty input → the warning above).
 - `M.run_visual()`: read the last visual selection from marks `'<` / `'>` and `vim.fn.visualmode()`:
@@ -57,3 +59,10 @@ The spec allows "terminal or notification"; the checklist says "Integrate with u
 - R3 — `:'<,'>Rails runner` reads the marks of the last visual selection, which is what the range means here; `run_visual()` called from a keymap in visual mode before the marks are set (still in visual mode) would read the previous selection. Keymaps are L3-009's job; note it there.
 - R4 — Shell escaping relies on `vim.fn.shellescape` for the user's `shell`; tested with the default `sh`. Unusual shells (fish, PowerShell) not tested.
 - R5 — Only Neovim 0.9.5 in the test environment.
+
+## Risks (risk-issue, full run after review)
+- R6 — Opening another runner or the console stopped a running runner without warning (possible half-applied data change). Fixed: `terminal.confirm_replace()` before replacing a live job.
+- R7 — Code from a file of project B ran against project A when cwd was A. Fixed: root from the current file first.
+- R8 — `:5,7Rails runner` typed with exactly the lines of the last characterwise selection runs only the selected characters (`commands.lua` treats it as `'<,'>`). Rare; accepted.
+- R9 — The real `rails runner` was never run end to end: test-app has no `config/database.yml`. Verify on a real app.
+- R10 — A future visual keymap written as `<Cmd>Rails runner<CR>` gets no range and opens the prompt; noted in `specs/issues/011-keymaps.md`.

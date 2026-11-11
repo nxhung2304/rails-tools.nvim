@@ -58,12 +58,17 @@ describe("rails-tools.core.runner", function()
 
   describe("with a fake terminal", function()
     local opened
+    local replace_allowed
 
     before_each(function()
       opened = {}
+      replace_allowed = true
       package.loaded["rails-tools.ui.terminal"] = {
         open = function(cmd, opts)
           table.insert(opened, { cmd = cmd, cwd = opts and opts.cwd })
+        end,
+        confirm_replace = function()
+          return replace_allowed
         end,
       }
 
@@ -82,6 +87,43 @@ describe("rails-tools.core.runner", function()
         runner.run("puts User.count")
 
         assert.are.same({ { cmd = "rails runner 'puts User.count'", cwd = tmp_dir } }, opened)
+      end)
+
+      it("does not run when the user keeps the running terminal", function()
+        replace_allowed = false
+
+        runner.run("puts 1")
+
+        assert.equals(0, #opened)
+      end)
+
+      it("runs in the Rails project of the current file, not the cwd", function()
+        local other_project = vim.fn.resolve(vim.fn.tempname())
+        vim.fn.mkdir(other_project .. "/bin", "p")
+        vim.fn.mkdir(other_project .. "/app/models", "p")
+        vim.fn.writefile({}, other_project .. "/Gemfile")
+        vim.fn.writefile({}, other_project .. "/bin/rails")
+        vim.fn.writefile({ "puts 1" }, other_project .. "/app/models/user.rb")
+        vim.cmd("edit " .. vim.fn.fnameescape(other_project .. "/app/models/user.rb"))
+
+        runner.run_lines(1, 1)
+
+        assert.equals(other_project, opened[1].cwd)
+        vim.cmd("bwipeout!")
+        vim.fn.delete(other_project, "rf")
+      end)
+
+      it("falls back to the cwd project for a file outside any Rails project", function()
+        local outside_dir = vim.fn.resolve(vim.fn.tempname())
+        vim.fn.mkdir(outside_dir, "p")
+        vim.fn.writefile({ "puts 1" }, outside_dir .. "/scratch.rb")
+        vim.cmd("edit " .. vim.fn.fnameescape(outside_dir .. "/scratch.rb"))
+
+        runner.run_lines(1, 1)
+
+        assert.equals(tmp_dir, opened[1].cwd)
+        vim.cmd("bwipeout!")
+        vim.fn.delete(outside_dir, "rf")
       end)
 
       it("uses a custom runner command from config", function()
