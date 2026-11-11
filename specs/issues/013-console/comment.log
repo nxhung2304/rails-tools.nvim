@@ -1,0 +1,64 @@
+Tóm tắt: 2 MUST / 1 SHOULD / 1 NIT · 1 giả định · 1 chờ xác nhận · 1 spec cần xem lại · 3 ngoài phạm vi / không cần sửa.
+Nguồn: review-branch 6 · code-review 3 · spec-review 3 (đã gộp trùng).
+Ghi chú: A và B chạy trên checkout chính (thay đổi đang ở trạng thái staged), nên có thể đã đọc được spec. Chưa có PR, cũng không có `gh` để đọc comment trên issue.
+
+### 1. MUST — toggleterm: console đã thoát vẫn bị coi là đang chạy
+- **Nguồn:** `review-branch`, `code-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh: chưa có dọn dẹp state, `close_on_exit = false` · Diff có đụng: có (`active_cmd` mới) · Liên quan: có
+- **File:** lua/rails-tools/ui/terminal.lua:109-148, :196-204
+- **Vấn đề:** Chỉ nhánh native mới xoá state khi tiến trình kết thúc. Với toggleterm, sau khi gõ `exit`, `:Rails console` cứ hiện lại buffer "[Process exited]" và không bao giờ mở console mới.
+- **Cách sửa:** Truyền `on_exit` vào `Terminal:new` để xoá state khi `state.term` chính là terminal vừa thoát. Thêm test bằng fake: gọi `on_exit` xong thì `active_cmd()` phải trả về nil.
+
+### 2. MUST — `is_visible()` trả về true khi console nằm ở tab khác hoặc cửa sổ đã chuyển sang buffer khác
+- **Nguồn:** `code-review` (đã tái hiện trên nvim 0.9), `review-branch`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/ui/terminal.lua:213-214, lua/rails-tools/core/console.lua:25-31
+- **Vấn đề:** Gặp một trong hai trường hợp sau thì `:Rails console` không làm gì cả:
+  - Đã `:tabnew` sang tab khác.
+  - Đã `:e file` ngay trong cửa sổ console.
+
+  Nếu dùng `terminal.toggle()` để hiện lại thì nó còn đóng mất cửa sổ ở tab kia.
+- **Cách sửa:** Để `is_visible()` chỉ trả về true khi cửa sổ ở tab hiện tại và đang hiện đúng buffer của terminal. Thêm `terminal.show()` để mở cửa sổ cho phiên đang chạy ở tab hiện tại mà không đóng cửa sổ nào khác. Console gọi `show()` thay cho `toggle()` khi console đang chạy nhưng không hiện.
+
+### 3. SHOULD (giả định) — Điều kiện `is_open ~= nil` chỉ phục vụ fake
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Giả định (toggleterm thật luôn có `is_open`, chưa đối chiếu với source đã cài) · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/ui/terminal.lua:210, tests/ui/terminal_spec.lua:300-304
+- **Vấn đề:** Đây là nhánh phòng thủ cho một trường hợp có lẽ không xảy ra. Nó làm code phức tạp thêm và kéo theo một test riêng.
+- **Cách sửa:** Bỏ điều kiện này và test "has no is_open()". Nếu cần hỗ trợ bản toggleterm rất cũ thì giữ lại.
+
+### 4. NIT — Test mới thiếu dòng trống giữa các khối `it`
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: không
+- **File:** tests/ui/terminal_spec.lua:205, :290
+- **Vấn đề:** Không giống style của các test còn lại trong file.
+- **Cách sửa:** Thêm dòng trống trước các khối `it` mới.
+
+## Chờ xác nhận
+- **Đổi dự án bằng `:cd` thì vẫn hiện console của dự án cũ.** Nguồn: `review-branch`. File: lua/rails-tools/core/console.lua.
+  - Câu hỏi cho anh: console có cần gắn với Rails root không, tức là `:cd` sang dự án B rồi `:Rails console` thì mở console mới cho B?
+  - Nếu "có": lưu root lúc mở console vào state của terminal, và chỉ coi là cùng console khi root trùng.
+
+## Spec cần xem lại
+- **`console.toggle()` chưa có nơi nào gọi ngoài test.** Nguồn: `review-branch`. File: lua/rails-tools/core/console.lua:35-42.
+  - Spec ghi: "`console.toggle()` toggles console window". Spec yêu cầu hàm này nhưng chưa có lệnh hay phím tắt nào dùng nó.
+  - Câu hỏi: vẫn giữ để keymap L3-009 dùng sau, hay thêm luôn `:Rails console toggle`?
+
+## Ngoài phạm vi / không cần sửa
+- terminal.lua:180-185, sau khi tiến trình native thoát, cửa sổ cũ không được đóng và terminal mới mở chồng lên — `review-branch`. Lỗi đã có trước PR này.
+- toggleterm và Neovim 0.11+ chưa được test thật — `spec-review`. Đã ghi ở implement.md, mục R4 và R5.
+- 013-console.md:2 đổi "Review: Todo" thành "Approved" — `spec-review`. Đây là bước của flow làm việc.
+
+## Trạng thái sau khi sửa
+Kiểm tra: `console_spec` pass 12/12, `terminal_spec` pass 33/33, `commands_spec` pass 6/6 (Neovim 0.9.5). Tất cả nằm trong commit đầu tiên của nhánh.
+1. Đã sửa: thêm `on_exit` khi tạo toggleterm, vào terminal.lua `open_toggleterm`. Có test "clears the active command when the toggleterm job exits" và test "ignores the exit of a terminal that was already replaced". Chưa test với toggleterm thật.
+2. Đã sửa:
+   - `is_visible()` kiểm tra cả tab hiện tại lẫn buffer đang hiện trong cửa sổ.
+   - Thêm `terminal.show()`; `console.open/toggle` gọi `show()` khi console không hiện.
+   - Test: "is not visible from another tab", "is not visible when its window shows another buffer", "shows the running session in a new tab without restarting it".
+3. Đã sửa: bỏ điều kiện `is_open ~= nil` và test đi kèm.
+4. Đã sửa: thêm dòng trống giữa các khối `it`.
+Chờ xác nhận ("đổi dự án bằng :cd"): anh đã chốt mỗi dự án một console.
+- Đã sửa trong commit thứ hai: `console.lua` lưu `console_root` và mở terminal với `cwd = root`.
+- Test: "opens a new console after moving to another Rails project".
+Spec cần xem lại (`console.toggle()`): anh đã chốt giữ lại cho keymap L3-009, không thêm lệnh con mới.

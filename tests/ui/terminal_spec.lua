@@ -202,6 +202,76 @@ describe("terminal", function()
 
       assert.is_true(found, "Terminal output should contain " .. tmpdir)
     end)
+
+    it("reports no active command before anything is opened", function()
+      assert.is_nil(terminal.active_cmd())
+      assert.is_false(terminal.is_visible())
+    end)
+
+    it("reports the active command and visibility", function()
+      terminal.open("cat")
+
+      assert.are.equal("cat", terminal.active_cmd())
+      assert.is_true(terminal.is_visible())
+
+      terminal.toggle()
+
+      assert.are.equal("cat", terminal.active_cmd())
+      assert.is_false(terminal.is_visible())
+    end)
+
+    it("clears the active command when the terminal buffer is wiped", function()
+      terminal.open("cat")
+      local bufnr = vim.api.nvim_get_current_buf()
+
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+
+      assert.is_nil(terminal.active_cmd())
+    end)
+
+    it("is not visible from another tab", function()
+      config.setup({ terminal = { direction = "horizontal" } })
+      terminal.open("cat")
+      vim.cmd("tabnew")
+
+      assert.is_false(terminal.is_visible())
+      vim.cmd("silent! tabonly!")
+    end)
+
+    it("is not visible when its window shows another buffer", function()
+      terminal.open("cat")
+      vim.cmd("enew")
+
+      assert.is_false(terminal.is_visible())
+    end)
+
+    it("shows the terminal in the current tab without closing the other window", function()
+      config.setup({ terminal = { direction = "horizontal" } })
+      terminal.open("cat")
+      local bufnr = vim.api.nvim_get_current_buf()
+      local first_win = vim.api.nvim_get_current_win()
+      vim.cmd("tabnew")
+
+      terminal.show()
+
+      assert.equals(bufnr, vim.api.nvim_get_current_buf())
+      assert.is_true(terminal.is_visible())
+      assert.is_true(vim.api.nvim_win_is_valid(first_win))
+      vim.cmd("silent! tabonly!")
+    end)
+
+    it("warns when showing with no terminal", function()
+      local notified = false
+      vim.notify = function(msg)
+        if msg:match("no terminal to show") then
+          notified = true
+        end
+      end
+
+      terminal.show()
+
+      assert.is_true(notified)
+    end)
   end)
 
   describe("toggleterm backend", function()
@@ -261,6 +331,47 @@ describe("terminal", function()
       config.setup({ terminal = { provider = "native" } })
       terminal.toggle() -- should still call fake_term:toggle()
       assert.is_true(fake_term.toggled)
+    end)
+
+    it("reports visibility from toggleterm is_open()", function()
+      fake_term.is_open = function()
+        return true
+      end
+      terminal.open("rails console")
+
+      assert.are.equal("rails console", terminal.active_cmd())
+      assert.is_true(terminal.is_visible())
+    end)
+
+    it("clears the active command when the toggleterm job exits", function()
+      terminal.open("rails console")
+
+      terminal_args.on_exit(fake_term)
+
+      assert.is_nil(terminal.active_cmd())
+    end)
+
+    it("ignores the exit of a terminal that was already replaced", function()
+      terminal.open("rails console")
+      local old_on_exit = terminal_args.on_exit
+      local old_term = fake_term
+      fake_term = vim.tbl_extend("force", {}, old_term)
+      terminal.open("rails runner")
+
+      old_on_exit(old_term)
+
+      assert.are.equal("rails runner", terminal.active_cmd())
+    end)
+
+    it("shows the toggleterm terminal", function()
+      fake_term.open = function(self)
+        self.shown = true
+      end
+      terminal.open("rails console")
+
+      terminal.show()
+
+      assert.is_true(fake_term.shown)
     end)
   end)
 end)

@@ -34,7 +34,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 0 - Foundation | 1 task | 1 | 100% |
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
 | Layer 2 - Detection | 4 tasks | 3 | 75% |
-| Layer 3 - Core Features | 8 tasks | 1 | 13% |
+| Layer 3 - Core Features | 8 tasks | 2 | 25% |
 | Layer 4 - Enhanced | 6 tasks | 0 | 0% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
@@ -48,10 +48,11 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L2-002** - Test Framework Detection (004-rspec-minitest-detection.md)
 - **L2-005** - Health Check (005-health-check.md)
 - **L3-003** - Alternate File Navigation (007-alternate-file.md)
+- **L3-011** - Rails Console (013-console.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Implement L3-011 / L3-012** - Console and Runner (terminal is ready)
+1. **Implement L3-012** - Runner (terminal is ready)
 2. **Implement L3-006** - Resource Finder
 3. **Continue L3** - Telescope, Menu, Keymaps, Routes
 
@@ -235,12 +236,12 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Create `tests/core/routes_spec.lua`
 
 ### L3-011. Rails Console (013-console.md)
-- [ ] Create `lua/rails-tools/core/console.lua`
-- [ ] Implement `open()`, `toggle()` functions
-- [ ] Integrate with ui/terminal.lua (from L1-013)
-- [ ] Read `config.console.command`
-- [ ] Register `:Rails console` subcommand
-- [ ] Create tests for console module
+- [x] Create `lua/rails-tools/core/console.lua`
+- [x] Implement `open()`, `toggle()` functions
+- [x] Integrate with ui/terminal.lua (from L1-013)
+- [x] Read `config.console.command`
+- [x] Register `:Rails console` subcommand
+- [x] Create tests for console module
 
 ### L3-012. Rails Runner (014-runner.md)
 - [ ] Create `lua/rails-tools/core/runner.lua`

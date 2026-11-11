@@ -9,6 +9,7 @@ local state = {
   winid = nil,
   job_id = nil,
   term = nil, -- toggleterm instance
+  cmd = nil,
 }
 
 local function get_cwd(opts)
@@ -67,6 +68,7 @@ local function clear_state()
   state.job_id = nil
   state.term = nil
   state.provider = nil
+  state.cmd = nil
 end
 
 local function setup_cleanup(bufnr)
@@ -130,6 +132,11 @@ local function open_toggleterm(cmd, opts)
     hidden = true,
     close_on_exit = false,
     float_opts = float_opts,
+    on_exit = function(exited_term)
+      if state.term == exited_term then
+        clear_state()
+      end
+    end,
   })
 
   state.term = term
@@ -188,6 +195,50 @@ function M.open(cmd, opts)
   else
     open_native(cmd, opts)
   end
+  state.cmd = cmd
+end
+
+---Command of the active terminal, nil when no terminal is open
+---@return string|nil
+function M.active_cmd()
+  if not state.provider then
+    return nil
+  end
+
+  return state.cmd
+end
+
+---Whether the active terminal currently has a window on screen
+---@return boolean
+function M.is_visible()
+  if state.provider == "toggleterm" and state.term then
+    return state.term:is_open() == true
+  end
+
+  if state.provider ~= "native" or not state.winid or not vim.api.nvim_win_is_valid(state.winid) then
+    return false
+  end
+
+  local is_on_current_tab = vim.api.nvim_win_get_tabpage(state.winid) == vim.api.nvim_get_current_tabpage()
+  local shows_terminal = vim.api.nvim_win_get_buf(state.winid) == state.bufnr
+
+  return is_on_current_tab and shows_terminal
+end
+
+---Show the active terminal in the current tab without closing other windows
+function M.show()
+  if state.provider == "toggleterm" and state.term then
+    state.term:open()
+    return
+  end
+
+  if state.provider == "native" and state.bufnr and vim.api.nvim_buf_is_valid(state.bufnr) then
+    state.winid = open_window(state.bufnr, config.get().terminal.direction)
+    vim.cmd("startinsert")
+    return
+  end
+
+  vim.notify("Rails: no terminal to show", vim.log.levels.WARN)
 end
 
 ---Toggle the active terminal

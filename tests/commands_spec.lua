@@ -26,6 +26,22 @@ describe("rails-tools.commands", function()
     package.loaded["rails-tools.core.alternate"] = nil
   end)
 
+  it("dispatches :Rails console to core/console.lua", function()
+    package.loaded["rails-tools.core.console"] = nil
+    local called = false
+    package.preload["rails-tools.core.console"] = function()
+      return { open = function() called = true end }
+    end
+
+    local commands = require("rails-tools.commands")
+    commands.setup()
+    vim.cmd("Rails console")
+
+    assert.is_true(called)
+    package.preload["rails-tools.core.console"] = nil
+    package.loaded["rails-tools.core.console"] = nil
+  end)
+
   it("does not error with no subcommand", function()
     local commands = require("rails-tools.commands")
     commands.setup()
