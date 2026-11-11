@@ -1,6 +1,6 @@
 ## **Status:**
-- Review: Todo
-- PR: Todo
+- Review: Approved
+- PR: Draft
 
 ## Metadata
 - **Title:** Health Check
@@ -31,31 +31,31 @@ Steps:
 ---
 
 ## Acceptance Criteria
-- [ ] Health check runs via `:checkhealth rails-tools`
-- [ ] Shows Environment section: Neovim version, Rails detection, Ruby version, Rails version
-- [ ] Shows Project section: Gemfile, bin/rails, test framework, Grape detection
-- [ ] Shows Modules section: status of each module (OK, DISABLED)
-- [ ] Checks for telescope.nvim availability
-- [ ] Checks for toggleterm.nvim availability
-- [ ] Checks for which-key.nvim availability
-- [ ] Shows warnings for missing optional dependencies
-- [ ] Handles non-Rails projects gracefully
+- [x] Health check runs via `:checkhealth rails-tools`
+- [x] Shows Environment section: Neovim version, Rails detection, Ruby version, Rails version
+- [x] Shows Project section: Gemfile, bin/rails, test framework, Grape detection
+- [x] Shows Modules section: status of each module (OK, DISABLED)
+- [x] Checks for telescope.nvim availability
+- [x] Checks for toggleterm.nvim availability
+- [x] Checks for which-key.nvim availability
+- [x] Shows warnings for missing optional dependencies
+- [x] Handles non-Rails projects gracefully
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/health.lua`
-- [ ] Implement M.check() function
-- [ ] Check Neovim version
-- [ ] Check Rails project detection
-- [ ] Check Ruby version (if Rails detected)
-- [ ] Check Rails version (if Rails detected)
-- [ ] Check optional dependencies
-- [ ] Check project status
-- [ ] Check module status
-- [ ] Format output according to :checkhealth conventions
-- [ ] Test health check on Rails project
-- [ ] Test health check on non-Rails project
+- [x] Create `lua/rails-tools/health.lua`
+- [x] Implement M.check() function
+- [x] Check Neovim version
+- [x] Check Rails project detection
+- [x] Check Ruby version (if Rails detected)
+- [x] Check Rails version (if Rails detected)
+- [x] Check optional dependencies
+- [x] Check project status
+- [x] Check module status
+- [x] Format output according to :checkhealth conventions
+- [x] Test health check on Rails project
+- [x] Test health check on non-Rails project
 
 ---
 

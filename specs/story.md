@@ -32,8 +32,8 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer | Tasks | Completed | Progress |
 |-------|-------|-----------|----------|
 | Layer 0 - Foundation | 1 task | 1 | 100% |
-| Layer 1 - Infrastructure | 4 tasks | 3 | 75% |
-| Layer 2 - Detection | 4 tasks | 2 | 50% |
+| Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
+| Layer 2 - Detection | 4 tasks | 3 | 75% |
 | Layer 3 - Core Features | 8 tasks | 1 | 13% |
 | Layer 4 - Enhanced | 6 tasks | 0 | 0% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
@@ -42,19 +42,18 @@ Layer 5: Polish & Integrations (Phase 3)
 ### Completed Items ✅
 - **L0-000** - Test Application (000-test-app.md)
 - **L1-004** - Configuration System (001-config-system.md)
+- **L1-013** - Terminal Abstraction Layer (002-terminal-abstraction.md)
+- **L1-Entry** - Plugin Entry Points (029-plugin-entry-point.md)
 - **L2-001** - Rails Detection (003-rails-detection.md)
 - **L2-002** - Test Framework Detection (004-rspec-minitest-detection.md)
+- **L2-005** - Health Check (005-health-check.md)
 - **L3-003** - Alternate File Navigation (007-alternate-file.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
-### In Progress 🚧
-- **L1-Entry** - init.lua, commands.lua, utils.lua, plugin/ (Partially complete: skeleton exists)
-
 ### Next Steps 📋 (In dependency order)
-1. **Implement L1-013** - Terminal Abstraction (needed by Console/Runner)
-2. **Implement L1-Entry** - init.lua, commands.lua, utils.lua, plugin/
-3. **Implement L2-005** - Health Check (can verify detectors)
-4. **Continue L3** - Finder, Telescope, Menu, Keymaps, Routes, Console, Runner
+1. **Implement L3-011 / L3-012** - Console and Runner (terminal is ready)
+2. **Implement L3-006** - Resource Finder
+3. **Continue L3** - Telescope, Menu, Keymaps, Routes
 
 ---
 
@@ -91,16 +90,16 @@ Layer 5: Polish & Integrations (Phase 3)
   - [x] View engine detection
   - [x] RSpec settings
 
-### L1-013. Terminal Abstraction Layer (002-terminal-abstraction.md) ⚠️ NEEDED BY L3-011, L3-012
-- [ ] Create `lua/rails-tools/ui/terminal.lua`
-- [ ] Implement `open(cmd, opts)`, `toggle()`, `send(text)` functions
-- [ ] Implement provider detection (auto, toggleterm, native)
-- [ ] Implement toggleterm backend
-- [ ] Implement native terminal backend
-- [ ] Support directions: float, horizontal, vertical
-- [ ] Configurable sizes: float (width, height), horizontal (rows), vertical (columns)
-- [ ] Create tests for terminal module
-- [ ] Test each provider and direction
+### L1-013. Terminal Abstraction Layer (002-terminal-abstraction.md) ✅ COMPLETE
+- [x] Create `lua/rails-tools/ui/terminal.lua`
+- [x] Implement `open(cmd, opts)`, `toggle()`, `send(text)` functions
+- [x] Implement provider detection (auto, toggleterm, native)
+- [x] Implement toggleterm backend
+- [x] Implement native terminal backend
+- [x] Support directions: float, horizontal, vertical
+- [x] Configurable sizes: float (width, height), horizontal (rows), vertical (columns)
+- [x] Create tests for terminal module
+- [x] Test each provider and direction
 
 ### L1-Entry. Plugin Entry Points (029-plugin-entry-point.md)
 - [x] Create `lua/rails-tools/init.lua` - Entry point with setup()
@@ -136,15 +135,15 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Create `tests/detectors/test_framework_spec.lua`
 
 ### L2-005. Health Check (005-health-check.md)
-- [ ] Create `lua/rails-tools/health.lua`
-- [ ] Implement `M.check()` function
-- [ ] Check Neovim version (>= 0.9)
-- [ ] Check Rails detection status
-- [ ] Check Ruby and Rails versions
-- [ ] Check optional dependencies (telescope, toggleterm, which-key)
-- [ ] Check project details (Gemfile, bin/rails, test framework, Grape)
-- [ ] Check module status (enabled/disabled)
-- [ ] Format output with vim.health API
+- [x] Create `lua/rails-tools/health.lua`
+- [x] Implement `M.check()` function
+- [x] Check Neovim version (>= 0.9)
+- [x] Check Rails detection status
+- [x] Check Ruby and Rails versions
+- [x] Check optional dependencies (telescope, toggleterm, which-key)
+- [x] Check project details (Gemfile, bin/rails, test framework, Grape)
+- [x] Check module status (enabled/disabled)
+- [x] Format output with vim.health API
 
 ### L2-016. Grape API Detection (006-grape-api-detection.md) [Phase 2]
 - [ ] Create `lua/rails-tools/detectors/grape.lua`
