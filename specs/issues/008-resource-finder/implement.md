@@ -55,6 +55,7 @@ Pick and open a Rails file by resource type (models, controllers, ...) from the 
 - R5 — Synchronous scan can pause the UI on large `spec/fixtures` or `all`. Accepted for MVP; cached 30s.
 - R6 — Symlinked files are skipped (only type `"file"` kept). Accepted; noted.
 - R7 — Telescope is not installed in the test environment; Telescope path is tested only with fake modules.
+  - Resolved: headless smoke run with real telescope.nvim 0.1.8 on Neovim 0.9.5 (commit 3f073f3), 21/21 pass: picker opens, result count, preview shows the whole file (also with cwd outside the project), Enter opens the file and closes the prompt. Preview needs a screen of at least 120 columns (Telescope `preview_cutoff`). Uncommitted.
 
 ## Decided after review
 - Resources set to `false` or without `paths` are ignored by `"all"` and warn as unknown when asked for directly.
