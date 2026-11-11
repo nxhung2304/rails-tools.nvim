@@ -7,6 +7,17 @@ local subcommands = {
   console = function()
     require("rails-tools.core.console").open()
   end,
+  runner = function(opts)
+    local runner = require("rails-tools.core.runner")
+
+    if opts.args ~= "" then
+      runner.run(opts.args)
+    elseif opts.range > 0 then
+      runner.run_visual()
+    else
+      runner.run_prompt()
+    end
+  end,
 }
 
 local registered = false
@@ -31,9 +42,13 @@ function M.setup()
       return
     end
 
-    handler()
+    handler({
+      args = opts.args:match("^%s*%S+%s*(.-)%s*$"),
+      range = opts.range,
+    })
   end, {
     nargs = "*",
+    range = true,
     desc = "rails-tools.nvim command dispatcher",
   })
 end
