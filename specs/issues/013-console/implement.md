@@ -28,12 +28,12 @@ Source specs: `specs/issues/013-console.md`, `specs/story.md` (L3-011).
 
 ## Behaviour — `core/console.lua`
 - `command` = `config.get().console.command`, read at call time.
-- Console is "active" when `terminal.active_cmd() == command`.
+- Console is "active" when `terminal.active_cmd() == command` and the Rails root it was opened in (module-local `console_root`) equals the current `rails.root()`. After `:cd` into another Rails project, `open()` starts a console for that project (decided after review).
 - `M.open()`:
   - Not in a Rails project (`detectors.rails.root()` is nil) → `vim.notify("Rails: not a Rails project", WARN)` and return. Running `rails console` outside a project only shows a shell error.
   - Console active and visible → do nothing.
   - Console active but not visible here → `terminal.show()` (same session, current tab).
-  - Otherwise → `terminal.open(command)` (cwd defaults to the Rails root inside `terminal.open`).
+  - Otherwise → `terminal.open(command, { cwd = root })` and remember `console_root = root`.
 - `M.toggle()`: console active and visible → `terminal.toggle()` (hide); otherwise `M.open()`.
 - `:Rails console` → `M.open()`.
 

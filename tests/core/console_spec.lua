@@ -53,12 +53,14 @@ describe("rails-tools.core.console", function()
     before_each(function()
       fake_terminal = {
         opened = {},
+        opened_cwd = {},
         toggled = 0,
         shown = 0,
         active = nil,
         visible = false,
-        open = function(cmd)
+        open = function(cmd, opts)
           table.insert(fake_terminal.opened, cmd)
+          table.insert(fake_terminal.opened_cwd, opts and opts.cwd)
           fake_terminal.active = cmd
           fake_terminal.visible = true
         end,
@@ -90,10 +92,11 @@ describe("rails-tools.core.console", function()
         vim.cmd("cd " .. vim.fn.fnameescape(tmp_dir))
       end)
 
-      it("opens the default console command", function()
+      it("opens the default console command in the Rails root", function()
         console.open()
 
         assert.are.same({ "rails console" }, fake_terminal.opened)
+        assert.are.same({ tmp_dir }, fake_terminal.opened_cwd)
       end)
 
       it("opens a custom console command from config", function()
@@ -105,23 +108,22 @@ describe("rails-tools.core.console", function()
       end)
 
       it("shows a hidden console instead of starting a new one", function()
-        fake_terminal.active = "rails console"
+        console.open()
         fake_terminal.visible = false
 
         console.open()
 
-        assert.equals(0, #fake_terminal.opened)
+        assert.equals(1, #fake_terminal.opened)
         assert.equals(1, fake_terminal.shown)
         assert.equals(0, fake_terminal.toggled)
       end)
 
       it("does nothing when the console is already visible", function()
-        fake_terminal.active = "rails console"
-        fake_terminal.visible = true
+        console.open()
 
         console.open()
 
-        assert.equals(0, #fake_terminal.opened)
+        assert.equals(1, #fake_terminal.opened)
         assert.equals(0, fake_terminal.toggled)
         assert.equals(0, fake_terminal.shown)
       end)
@@ -137,23 +139,37 @@ describe("rails-tools.core.console", function()
       end)
 
       it("shows the active console when toggling while it is hidden", function()
-        fake_terminal.active = "rails console"
+        console.open()
         fake_terminal.visible = false
 
         console.toggle()
 
+        assert.equals(1, #fake_terminal.opened)
         assert.equals(1, fake_terminal.shown)
         assert.equals(0, fake_terminal.toggled)
       end)
 
       it("toggles the active console", function()
-        fake_terminal.active = "rails console"
-        fake_terminal.visible = true
+        console.open()
 
         console.toggle()
 
         assert.equals(1, fake_terminal.toggled)
-        assert.equals(0, #fake_terminal.opened)
+        assert.equals(1, #fake_terminal.opened)
+      end)
+
+      it("opens a new console after moving to another Rails project", function()
+        console.open()
+        local other_project = vim.fn.resolve(vim.fn.tempname())
+        vim.fn.mkdir(other_project .. "/bin", "p")
+        vim.fn.writefile({}, other_project .. "/Gemfile")
+        vim.fn.writefile({}, other_project .. "/bin/rails")
+        vim.cmd("cd " .. vim.fn.fnameescape(other_project))
+
+        console.open()
+
+        assert.are.same({ tmp_dir, other_project }, fake_terminal.opened_cwd)
+        vim.fn.delete(other_project, "rf")
       end)
 
       it("opens the console when toggling with no console running", function()

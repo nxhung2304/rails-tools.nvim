@@ -58,4 +58,7 @@ Kiểm tra: `console_spec` pass 12/12, `terminal_spec` pass 33/33, `commands_spe
    - Test: "is not visible from another tab", "is not visible when its window shows another buffer", "shows the running session in a new tab without restarting it".
 3. Đã sửa: bỏ điều kiện `is_open ~= nil` và test đi kèm.
 4. Đã sửa: thêm dòng trống giữa các khối `it`.
-Chờ xác nhận và Spec cần xem lại: chưa có câu trả lời, giữ nguyên.
+Chờ xác nhận ("đổi dự án bằng :cd"): anh đã chốt mỗi dự án một console.
+- Đã sửa trong commit thứ hai: `console.lua` lưu `console_root` và mở terminal với `cwd = root`.
+- Test: "opens a new console after moving to another Rails project".
+Spec cần xem lại (`console.toggle()`): anh đã chốt giữ lại cho keymap L3-009, không thêm lệnh con mới.
