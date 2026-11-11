@@ -1,6 +1,6 @@
 ## **Status:**
-- Review: Todo
-- PR: Todo
+- Review: Approved
+- PR: Draft
 
 ## Metadata
 - **Title:** Rails Console
@@ -27,26 +27,26 @@ Steps:
 ---
 
 ## Acceptance Criteria
-- [ ] `console.open()` opens Rails console
-- [ ] `console.toggle()` toggles console window
-- [ ] Uses terminal abstraction layer
-- [ ] Uses config.console.command for command override
-- [ ] Works with both toggleterm and native terminal
-- [ ] Maintains console state for toggle
+- [x] `console.open()` opens Rails console
+- [x] `console.toggle()` toggles console window
+- [x] Uses terminal abstraction layer
+- [x] Uses config.console.command for command override
+- [x] Works with both toggleterm and native terminal
+- [x] Maintains console state for toggle
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/core/console.lua`
-- [ ] Implement M.open() function
-- [ ] Implement M.toggle() function
-- [ ] Integrate with ui/terminal.lua
-- [ ] Read config.console.command
-- [ ] Register `:Rails console` subcommand
-- [ ] Create tests for console module
-- [ ] Test console open
-- [ ] Test console toggle
-- [ ] Test with custom command
+- [x] Create `lua/rails-tools/core/console.lua`
+- [x] Implement M.open() function
+- [x] Implement M.toggle() function
+- [x] Integrate with ui/terminal.lua
+- [x] Read config.console.command
+- [x] Register `:Rails console` subcommand
+- [x] Create tests for console module
+- [x] Test console open
+- [x] Test console toggle
+- [x] Test with custom command
 
 ---
 

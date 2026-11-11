@@ -4,6 +4,9 @@ local subcommands = {
   alternate = function()
     require("rails-tools.core.alternate").open()
   end,
+  console = function()
+    require("rails-tools.core.console").open()
+  end,
 }
 
 local registered = false
