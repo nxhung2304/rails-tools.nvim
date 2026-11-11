@@ -229,6 +229,49 @@ describe("terminal", function()
       assert.is_nil(terminal.active_cmd())
     end)
 
+    it("reports a running job and asks before replacing it", function()
+      terminal.open("cat")
+      local orig_confirm = vim.fn.confirm
+      local asked_message
+      vim.fn.confirm = function(message)
+        asked_message = message
+        return 2
+      end
+
+      local running = terminal.is_running()
+      local replace = terminal.confirm_replace()
+      vim.fn.confirm = orig_confirm
+
+      assert.is_true(running)
+      assert.is_false(replace)
+      assert.is_truthy(asked_message:find("cat", 1, true))
+    end)
+
+    it("replaces without asking when nothing is running", function()
+      local orig_confirm = vim.fn.confirm
+      local asked = false
+      vim.fn.confirm = function()
+        asked = true
+        return 2
+      end
+
+      local replace = terminal.confirm_replace()
+      vim.fn.confirm = orig_confirm
+
+      assert.is_true(replace)
+      assert.is_false(asked)
+      assert.is_false(terminal.is_running())
+    end)
+
+    it("is not running after its job has finished", function()
+      terminal.open("true")
+      local job_id = vim.b.terminal_job_id
+
+      vim.fn.jobwait({ job_id }, 5000)
+
+      assert.is_false(terminal.is_running())
+    end)
+
     it("is not visible from another tab", function()
       config.setup({ terminal = { direction = "horizontal" } })
       terminal.open("cat")

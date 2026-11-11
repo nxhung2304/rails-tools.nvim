@@ -208,6 +208,33 @@ function M.active_cmd()
   return state.cmd
 end
 
+---Whether the active terminal still has a running job
+---@return boolean
+function M.is_running()
+  local job_id = state.job_id
+  if state.provider == "toggleterm" and state.term then
+    job_id = state.term.job_id
+  end
+
+  if not state.provider or not job_id then
+    return false
+  end
+
+  return vim.fn.jobwait({ job_id }, 0)[1] == -1
+end
+
+---Ask before replacing a terminal whose job is still running
+---@return boolean replace true when nothing is running or the user agreed to stop it
+function M.confirm_replace()
+  if not M.is_running() then
+    return true
+  end
+
+  local message = ("Rails: '%s' is still running. Stop it?"):format(state.cmd or vim.o.shell)
+
+  return vim.fn.confirm(message, "&Yes\n&No", 2) == 1
+end
+
 ---Whether the active terminal currently has a window on screen
 ---@return boolean
 function M.is_visible()

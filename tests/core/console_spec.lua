@@ -78,6 +78,10 @@ describe("rails-tools.core.console", function()
         is_visible = function()
           return fake_terminal.visible
         end,
+        replace_allowed = true,
+        confirm_replace = function()
+          return fake_terminal.replace_allowed
+        end,
       }
       package.loaded["rails-tools.ui.terminal"] = fake_terminal
 
@@ -126,6 +130,15 @@ describe("rails-tools.core.console", function()
         assert.equals(1, #fake_terminal.opened)
         assert.equals(0, fake_terminal.toggled)
         assert.equals(0, fake_terminal.shown)
+      end)
+
+      it("keeps another running terminal when the user declines", function()
+        fake_terminal.active = "rails runner 'puts 1'"
+        fake_terminal.replace_allowed = false
+
+        console.open()
+
+        assert.equals(0, #fake_terminal.opened)
       end)
 
       it("replaces another active terminal with the console", function()

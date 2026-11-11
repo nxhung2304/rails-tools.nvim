@@ -59,3 +59,4 @@ Steps:
 - Uses mode "n" (normal mode)
 - Keymaps are silent and noremap
 - Phase 2 keymaps (spec, generator) added when modules enabled
+- A visual-mode runner keymap must not use `<Cmd>Rails runner<CR>`: `<Cmd>` passes no range, so the runner opens its prompt instead of running the selection. Use `:Rails runner<CR>` (Neovim inserts `'<,'>`) or call `require("rails-tools.core.runner").run_visual()` after leaving visual mode.

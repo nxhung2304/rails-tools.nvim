@@ -1,6 +1,6 @@
 ## **Status:**
-- Review: Todo
-- PR: Todo
+- Review: Approved
+- PR: Draft
 
 ## Metadata
 - **Title:** Rails Runner
@@ -27,28 +27,28 @@ Steps:
 ---
 
 ## Acceptance Criteria
-- [ ] `runner.run(code)` executes code string
-- [ ] `runner.run_prompt()` opens input prompt for code
-- [ ] `runner.run_visual()` executes visual selection
-- [ ] Uses config.runner.command (default: "rails runner")
-- [ ] Displays output to user
-- [ ] Shows error on failure
+- [x] `runner.run(code)` executes code string
+- [x] `runner.run_prompt()` opens input prompt for code
+- [x] `runner.run_visual()` executes visual selection
+- [x] Uses config.runner.command (default: "rails runner")
+- [x] Displays output to user
+- [x] Shows error on failure
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/core/runner.lua`
-- [ ] Implement M.run(code) function
-- [ ] Implement M.run_prompt() function
-- [ ] Implement M.run_visual() function
-- [ ] Integrate with ui/terminal.lua
-- [ ] Read config.runner.command
-- [ ] Register `:Rails runner {code}` subcommand
-- [ ] Register `:Rails runner` (no args) subcommand for prompt
-- [ ] Create tests for runner module
-- [ ] Test code execution
-- [ ] Test prompt input
-- [ ] Test visual selection
+- [x] Create `lua/rails-tools/core/runner.lua`
+- [x] Implement M.run(code) function
+- [x] Implement M.run_prompt() function
+- [x] Implement M.run_visual() function
+- [x] Integrate with ui/terminal.lua
+- [x] Read config.runner.command
+- [x] Register `:Rails runner {code}` subcommand
+- [x] Register `:Rails runner` (no args) subcommand for prompt
+- [x] Create tests for runner module
+- [x] Test code execution
+- [x] Test prompt input
+- [x] Test visual selection
 
 ---
 

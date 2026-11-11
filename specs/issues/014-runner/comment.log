@@ -1,0 +1,58 @@
+Tóm tắt: 4 MUST / 1 SHOULD / 0 NIT · 1 giả định · 1 chờ xác nhận · 0 spec cần xem lại · 3 ngoài phạm vi / không cần sửa.
+Nguồn: review-branch 4 · code-review 8 · spec-review 6 (đã gộp trùng).
+Ghi chú: A và B chạy trên checkout chính vì thay đổi đang ở trạng thái staged, nên có thể đã đọc thấy spec. Không có `gh` để đọc comment trên issue. Cả 3 nguồn được gọi theo các bước của skill review-issue, nhưng không gọi thẳng skill.
+
+### 1. MUST — Gõ khoảng dòng (`:2,3Rails runner`) nhưng lại chạy vùng chọn visual cũ, hoặc không chạy gì
+- **Nguồn:** `review-branch`, `code-review` (cả hai đã tái hiện trên nvim 0.9)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/commands.lua:15-16, lua/rails-tools/core/runner.lua:22-23
+- **Vấn đề:** Handler không nhận `line1`/`line2` nên khoảng dòng gõ vào bị bỏ qua. Hậu quả là chạy nhầm code (có thể sửa dữ liệu), hoặc báo "no code to run".
+- **Cách sửa:** Dispatcher truyền thêm `line1`/`line2`. Nếu khoảng dòng trùng với `'<`/`'>` thì gọi `run_visual()`, còn lại gọi `run_lines(line1, line2)` mới. Thêm test cho cả hai nhánh.
+
+### 2. MUST — Chọn theo khối (Ctrl-V) lại chạy cả dòng
+- **Nguồn:** `review-branch`, `code-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/runner.lua:25
+- **Vấn đề:** Code chạy nhiều hơn phần người dùng chọn, ví dụ dính cả comment hoặc code phía sau khối.
+- **Cách sửa:** Với chế độ khối thì chỉ cảnh báo "blockwise selection is not supported" và không chạy. Cắt cột theo khối đúng với ký tự nhiều byte phức tạp hơn mức cần thiết cho bản đầu.
+
+### 3. MUST — `selection=exclusive` lấy thừa 1 ký tự
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/runner.lua:28
+- **Vấn đề:** Chọn `puts 1` trong `puts 1;x` thì code gửi đi là `puts 1;`.
+- **Cách sửa:** Khi `selection=exclusive`, dừng ở byte ngay trước cột kết thúc.
+
+### 4. MUST (không sửa trong PR này) — `visualmode()` dùng chung toàn editor, còn mark `'<`/`'>` thì riêng từng buffer
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/runner.lua:25
+- **Vấn đề:** Cách tái hiện: chọn theo ký tự trong buffer A, chọn theo dòng trong buffer B, quay lại A rồi chạy `:'<,'>Rails runner`. Kết quả là A bị cắt theo kiểu chọn dòng.
+- **Cách sửa:** Không sửa trong PR này. Neovim không có API trả về kiểu chọn của từng buffer, muốn sửa phải tự theo dõi qua autocmd, rủi ro cao hơn chính lỗi. Hơn nữa lỗi này chỉ làm chạy thừa phần còn lại của dòng đã chọn, và người dùng thấy ngay trong terminal.
+- **Trả lời reviewer:** "Neovim chỉ lưu một visualmode() cho toàn editor; trường hợp đổi buffer giữa hai lần chọn hiếm, chấp nhận ở bản đầu."
+
+### 5. SHOULD — implement.md ghi "giữ nguyên text sau runner" nhưng code cắt khoảng trắng ở hai đầu
+- **Nguồn:** `spec-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/commands.lua:46, specs/issues/014-runner/implement.md
+- **Vấn đề:** Kế hoạch và code không khớp nhau. Khoảng trắng ở hai đầu không ảnh hưởng tới code Ruby.
+- **Cách sửa:** Sửa implement.md cho khớp với code: giữ khoảng trắng và dấu nháy bên trong, cắt khoảng trắng ở hai đầu.
+
+## Chờ xác nhận
+- **`rails runner` hiểu code là tên file hoặc là option.** Nguồn: `code-review`. File: lua/rails-tools/core/runner.lua:48.
+  - Ví dụ: `:Rails runner Gemfile` chạy file Gemfile như code Ruby, còn `:Rails runner -h` thì in phần hướng dẫn.
+  - Câu hỏi cho anh: chạy file bằng `:Rails runner path/to/script.rb` vốn là tính năng của rails runner. Anh muốn giữ, hay chặn code bắt đầu bằng `-`?
+  - Nếu chọn "chặn": `run()` cảnh báo và không chạy khi code bắt đầu bằng `-`.
+
+## Ngoài phạm vi / không cần sửa
+- runner.lua:49, chạy Runner sẽ thay thế console đang mở — `code-review`. Đã ghi trong implement.md (R1) và mô tả PR.
+- commands.lua:51, `range = true` áp dụng cho mọi lệnh con — `review-branch`, `code-review`. Đã ghi trong implement.md (R2), có test giữ hành vi này.
+- Không có kết quả qua `vim.notify`, lỗi chỉ hiện trong terminal, chế độ khối — `spec-review`. Các quyết định này đã ghi trong implement.md (Output decision).
+
+## Trạng thái sau khi sửa
+Kiểm tra: `runner_spec` pass 15/15, `commands_spec` pass 11/11 (Neovim 0.9.5). Các sửa đổi nằm trong commit thứ hai của nhánh.
+1. Đã sửa: thêm `run_lines()`, dispatcher so khoảng dòng với `'<`/`'>`. Test: "runs the typed line range when it differs from the last visual selection", "runs the visual selection when the range matches it", "runs the given line range".
+2. Đã sửa: chế độ khối chỉ cảnh báo, không chạy. Test: "warns and runs nothing for a blockwise selection".
+3. Đã sửa: xử lý `selection=exclusive`. Test: "runs a characterwise selection with selection=exclusive".
+4. Không sửa, lý do ghi ở trên.
+5. Đã sửa: cập nhật implement.md.

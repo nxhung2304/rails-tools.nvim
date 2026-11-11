@@ -42,6 +42,75 @@ describe("rails-tools.commands", function()
     package.loaded["rails-tools.core.console"] = nil
   end)
 
+  describe(":Rails runner", function()
+    local calls
+
+    before_each(function()
+      calls = {}
+      package.loaded["rails-tools.core.runner"] = nil
+      package.preload["rails-tools.core.runner"] = function()
+        return {
+          run = function(code) table.insert(calls, { "run", code }) end,
+          run_prompt = function() table.insert(calls, { "run_prompt" }) end,
+          run_visual = function() table.insert(calls, { "run_visual" }) end,
+          run_lines = function(line1, line2) table.insert(calls, { "run_lines", line1, line2 }) end,
+        }
+      end
+      require("rails-tools.commands").setup()
+    end)
+
+    after_each(function()
+      package.preload["rails-tools.core.runner"] = nil
+      package.loaded["rails-tools.core.runner"] = nil
+    end)
+
+    it("runs the raw code after the subcommand", function()
+      vim.cmd([[Rails runner puts "a  b"]])
+
+      assert.are.same({ { "run", [[puts "a  b"]] } }, calls)
+    end)
+
+    it("prompts when no code is given", function()
+      vim.cmd("Rails runner")
+
+      assert.are.same({ { "run_prompt" } }, calls)
+    end)
+
+    it("runs the visual selection when the range matches it", function()
+      vim.cmd("enew!")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "puts 1", "puts 2", "puts 3" })
+      vim.cmd('exe "normal! 1GVj\\<Esc>"')
+
+      vim.cmd("'<,'>Rails runner")
+
+      assert.are.same({ { "run_visual" } }, calls)
+    end)
+
+    it("runs the typed line range when it differs from the last visual selection", function()
+      vim.cmd("enew!")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "puts 1", "puts 2", "puts 3" })
+      vim.cmd('exe "normal! 1GV\\<Esc>"')
+
+      vim.cmd("2,3Rails runner")
+
+      assert.are.same({ { "run_lines", 2, 3 } }, calls)
+    end)
+
+    it("still dispatches subcommands without arguments when a range is given", function()
+      package.loaded["rails-tools.core.alternate"] = nil
+      local called = false
+      package.preload["rails-tools.core.alternate"] = function()
+        return { open = function() called = true end }
+      end
+
+      vim.cmd("%Rails alternate")
+
+      assert.is_true(called)
+      package.preload["rails-tools.core.alternate"] = nil
+      package.loaded["rails-tools.core.alternate"] = nil
+    end)
+  end)
+
   it("does not error with no subcommand", function()
     local commands = require("rails-tools.commands")
     commands.setup()
