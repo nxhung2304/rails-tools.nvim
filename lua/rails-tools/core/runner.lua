@@ -6,6 +6,7 @@ local M = {}
 
 local PROMPT = "Rails runner: "
 local CHARACTERWISE_MODE = "v"
+local BLOCKWISE_MODE = "\22"
 
 ---@param line string
 ---@param col integer
@@ -24,7 +25,11 @@ local function visual_selection()
 
   if vim.fn.visualmode() == CHARACTERWISE_MODE and #lines > 0 then
     local last = #lines
-    lines[last] = lines[last]:sub(1, last_char_end_col(lines[last], end_pos[3]))
+    local end_col = end_pos[3] - 1
+    if vim.o.selection ~= "exclusive" then
+      end_col = last_char_end_col(lines[last], end_pos[3])
+    end
+    lines[last] = lines[last]:sub(1, end_col)
     lines[1] = lines[1]:sub(start_pos[3])
   end
 
@@ -62,7 +67,19 @@ end
 
 ---Run the last visual selection with `rails runner`
 function M.run_visual()
+  if vim.fn.visualmode() == BLOCKWISE_MODE then
+    vim.notify("Rails: blockwise selection is not supported", vim.log.levels.WARN)
+    return
+  end
+
   M.run(visual_selection())
+end
+
+---Run lines `line1`..`line2` of the current buffer with `rails runner`
+---@param line1 integer
+---@param line2 integer
+function M.run_lines(line1, line2)
+  M.run(table.concat(vim.api.nvim_buf_get_lines(0, line1 - 1, line2, false), "\n"))
 end
 
 return M

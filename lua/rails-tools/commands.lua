@@ -13,7 +13,12 @@ local subcommands = {
     if opts.args ~= "" then
       runner.run(opts.args)
     elseif opts.range > 0 then
-      runner.run_visual()
+      local is_last_visual_range = opts.line1 == vim.fn.line("'<") and opts.line2 == vim.fn.line("'>")
+      if is_last_visual_range then
+        runner.run_visual()
+      else
+        runner.run_lines(opts.line1, opts.line2)
+      end
     else
       runner.run_prompt()
     end
@@ -45,6 +50,8 @@ function M.setup()
     handler({
       args = opts.args:match("^%s*%S+%s*(.-)%s*$"),
       range = opts.range,
+      line1 = opts.line1,
+      line2 = opts.line2,
     })
   end, {
     nargs = "*",

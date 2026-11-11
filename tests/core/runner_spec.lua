@@ -153,6 +153,35 @@ describe("rails-tools.core.runner", function()
         assert.equals("rails runner " .. vim.fn.shellescape("puts 1\nputs 2"), opened[1].cmd)
       end)
 
+      it("runs a characterwise selection with selection=exclusive", function()
+        local orig_selection = vim.o.selection
+        vim.o.selection = "exclusive"
+        select_text({ "puts 1;x" }, "1G0v6l")
+
+        runner.run_visual()
+        vim.o.selection = orig_selection
+
+        assert.equals("rails runner " .. vim.fn.shellescape("puts 1"), opened[1].cmd)
+      end)
+
+      it("warns and runs nothing for a blockwise selection", function()
+        select_text({ "puts 1 # a", "puts 2 # b" }, "1G0\\<C-v>j3l")
+
+        runner.run_visual()
+
+        assert.equals(0, #opened)
+        assert.equals("Rails: blockwise selection is not supported", notifications[1].msg)
+      end)
+
+      it("runs the given line range", function()
+        vim.cmd("enew!")
+        vim.api.nvim_buf_set_lines(0, 0, -1, false, { "puts 1", "puts 2", "puts 3" })
+
+        runner.run_lines(2, 3)
+
+        assert.equals("rails runner " .. vim.fn.shellescape("puts 2\nputs 3"), opened[1].cmd)
+      end)
+
       it("keeps a multibyte last character whole", function()
         select_text({ "puts 'héé'" }, "1G0vf'f'h")
 

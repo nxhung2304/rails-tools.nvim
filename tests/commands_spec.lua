@@ -53,6 +53,7 @@ describe("rails-tools.commands", function()
           run = function(code) table.insert(calls, { "run", code }) end,
           run_prompt = function() table.insert(calls, { "run_prompt" }) end,
           run_visual = function() table.insert(calls, { "run_visual" }) end,
+          run_lines = function(line1, line2) table.insert(calls, { "run_lines", line1, line2 }) end,
         }
       end
       require("rails-tools.commands").setup()
@@ -75,12 +76,24 @@ describe("rails-tools.commands", function()
       assert.are.same({ { "run_prompt" } }, calls)
     end)
 
-    it("runs the visual selection when called with a range", function()
-      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "puts 1", "puts 2" })
+    it("runs the visual selection when the range matches it", function()
+      vim.cmd("enew!")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "puts 1", "puts 2", "puts 3" })
+      vim.cmd('exe "normal! 1GVj\\<Esc>"')
 
-      vim.cmd("1,2Rails runner")
+      vim.cmd("'<,'>Rails runner")
 
       assert.are.same({ { "run_visual" } }, calls)
+    end)
+
+    it("runs the typed line range when it differs from the last visual selection", function()
+      vim.cmd("enew!")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "puts 1", "puts 2", "puts 3" })
+      vim.cmd('exe "normal! 1GV\\<Esc>"')
+
+      vim.cmd("2,3Rails runner")
+
+      assert.are.same({ { "run_lines", 2, 3 } }, calls)
     end)
 
     it("still dispatches subcommands without arguments when a range is given", function()
