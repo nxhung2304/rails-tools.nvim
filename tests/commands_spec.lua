@@ -42,6 +42,38 @@ describe("rails-tools.commands", function()
     package.loaded["rails-tools.core.console"] = nil
   end)
 
+  describe(":Rails find", function()
+    local resource_types
+
+    before_each(function()
+      resource_types = {}
+      package.loaded["rails-tools.core.finder"] = nil
+      package.preload["rails-tools.core.finder"] = function()
+        return {
+          find = function(resource_type) table.insert(resource_types, resource_type) end,
+        }
+      end
+      require("rails-tools.commands").setup()
+    end)
+
+    after_each(function()
+      package.preload["rails-tools.core.finder"] = nil
+      package.loaded["rails-tools.core.finder"] = nil
+    end)
+
+    it("finds the given resource type", function()
+      vim.cmd("Rails find models")
+
+      assert.are.same({ "models" }, resource_types)
+    end)
+
+    it("passes an empty resource type when none is given", function()
+      vim.cmd("Rails find")
+
+      assert.are.same({ "" }, resource_types)
+    end)
+  end)
+
   describe(":Rails runner", function()
     local calls
 
