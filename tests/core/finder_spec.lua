@@ -352,11 +352,13 @@ describe("rails-tools.core.finder", function()
 
   describe("telescope", function()
     local picker_specs
+    local picker_opts_calls
     local select_default_handler
     local closed_prompts
 
     local function install_fake_telescope(selected_entry)
       picker_specs = {}
+      picker_opts_calls = {}
       closed_prompts = {}
       select_default_handler = nil
       package.preload["telescope"] = function()
@@ -364,7 +366,8 @@ describe("rails-tools.core.finder", function()
       end
       package.preload["telescope.pickers"] = function()
         return {
-          new = function(_, spec)
+          new = function(picker_opts, spec)
+            table.insert(picker_opts_calls, picker_opts)
             table.insert(picker_specs, spec)
             return {
               find = function()
@@ -454,6 +457,45 @@ describe("rails-tools.core.finder", function()
 
       assert.are.equal(0, #picker_specs)
       assert.are.equal(1, #select_calls)
+    end)
+
+    it("uses Telescope when the provider option overrides native config", function()
+      create_file("app/models/user.rb")
+      install_fake_telescope(nil)
+
+      finder.find("models", { provider = "telescope" })
+
+      assert.are.equal(1, #picker_specs)
+      assert.are.equal(0, #select_calls)
+    end)
+
+    it("passes picker_opts to the Telescope picker", function()
+      config.setup({ finder = { provider = "auto" } })
+      create_file("app/models/user.rb")
+      install_fake_telescope(nil)
+
+      finder.find("models", { picker_opts = { layout_strategy = "vertical" } })
+
+      assert.are.same({ { layout_strategy = "vertical" } }, picker_opts_calls)
+    end)
+
+    it("passes empty picker_opts to Telescope by default", function()
+      config.setup({ finder = { provider = "auto" } })
+      create_file("app/models/user.rb")
+      install_fake_telescope(nil)
+
+      finder.find("models")
+
+      assert.are.same({ {} }, picker_opts_calls)
+    end)
+
+    it("falls back to vim.ui.select when the telescope provider option is given but Telescope is missing", function()
+      create_file("app/models/user.rb")
+
+      finder.find("models", { provider = "telescope" })
+
+      assert.are.equal(1, #select_calls)
+      assert.are.equal("Rails: telescope.nvim not found, falling back to vim.ui.select", notifications[1].msg)
     end)
 
     it("falls back to vim.ui.select when Telescope is requested but missing", function()

@@ -34,7 +34,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 0 - Foundation | 1 task | 1 | 100% |
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
 | Layer 2 - Detection | 4 tasks | 3 | 75% |
-| Layer 3 - Core Features | 8 tasks | 4 | 50% |
+| Layer 3 - Core Features | 8 tasks | 5 | 62% |
 | Layer 4 - Enhanced | 6 tasks | 0 | 0% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
@@ -49,12 +49,13 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L2-005** - Health Check (005-health-check.md)
 - **L3-003** - Alternate File Navigation (007-alternate-file.md)
 - **L3-006** - Resource Finder (008-resource-finder.md)
+- **L3-007** - Telescope Integration (009-telescope-pickers.md)
 - **L3-011** - Rails Console (013-console.md)
 - **L3-012** - Rails Runner (014-runner.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Continue L3** - Telescope, Menu, Keymaps, Routes
+1. **Continue L3** - Menu, Keymaps, Routes
 
 ---
 
@@ -187,14 +188,14 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Resources: models, controllers, views, services, policies, jobs, mailers, serializers, specs, factories
 - [x] Create `tests/core/finder_spec.lua`
 
-### L3-007. Telescope Integration (009-telescope-pickers.md)
-- [ ] Create `lua/rails-tools/telescope/init.lua`
-- [ ] Define exports table for Telescope registration
-- [ ] Implement pickers: models, controllers, views, services, specs, routes
-- [ ] Add grape picker (placeholder for Phase 2)
-- [ ] Register extension
-- [ ] Gracefully handle missing telescope.nvim
-- [ ] Test each picker
+### L3-007. Telescope Integration (009-telescope-pickers.md) ✅ COMPLETE
+- [x] Create `lua/rails-tools/telescope/init.lua`
+- [x] Define exports table for Telescope registration
+- [x] Implement pickers: models, controllers, views, services, specs (routes picker moved to L3-010)
+- [x] Add grape picker (placeholder for Phase 2)
+- [x] Register extension (`lua/telescope/_extensions/rails.lua`, loaded from `setup()`)
+- [x] Gracefully handle missing telescope.nvim
+- [x] Test each picker
 
 ### L3-008. Rails Menu (010-menu.md)
 - [ ] Create `lua/rails-tools/ui/menu.lua`
@@ -232,6 +233,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Cache with TTL from config (default 300s)
 - [ ] Handle namespaced routes
 - [ ] Show loading indicator
+- [ ] Telescope `routes` picker in `lua/rails-tools/telescope/init.lua` (moved from L3-007)
 - [ ] Force refresh with `:Rails routes!`
 - [ ] Create `tests/core/routes_spec.lua`
 
