@@ -1,0 +1,106 @@
+Tóm tắt: 4 MUST / 3 SHOULD / 5 NIT · 1 assumption · 0 chờ xác nhận · 0 spec cần xem lại · 1 ngoài phạm vi.
+Nguồn: review-branch 6 · code-review 2 · spec-review 7 (đã gộp trùng).
+Ghi chú: thay đổi đang được stage nên A và B chạy ở checkout chính, không dùng worktree. B có thể đã đọc thấy spec trong repo. Không có `gh` CLI để đọc comment của issue/PR (chưa có PR).
+
+### 1. MUST — Lỗi "Neovim < 0.9" không bao giờ hiện ra
+- **Nguồn:** `code-review`, `spec-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/health.lua:93-98
+- **Vấn đề:** Neovim 0.8 chưa có `vim.health.start`, nên check bị crash trước khi tới dòng kiểm tra phiên bản. Người dùng thấy "Failed to run healthcheck" thay vì thông báo yêu cầu 0.9+.
+- **Cách sửa:** Kiểm tra phiên bản ngay đầu `M.check()`. Nếu chưa đủ thì gọi `vim.health.report_start` / `report_error` (0.8 có hai hàm này) rồi dừng.
+
+### 2. MUST — Test "thiếu Gemfile.lock" đúng với 2 cảnh báo khác nhau
+- **Nguồn:** `review-branch`, `spec-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** tests/health_spec.lua:109-115
+- **Vấn đề:** Test chỉ tìm chữ "Gemfile.lock". Cảnh báo ở mục Project và cảnh báo phiên bản Rails đều có chữ này, nên hỏng một trong hai thì test vẫn qua.
+- **Cách sửa:** Kiểm tra riêng từng câu đầy đủ: "Rails version not found in Gemfile.lock" và "Gemfile.lock not found".
+
+### 3. MUST — Chưa cập nhật story.md và các ô checkbox của issue
+- **Nguồn:** `spec-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: không, chưa làm · Liên quan: có
+- **File:** specs/story.md (L2-005, L1-013, L1-Entry), specs/issues/005-health-check.md
+- **Vấn đề:** implement.md yêu cầu tick L2-005 và sửa trạng thái cũ của L1-013 / L1-Entry, nhưng diff chưa có.
+- **Cách sửa:** Tick các ô liên quan và cập nhật bảng Progress Summary trước khi commit.
+
+### 4. MUST — Smoke test chưa kiểm tra "không có ERROR" như kế hoạch ghi
+- **Nguồn:** `spec-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** tests/health_spec.lua:260
+- **Vấn đề:** Kế hoạch ghi "assert no ERROR", nhưng test chỉ kiểm tra không có chữ "Failed to run healthcheck".
+- **Cách sửa:** Kiểm tra thêm là output không có "ERROR".
+
+### 5. SHOULD — Câu fallback của which-key nói về tính năng chưa tồn tại
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/health.lua:13
+- **Vấn đề:** Câu "keymap groups are not labelled" ám chỉ plugin đang dùng which-key, nhưng trong `lua/` chưa có chỗ nào dùng.
+- **Cách sửa:** Đổi thành câu đúng cả bây giờ lẫn sau khi có L3-009: "keymaps work without group labels".
+
+### 6. SHOULD — implement.md ghi "LuaDoc chỉ cho M.check()", nhưng code annotate cả hàm local
+- **Nguồn:** `spec-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/health.lua (các hàm local), specs/issues/005-health-check/implement.md
+- **Vấn đề:** Các file cùng thư mục (`detectors/rails.lua`, `test_framework.lua`) đều annotate cả hàm local. Code đang theo các file đó, còn kế hoạch thì ghi khác.
+- **Cách sửa:** Sửa câu trong implement.md thành "LuaDoc annotations follow sibling files", giữ nguyên code.
+
+### 7. SHOULD (assumption) — Gemfile.lock không có dòng `rails (` thì không ra phiên bản
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Giả định (chưa có app thật nào dùng railties riêng) · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/health.lua:84
+- **Vấn đề:** App chỉ khai báo `railties` thì không có dòng `rails (` trong lockfile, và lời khuyên "run bundle install" là sai.
+- **Cách sửa:** Không tìm thấy `rails (` thì tìm tiếp `railties (`, và bỏ câu "run bundle install". Có thể bỏ qua nếu anh chỉ hỗ trợ app dùng gem `rails`.
+
+### 8. NIT — Mục Project có nhánh không bao giờ chạy
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/health.lua:118-132
+- **Vấn đề:** Đã nhận ra là dự án Rails thì chắc chắn có Gemfile và bin/rails (hoặc script/rails), nên các cảnh báo "Gemfile not found" và "bin/rails not found" là code chết.
+- **Cách sửa:** Gemfile và file rails chỉ báo ok (ghi rõ là `bin/rails` hay `script/rails`). Chỉ Gemfile.lock mới cảnh báo khi thiếu.
+
+### 9. NIT — Chữ "0.9" bị viết ở hai nơi
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/health.lua:7, :98
+- **Vấn đề:** Khi nâng phiên bản tối thiểu, có thể chỉ sửa một chỗ và quên chỗ còn lại.
+- **Cách sửa:** Dùng một hằng số `MIN_NVIM_VERSION = "0.9"`, tạo cả chuỗi `has()` lẫn câu thông báo từ hằng số này (gộp với mục 1).
+
+### 10. NIT — Detector Grape lỗi sẽ bị báo nhầm là "chưa có"
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/health.lua:148-152
+- **Vấn đề:** `pcall(require)` nuốt mọi lỗi. Khi đã có file grape.lua mà file đó lỗi cú pháp, người dùng vẫn chỉ thấy "not available yet".
+- **Cách sửa:** Kiểm tra file có tồn tại bằng `nvim_get_runtime_file("lua/rails-tools/detectors/grape.lua")`, có rồi thì `require` trực tiếp.
+
+### 11. NIT — Smoke test không dọn sạch runtimepath và buffer khi test fail
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** tests/health_spec.lua:251, :261
+- **Vấn đề:** runtimepath bị thêm đường dẫn mà không gỡ ra, và nếu assert fail thì buffer health vẫn còn mở, ảnh hưởng các test sau.
+- **Cách sửa:** Lưu runtimepath trong `before_each`, rồi trong `after_each` khôi phục nó và chạy `silent! %bwipeout!`.
+
+### 12. NIT — Câu cảnh báo "Not a Rails project" thiếu `script/rails`
+- **Nguồn:** `spec-review`, `review-branch` (kèm câu hỏi về `:Rails` toàn cục)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/health.lua:104-107, :56
+- **Vấn đề:** Detector chấp nhận cả `script/rails` nhưng câu thông báo chỉ nhắc `bin/rails`. Ngoài ra `exists(":Rails")` cũng tính cả lệnh chỉ có trong một buffer.
+- **Cách sửa:** Ghi "bin/rails or script/rails". Dùng `nvim_get_commands({})["Rails"]` để chỉ đếm lệnh `:Rails` toàn cục, đúng loại lệnh mà `setup()` tạo ra.
+
+## Ngoài phạm vi / không cần sửa
+- specs/issues/005-health-check.md:2 đổi "Review: Todo" thành "Approved" — `spec-review`. Đây là bước của flow implement-prepare (chỉ chạy khi đã approve), không phải tính năng.
+- `project_path_exists` trùng với `file_exists` trong detectors/rails.lua — `review-branch`. Hàm trong detector là local, không nằm trong phạm vi được sửa.
+
+## Trạng thái sau khi sửa
+Kiểm tra: `make test-file FILE=tests/health_spec.lua` pass 21/21 trên Neovim 0.9.5. Chạy `:checkhealth rails-tools` trên test-app không có lỗi. Tất cả nằm trong commit đầu tiên của nhánh.
+1. Đã sửa: health.lua `report_unsupported_nvim()` + kiểm tra ở đầu `M.check()`. Test "reports an unsupported Neovim version with the pre-0.9 health API". Chưa chạy trên Neovim 0.8 thật.
+2. Đã sửa: test kiểm tra riêng hai câu cảnh báo.
+3. Đã sửa: story.md (L1-013, L1-Entry, L2-005 và bảng Progress) và các ô checkbox của issue.
+4. Đã sửa: smoke test kiểm tra thêm không có "ERROR".
+5. Đã sửa: câu fallback của which-key.
+6. Đã sửa: câu về LuaDoc trong implement.md.
+7. Đã sửa: tìm tiếp `railties` khi không có `rails`, bỏ câu "run bundle install". Có test cho railties.
+8. Đã sửa: Gemfile và file rails chỉ báo ok, chỉ Gemfile.lock mới cảnh báo khi thiếu.
+9. Đã sửa: dùng một hằng số `MIN_NVIM_VERSION = "0.9"`.
+10. Đã sửa: dùng `nvim_get_runtime_file`, có file thì `require` trực tiếp, không bọc pcall.
+11. Đã sửa: `after_each` khôi phục runtimepath và chạy `silent! %bwipeout!`.
+12. Đã sửa: câu thông báo có "bin/rails or script/rails", và dùng `nvim_get_commands({}).Rails`.
