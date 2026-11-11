@@ -32,8 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install luacheck
-        run: sudo apt-get update && sudo apt-get install -y lua-check
-
       - name: Run luacheck
-        run: make lint
+        uses: lunarmodules/luacheck@v1
+        with:
+          args: lua/ --globals vim --no-unused-args
