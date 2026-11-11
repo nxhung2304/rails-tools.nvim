@@ -34,7 +34,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 0 - Foundation | 1 task | 1 | 100% |
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
 | Layer 2 - Detection | 4 tasks | 3 | 75% |
-| Layer 3 - Core Features | 8 tasks | 3 | 38% |
+| Layer 3 - Core Features | 8 tasks | 4 | 50% |
 | Layer 4 - Enhanced | 6 tasks | 0 | 0% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
@@ -48,13 +48,13 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L2-002** - Test Framework Detection (004-rspec-minitest-detection.md)
 - **L2-005** - Health Check (005-health-check.md)
 - **L3-003** - Alternate File Navigation (007-alternate-file.md)
+- **L3-006** - Resource Finder (008-resource-finder.md)
 - **L3-011** - Rails Console (013-console.md)
 - **L3-012** - Rails Runner (014-runner.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Implement L3-006** - Resource Finder
-2. **Continue L3** - Telescope, Menu, Keymaps, Routes
+1. **Continue L3** - Telescope, Menu, Keymaps, Routes
 
 ---
 
@@ -176,16 +176,16 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Prompt to create file if alternate doesn't exist
 - [x] Create `tests/core/alternate_spec.lua`
 
-### L3-006. Resource Finder (008-resource-finder.md)
-- [ ] Create `lua/rails-tools/core/finder.lua`
-- [ ] Define resource_paths table
-- [ ] Implement `find(resource_type)` function
-- [ ] Implement directory scanning
-- [ ] Integrate with Telescope (when available)
-- [ ] Implement vim.ui.select fallback
-- [ ] Cache results with 30s TTL
-- [ ] Resources: models, controllers, views, services, policies, jobs, mailers, serializers, specs, factories
-- [ ] Create `tests/core/finder_spec.lua`
+### L3-006. Resource Finder (008-resource-finder.md) ✅ COMPLETE
+- [x] Create `lua/rails-tools/core/finder.lua`
+- [x] Define resource_paths table
+- [x] Implement `find(resource_type)` function
+- [x] Implement directory scanning
+- [x] Integrate with Telescope (when available)
+- [x] Implement vim.ui.select fallback
+- [x] Cache results with 30s TTL
+- [x] Resources: models, controllers, views, services, policies, jobs, mailers, serializers, specs, factories
+- [x] Create `tests/core/finder_spec.lua`
 
 ### L3-007. Telescope Integration (009-telescope-pickers.md)
 - [ ] Create `lua/rails-tools/telescope/init.lua`

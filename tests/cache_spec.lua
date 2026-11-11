@@ -56,13 +56,14 @@ describe("cache", function()
   end)
 
   it("rebuilds once the TTL has elapsed", function()
+    local uv = vim.uv or vim.loop
     local cache = cache_module.new(0)
     local calls = 0
     cache:get("k", function()
       calls = calls + 1
       return calls
     end)
-    vim.uv.sleep(5)
+    uv.sleep(5)
     local second = cache:get("k", function()
       calls = calls + 1
       return calls

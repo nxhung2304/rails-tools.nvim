@@ -6,23 +6,6 @@ local M = {}
 local cache = {}
 
 ---@param dir string
----@return boolean
-local function has_rspec_rails_gem(dir)
-  local gemfile = dir .. "/Gemfile"
-  if vim.fn.filereadable(gemfile) ~= 1 then
-    return false
-  end
-
-  for _, line in ipairs(vim.fn.readfile(gemfile)) do
-    if line:match("gem%s*[%(%s]*['\"]rspec%-rails['\"]") then
-      return true
-    end
-  end
-
-  return false
-end
-
----@param dir string
 ---@return "rspec"|"minitest"|"both"|nil
 local function detect_in_dir(dir)
   local has_spec = vim.fn.isdirectory(dir .. "/spec") == 1

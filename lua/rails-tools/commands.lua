@@ -7,6 +7,9 @@ local subcommands = {
   console = function()
     require("rails-tools.core.console").open()
   end,
+  find = function(opts)
+    require("rails-tools.core.finder").find(opts.args)
+  end,
   runner = function(opts)
     local runner = require("rails-tools.core.runner")
 
