@@ -1,0 +1,47 @@
+Tóm tắt: 0 MUST / 4 SHOULD / 0 NIT · 1 giả định · 1 chờ xác nhận · 0 spec cần xem lại · 2 ngoài phạm vi / không cần sửa.
+Nguồn: review-branch 0 · code-review 6 · spec-review 0 lỗi (6 mục thiếu so với spec gốc, đều đã ghi là chuyển sang task khác trong spec mới).
+Ghi chú: review-branch và code-review chạy trong worktree, nhưng `specs/` đã được commit nên vẫn có trong worktree (cả hai được dặn không đọc; code-review có đọc story.md và mục đó đã bị bỏ). Không có `gh`; issue #8 đọc qua GitHub MCP (không có comment), chưa có PR.
+
+### 1. SHOULD — Chạy action ngay trong callback của menu, có thể mở UI thứ hai khi UI đầu chưa đóng xong
+- **Nguồn:** `code-review` (tin cậy 85); trùng với rủi ro "có thể" của risk-issue
+- **Phân loại:** Trong phạm vi · Giả định (phụ thuộc cách dressing / telescope-ui-select / fzf-lua đóng cửa sổ) · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/ui/menu.lua:46
+- **Vấn đề:** Run Code mở `vim.ui.input`, Find Resource mở picker, Alternate File có thể mở picker, tất cả ngay trong callback. Với plugin thay `vim.ui.select`, picker thứ hai có thể đóng ngay hoặc vào sai mode.
+- **Cách sửa:** Chưa kiểm được trên plugin thật (máy không có telescope). Đổi thành `vim.schedule(choice.action)` không làm hỏng gì khi dùng `vim.ui.select` mặc định, nên sửa luôn; test chờ action bằng `vim.wait`.
+- **Trạng thái:** Đã sửa (menu.lua dùng `vim.schedule(choice.action)`); test menu chờ action bằng `vim.wait`; 7/7 pass. Chưa commit.
+
+### 2. SHOULD — README vẫn ghi `:Rails` không tham số là no-op
+- **Nguồn:** `code-review` (tin cậy 85)
+- **Phân loại:** Trong phạm vi một phần · Đã xác minh · Diff có đụng: không (README không nằm trong diff, nhưng diff này làm dòng đó sai) · Liên quan: có
+- **File:** README.md:97-101
+- **Vấn đề:** Người đọc README nghĩ `:Rails` không làm gì nên không biết có menu.
+- **Cách sửa:** Đánh dấu `[x]` cho dòng `:Rails` và bỏ "(currently a no-op...)"; sửa câu 97-99 cho đúng. Các dòng lệnh khác đã cũ từ trước (find, console, runner chưa tick) nên để task Documentation (L5-024).
+- **Trạng thái:** Đã sửa README.md:97-101. Chưa commit.
+
+### 3. SHOULD — Test menu không xoá giá trị đã bắt từ test trước
+- **Nguồn:** `code-review` (tin cậy 80)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** tests/ui/menu_spec.lua:37
+- **Vấn đề:** `select_items`, `select_opts` không được reset, nên nếu `menu.open()` ngừng gọi `vim.ui.select` thì hai test đầu vẫn pass nhờ giá trị cũ.
+- **Cách sửa:** Gán `select_items = nil; select_opts = nil` trong `before_each`.
+- **Trạng thái:** Đã sửa (tests/ui/menu_spec.lua, `before_each`), test pass. Chưa commit.
+
+### 4. SHOULD — Action của menu lặp lại thân hàm trong bảng subcommand
+- **Nguồn:** `code-review` (tin cậy 80)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/ui/menu.lua:10-35
+- **Vấn đề:** Nếu handler của `:Rails <sub>` đổi, menu có thể lệch theo.
+- **Cách sửa:** Không sửa trong PR này: mỗi action chỉ là một lời gọi `require(...).fn()`, và menu cố ý khác subcommand (Find Resource gọi `"all"`, còn `:Rails find` không tham số thì cảnh báo). Gộp lại phải lộ bảng subcommand ra ngoài hoặc gọi `vim.cmd`, rủi ro hơn lợi ích.
+- **Trạng thái:** Không sửa, theo đề xuất.
+
+## Chờ xác nhận
+
+### `:'<,'>Rails` mở menu nhưng bỏ vùng chọn
+- **Nguồn:** `code-review` (tin cậy 80)
+- **File:** lua/rails-tools/commands.lua:44
+- **Câu hỏi (anh quyết):** Chọn dòng rồi gõ `:'<,'>Rails` → Run Code thì hiện ô nhập trống, không chạy vùng chọn như `:'<,'>Rails runner`. Spec không nói gì; chấp nhận để menu luôn hỏi code?
+- **Nếu không chấp nhận:** Truyền `range/line1/line2` vào `menu.open(opts)` và cho Run Code gọi lại logic chọn vùng của subcommand runner (kèm test).
+
+## Ngoài phạm vi / không cần sửa
+- tests/commands_spec.lua:154 — stub `ui.menu` / `vim.ui.select` trả lại ở cuối test, không trong `after_each`; `code-review`; Một phần trong phạm vi — test mới viết theo đúng kiểu sẵn có của file (các test alternate/console cũ cũng vậy), chỉ gây lỗi dây chuyền khi test đã fail; đổi riêng hai test sẽ lệch với cả file.
+- README.md:102-115 — các lệnh find/console/runner đã có nhưng chưa tick; `code-review`; Ngoài phạm vi — có từ trước, thuộc task Documentation (L5-024).

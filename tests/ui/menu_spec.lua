@@ -5,6 +5,8 @@ local STUBBED_MODULES = {
   "rails-tools.core.runner",
 }
 
+local ACTION_WAIT_MS = 100
+
 describe("rails-tools.ui.menu", function()
   local menu
   local calls
@@ -28,6 +30,13 @@ describe("rails-tools.ui.menu", function()
     end
   end
 
+  local function open_menu_and_wait()
+    menu.open()
+    vim.wait(ACTION_WAIT_MS, function()
+      return #calls > 0
+    end)
+  end
+
   local function labels()
     return vim.tbl_map(function(item)
       return select_opts.format_item(item)
@@ -37,6 +46,8 @@ describe("rails-tools.ui.menu", function()
   before_each(function()
     calls = {}
     pick_label = nil
+    select_items = nil
+    select_opts = nil
     for _, name in ipairs(STUBBED_MODULES) do
       package.loaded[name] = nil
     end
@@ -83,7 +94,7 @@ describe("rails-tools.ui.menu", function()
   it("opens the alternate file when Alternate File is chosen", function()
     pick_label = "Alternate File"
 
-    menu.open()
+    open_menu_and_wait()
 
     assert.are.same({ { "alternate.open" } }, calls)
   end)
@@ -91,7 +102,7 @@ describe("rails-tools.ui.menu", function()
   it("finds every resource when Find Resource is chosen", function()
     pick_label = "Find Resource"
 
-    menu.open()
+    open_menu_and_wait()
 
     assert.are.same({ { "finder.find", "all" } }, calls)
   end)
@@ -99,7 +110,7 @@ describe("rails-tools.ui.menu", function()
   it("opens the console when Open Console is chosen", function()
     pick_label = "Open Console"
 
-    menu.open()
+    open_menu_and_wait()
 
     assert.are.same({ { "console.open" } }, calls)
   end)
@@ -107,13 +118,13 @@ describe("rails-tools.ui.menu", function()
   it("prompts for code when Run Code is chosen", function()
     pick_label = "Run Code"
 
-    menu.open()
+    open_menu_and_wait()
 
     assert.are.same({ { "runner.run_prompt" } }, calls)
   end)
 
   it("does nothing when the menu is cancelled", function()
-    menu.open()
+    open_menu_and_wait()
 
     assert.are.same({}, calls)
   end)

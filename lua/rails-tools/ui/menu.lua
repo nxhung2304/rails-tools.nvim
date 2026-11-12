@@ -43,7 +43,7 @@ function M.open()
     end,
   }, function(choice)
     if choice then
-      choice.action()
+      vim.schedule(choice.action)
     end
   end)
 end
