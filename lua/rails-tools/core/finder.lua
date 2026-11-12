@@ -118,9 +118,9 @@ local function open_file(root, relative_file)
   end
 end
 
+---@param provider string
 ---@return boolean
-local function use_telescope()
-  local provider = config.get().finder.provider or "auto"
+local function use_telescope(provider)
   if provider == "native" then
     return false
   end
@@ -135,7 +135,8 @@ end
 ---@param root string
 ---@param resource_type string
 ---@param files string[]
-local function pick_with_telescope(root, resource_type, files)
+---@param picker_opts table
+local function pick_with_telescope(root, resource_type, files, picker_opts)
   local pickers = require("telescope.pickers")
   local finders = require("telescope.finders")
   local telescope_config = require("telescope.config").values
@@ -143,7 +144,7 @@ local function pick_with_telescope(root, resource_type, files)
   local action_state = require("telescope.actions.state")
 
   pickers
-    .new({}, {
+    .new(picker_opts, {
       prompt_title = "Rails " .. resource_type,
       finder = finders.new_table({
         results = files,
@@ -185,7 +186,10 @@ end
 
 ---Open a picker listing the files of a resource type and open the chosen file
 ---@param resource_type string key of `finder.resources` in config, or "all"
-function M.find(resource_type)
+---@param opts? {provider?: "auto"|"telescope"|"native", picker_opts?: table}
+---`opts.provider` overrides `finder.provider`; `opts.picker_opts` is passed to the Telescope picker
+function M.find(resource_type, opts)
+  opts = opts or {}
   if not resource_type or resource_type == "" then
     vim.notify("Rails: missing resource type", vim.log.levels.WARN)
     return
@@ -215,8 +219,8 @@ function M.find(resource_type)
     return
   end
 
-  if use_telescope() then
-    pick_with_telescope(root, resource_type, files)
+  if use_telescope(opts.provider or finder_config.provider or "auto") then
+    pick_with_telescope(root, resource_type, files, opts.picker_opts or {})
   else
     pick_with_select(root, resource_type, files)
   end

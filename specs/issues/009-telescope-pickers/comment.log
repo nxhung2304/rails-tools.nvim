@@ -1,0 +1,69 @@
+Tóm tắt: 2 MUST / 1 SHOULD / 0 NIT · 0 giả định · 2 chờ xác nhận · 3 spec cần xem lại · 1 ngoài phạm vi / không cần sửa.
+Nguồn: review-branch 5 · code-review 1 · spec-review 3 (đã gộp trùng).
+Ghi chú: review-branch và code-review chạy trong worktree, nhưng `specs/` đã được commit nên vẫn có trong worktree (cả hai được dặn không đọc). Không có `gh` để đọc comment trên issue/PR; mô tả PR #40 đọc qua GitHub MCP. code-review không trả về điểm tin cậy, agent tự chấm lại và chỉ giữ mục từ 80 trở lên.
+
+### 1. MUST — Nạp extension lỗi thì im lặng, không báo gì
+- **Nguồn:** `review-branch`, `spec-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/telescope/init.lua:34
+- **Vấn đề:** `pcall(telescope.load_extension, "rails")` bỏ lỗi đi và `init.lua` không xem giá trị trả về. Nếu extension hỏng, người dùng không biết vì sao Tab không gợi ý `:Telescope rails ...`.
+- **Cách sửa:** Khi `pcall` trả về false thì `vim.notify("Rails: could not load Telescope extension: " .. err, vim.log.levels.WARN)` rồi trả về false; thêm assert thông báo vào test "loading the extension fails".
+- **Trạng thái:** Đã sửa. Cảnh báo khi đăng ký lỗi (lua/rails-tools/telescope/init.lua, `M.setup`), test "warns and returns false when loading the extension fails" pass. Chưa commit.
+
+### 2. MUST — story.md vẫn ghi `:Telescope rails routes` thuộc L3-007
+- **Nguồn:** `spec-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: không (dòng này chưa sửa) · Liên quan: có
+- **File:** specs/story.md:571 (Commands Reference)
+- **Vấn đề:** Picker routes đã chuyển sang L3-010 ở checklist và spec, nhưng bảng lệnh vẫn ghi L3-007, nên người đọc tưởng L3-007 còn thiếu.
+- **Cách sửa:** Đổi thành "`:Telescope rails routes` (L3-010)".
+- **Trạng thái:** Đã sửa (specs/story.md:571). Chưa commit.
+
+### 3. SHOULD — `finder.find` nhận cả provider "auto" và "native", spec chỉ cần "telescope"
+- **Nguồn:** `spec-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/finder.lua:189
+- **Vấn đề:** Tham số mới rộng hơn cách spec gọi, nhưng không có chỗ nào gọi với giá trị khác và hành vi đúng với cả ba giá trị.
+- **Cách sửa:** Không sửa trong PR này: chặn bớt giá trị chỉ thêm một nhánh kiểm tra mà không lợi gì; ba giá trị trùng với `finder.provider` trong config nên dễ hiểu.
+- **Trạng thái:** Không sửa, theo đề xuất.
+
+## Chờ xác nhận
+
+### `:Telescope rails` không kèm tên picker báo lỗi Lua
+- **Nguồn:** `code-review` (tin cậy 85, đã chạy lại được lỗi)
+- **File:** lua/rails-tools/telescope/init.lua:17-25
+- **Câu hỏi (anh quyết):** Telescope gọi `exports.rails` khi không có tên picker, hiện là nil nên ra lỗi `attempt to call a nil value`. PR #40 ghi đây là rủi ro đã chấp nhận ("Gõ `:Telescope rails` mà không kèm tên loại sẽ báo lỗi của Telescope.") nhưng anh chưa xác nhận. Chấp nhận hay sửa?
+- **Nếu không chấp nhận:** Thêm `M.exports.rails = resource_picker("all")` (mở danh sách mọi file) cùng một test, và bỏ dòng rủi ro trong PR.
+- **Trạng thái:** Anh chọn sửa. Đã thêm picker `rails` mở mọi file; test "rails opens the finder for every resource" pass; chạy thật với Telescope: `:Telescope rails` mở 27 file trong test-app. Chưa commit.
+
+### Mở `setup()` có làm Telescope bị nạp ngay lúc khởi động không
+- **Nguồn:** `review-branch`
+- **File:** lua/rails-tools/init.lua:23, lua/rails-tools/telescope/init.lua:30
+- **Câu hỏi (anh quyết):** Với lazy.nvim, `require("telescope")` trong `setup()` có thể nạp Telescope sớm (chưa kiểm được, môi trường không có lazy.nvim). Bù lại, nạp sớm giúp Tab gợi ý được `:Telescope rails <tên>` ngay (Telescope chỉ gợi ý extension đã nạp, `command.lua:213-226`). Chấp nhận đánh đổi này?
+- **Nếu không chấp nhận:** Chỉ nạp extension khi `package.loaded["telescope"]` đã có, không gọi `require`; lệnh `:Telescope rails ...` vẫn chạy vì Telescope tự tìm file extension.
+- **Trạng thái:** Anh chọn không nạp sớm. `setup()` chỉ đăng ký khi Telescope đã nạp sẵn; test "does not load telescope.nvim when it is installed but not loaded yet" pass; chạy thật: Telescope chưa nạp lúc `setup()` thì lệnh vẫn chạy và Tab gợi ý đủ sau lần dùng đầu. Chưa commit.
+
+## Spec cần xem lại
+
+### Chỉ có 5 picker, thiếu policies, jobs, mailers, serializers, factories
+- **Nguồn:** `review-branch`
+- **File:** lua/rails-tools/telescope/init.lua:5
+- **Spec:** "Implement pickers for: models, controllers, views, services, specs, routes"
+- **Câu hỏi:** Spec chọn 5 loại cố định, còn `:Rails find` có 10 loại và người dùng có thể thêm loại riêng — có nên tạo picker cho mọi loại trong `finder.resources` không?
+- **Trạng thái:** Anh chọn có. Picker tạo theo `finder.resources` (bỏ qua loại tắt bằng `false`, gồm cả loại tự thêm); chạy thật: `:Telescope rails jobs`, `policies` mở đúng. Chưa commit.
+
+### Picker grape chỉ hiện thông báo
+- **Nguồn:** `review-branch`
+- **File:** lua/rails-tools/telescope/init.lua:23-25
+- **Spec:** "Implement grape picker (placeholder for Phase 2)"
+- **Câu hỏi:** Spec chọn để sẵn chỗ, code hiện một lệnh xuất hiện trong gợi ý nhưng không làm gì — vẫn giữ placeholder hay bỏ đến khi có Grape (L4-017)?
+- **Trạng thái:** Anh chọn giữ như spec.
+
+### Đăng ký extension trong `setup()`
+- **Nguồn:** `review-branch`
+- **File:** lua/rails-tools/init.lua:23
+- **Spec:** "Register extension in init.lua main file"
+- **Câu hỏi:** Spec chọn đăng ký trong `setup()`, nhưng code cho thấy không đăng ký thì `:Telescope rails ...` vẫn chạy (Telescope tự nạp `lua/telescope/_extensions/rails.lua`) — lý do còn lại chỉ là gợi ý Tab. Vẫn giữ? (gắn với câu hỏi về nạp sớm ở trên)
+- **Trạng thái:** Giữ, nhưng chỉ đăng ký khi Telescope đã nạp sẵn (xem mục nạp sớm ở trên).
+
+## Ngoài phạm vi / không cần sửa
+- lua/rails-tools/core/finder.lua:222 — `picker_opts` ghi đè `prompt_title`, `sorter`, `attach_mappings` của plugin · Nguồn: `review-branch` · Không cần sửa: từ dòng lệnh `:Telescope` chỉ truyền được chuỗi (`command.lua` `convert_user_opts`), nên chỉ đổi được theme/layout/title; truyền hàm phải gọi từ Lua, là chủ ý của người gọi.
