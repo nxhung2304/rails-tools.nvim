@@ -34,7 +34,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 0 - Foundation | 1 task | 1 | 100% |
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
 | Layer 2 - Detection | 4 tasks | 3 | 75% |
-| Layer 3 - Core Features | 8 tasks | 6 | 75% |
+| Layer 3 - Core Features | 8 tasks | 7 | 88% |
 | Layer 4 - Enhanced | 6 tasks | 0 | 0% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
@@ -51,12 +51,13 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L3-006** - Resource Finder (008-resource-finder.md)
 - **L3-007** - Telescope Integration (009-telescope-pickers.md)
 - **L3-008** - Rails Menu (010-menu.md)
+- **L3-009** - Keymap Registration (011-keymaps.md)
 - **L3-011** - Rails Console (013-console.md)
 - **L3-012** - Rails Runner (014-runner.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Continue L3** - Keymaps, Routes
+1. **Continue L3** - Routes
 
 ---
 
@@ -208,20 +209,20 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Register `:Rails` command in commands.lua
 - [x] Create `:Rails` command dispatch (`:Rails` with no subcommand opens the menu)
 
-### L3-009. Keymap Registration (011-keymaps.md)
-- [ ] Create `lua/rails-tools/keymaps.lua`
-- [ ] Implement `M.setup()` function
-- [ ] Define default keymap bindings
-- [ ] Support configurable prefix (default: `<leader>r`)
-- [ ] Check `config.keymaps.enabled` before registering
-- [ ] Keymaps:
-  - [ ] `<leader>rr` - Rails menu
-  - [ ] `<leader>ra` - Alternate file
-  - [ ] `<leader>rf` - Resource finder
-  - [ ] `<leader>ro` - Routes navigator
-  - [ ] `<leader>rc` - Console
-  - [ ] `<leader>rx` - Runner
-- [ ] Create tests for keymap registration
+### L3-009. Keymap Registration (011-keymaps.md) ✅ COMPLETE
+- [x] Create `lua/rails-tools/keymaps.lua`
+- [x] Implement `M.setup()` function
+- [x] Define default keymap bindings
+- [x] Support configurable prefix (default: `<leader>r`)
+- [x] Check `config.keymaps.enabled` before registering
+- [x] Keymaps:
+  - [x] `<leader>rr` - Rails menu
+  - [x] `<leader>ra` - Alternate file
+  - [x] `<leader>rf` - Resource finder
+  - [ ] `<leader>ro` - Routes navigator — moved to L3-010
+  - [x] `<leader>rc` - Console
+  - [x] `<leader>rx` - Runner
+- [x] Create tests for keymap registration
 
 ### L3-010. Routes Navigator (012-routes-navigator.md)
 - [ ] Create `lua/rails-tools/core/routes.lua`
@@ -237,6 +238,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Telescope `routes` picker in `lua/rails-tools/telescope/init.lua` (moved from L3-007)
 - [ ] Force refresh with `:Rails routes!`
 - [ ] Add "View Routes" item to `ui/menu.lua` (moved from L3-008)
+- [ ] Register keymap `<leader>ro` in `keymaps.lua` (moved from L3-009)
 - [ ] Create `tests/core/routes_spec.lua`
 
 ### L3-011. Rails Console (013-console.md)

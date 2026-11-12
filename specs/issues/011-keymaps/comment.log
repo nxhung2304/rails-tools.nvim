@@ -1,0 +1,70 @@
+Tóm tắt: 2 MUST / 3 SHOULD / 1 NIT · 0 giả định · 1 chờ xác nhận · 1 spec cần xem lại · 1 ngoài phạm vi / không cần sửa.
+Nguồn: review-branch 2 · code-review 2 · spec-review 7 (2 thiếu, 5 ngoài yêu cầu, 0 sai).
+Ghi chú: review-branch và code-review chạy trong worktree, nhưng `specs/` đã được commit nên vẫn có trong worktree (cả hai được dặn không đọc). Không có `gh`; chưa đọc comment của issue #9, chưa có PR.
+
+### 1. MUST — Keymap gọi thẳng module, lặp lại logic của `:Rails` và menu
+- **Nguồn:** `review-branch` (Suggestion), `code-review` (cleanup, tin cậy 80); spec-review cũng nêu "keymap không đi qua `:Rails`"
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/keymaps.lua:11-39
+- **Vấn đề:** Nếu handler của `:Rails alternate/console/runner` đổi (thêm guard, đổi cách chọn input), keymap sẽ chạy khác lệnh mà README ghi là tương đương.
+- **Cách sửa:** `rr`, `ra`, `rc`, `rx` dùng `<Cmd>Rails ...<CR>` để đi qua bảng subcommand; `rf` vẫn gọi `finder.find("all")` vì `:Rails find` không tham số chỉ cảnh báo.
+- **Trạng thái:** Đã sửa (keymaps.lua:15,20,32,37). Test giờ bấm phím thật qua `nvim_feedkeys` và đi qua `:Rails`; thử cố tình trỏ `ra` sang console thì test fail đúng chỗ. 322/322 pass. Commit "fix: address review findings for keymaps".
+
+### 2. MUST — `setup({ keymaps = false })` làm setup() lỗi giữa chừng
+- **Nguồn:** `code-review` (bug, tin cậy 80)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/keymaps.lua:44-45
+- **Vấn đề:** Deep merge thay bảng `keymaps` bằng `false`, `keymaps_config.enabled` báo lỗi; vì `setup_done` đã bật nên schema, LSP, cmp, telescope không bao giờ được setup.
+- **Cách sửa:** Bỏ qua khi `keymaps` không phải bảng: `if type(keymaps_config) ~= "table" or not keymaps_config.enabled then return end`.
+- **Trạng thái:** Đã sửa, thêm test "registers nothing when keymaps is set to false". Commit "fix: address review findings for keymaps".
+
+### 3. SHOULD — Mỗi keymap có thêm `desc`, spec không yêu cầu
+- **Nguồn:** `spec-review` (b)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/keymaps.lua:14,19,24,31,36
+- **Vấn đề:** Hành vi ngoài spec ("Keymaps are silent and noremap").
+- **Cách sửa:** Không sửa trong PR này: `desc` là thứ `:map`, which-key và telescope keymaps hiển thị, đúng tinh thần "discoverable" và giống `integrations/lsp.lua`. Trả lời reviewer: "desc chỉ là nhãn hiển thị, không đổi hành vi phím."
+- **Trạng thái:** Không sửa, theo đề xuất.
+
+### 4. SHOULD — README thêm câu dặn đặt `mapleader` trước `setup()`
+- **Nguồn:** `spec-review` (b)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** README.md:118-120
+- **Vấn đề:** Nội dung ngoài spec.
+- **Cách sửa:** Không sửa trong PR này: Neovim thay `<leader>` lúc tạo keymap, nên nếu đặt `mapleader` sau `setup()` thì phím sẽ nằm ở `\r...`; câu này giúp người dùng tránh lỗi đó.
+- **Trạng thái:** Không sửa, theo đề xuất.
+
+### 5. SHOULD — Ghi chú Phase 2 keymaps không nói đã chuyển sang task khác
+- **Nguồn:** `spec-review` (a)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: không (ghi chú có sẵn) · Liên quan: có
+- **File:** specs/issues/011-keymaps.md (Notes)
+- **Vấn đề:** Spec ghi "Phase 2 keymaps added when modules enabled" nhưng không nói ai làm; story.md giao cho L4-014 và L4-015.
+- **Cách sửa:** Bổ sung vào ghi chú: đăng ký bởi L4-014 (`rs`, `rS`) và L4-015 (`rg`).
+- **Trạng thái:** Đã sửa (specs/issues/011-keymaps.md). Commit "fix: address review findings for keymaps".
+
+### 6. NIT — Chưa có test cho việc `init.setup()` gọi `keymaps.setup()`
+- **Nguồn:** `review-branch` (Suggestion)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có (init.lua:19) · Liên quan: có
+- **File:** tests/init_spec.lua
+- **Vấn đề:** Nếu lỡ xoá dòng gọi trong `init.lua`, mọi người dùng mất keymap mà test vẫn pass.
+- **Cách sửa:** Thêm test gọi `setup()` rồi kiểm tra `<leader>rr` trỏ tới `<Cmd>Rails<CR>`, xoá `rails-tools.keymaps` khỏi cache trong `before_each`.
+- **Trạng thái:** Đã sửa (tests/init_spec.lua), pass. Commit "fix: address review findings for keymaps".
+
+## Chờ xác nhận
+
+### `<leader>rf` mở danh sách mọi resource, khác `:Rails find`
+- **Nguồn:** `spec-review` (b)
+- **File:** lua/rails-tools/keymaps.lua:25-27
+- **Câu hỏi (anh quyết):** Spec chỉ ghi "opens resource finder"; code chọn `find("all")` giống mục Find Resource của menu, còn `:Rails find` không tham số thì cảnh báo thiếu loại. Giữ như vậy?
+- **Nếu không chấp nhận:** Đổi `rf` sang hỏi loại resource trước (vim.ui.select danh sách `finder.resources`), kèm test.
+
+## Spec cần xem lại
+
+### `<leader>ro` chuyển sang task Routes (L3-010)
+- **Nguồn:** `spec-review` (a)
+- **File:** không có trong diff; specs/issues/011-keymaps.md (Notes), specs/story.md (L3-009, L3-010)
+- **Trích spec gốc:** "`<leader>ro` shows routes navigator"
+- **Câu hỏi:** Spec gốc yêu cầu `<leader>ro`, nhưng `core/routes.lua` chưa có nên code bỏ phím này và chuyển sang L3-010 (giống cách task menu chuyển mục View Routes). Quyết định đó còn đúng không?
+
+## Ngoài phạm vi / không cần sửa
+- specs/issues/011-keymaps.md:2, specs/story.md — đổi trạng thái "Review: Approved" và đánh dấu L3-009 xong; `spec-review`; Không cần sửa — là bước quy trình (implement-prepare cần Approved, story.md phải cập nhật tiến độ), giống task menu trước đó.
