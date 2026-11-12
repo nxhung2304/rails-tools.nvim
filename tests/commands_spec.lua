@@ -144,11 +144,29 @@ describe("rails-tools.commands", function()
   end)
 
   it("does not error with no subcommand", function()
+    local orig_select = vim.ui.select
+    vim.ui.select = function(_, _, on_choice) on_choice(nil) end
     local commands = require("rails-tools.commands")
     commands.setup()
     assert.has_no.errors(function()
       vim.cmd("Rails")
     end)
+    vim.ui.select = orig_select
+  end)
+
+  it("opens the menu with no subcommand", function()
+    package.loaded["rails-tools.ui.menu"] = nil
+    local called = false
+    package.preload["rails-tools.ui.menu"] = function()
+      return { open = function() called = true end }
+    end
+
+    require("rails-tools.commands").setup()
+    vim.cmd("Rails")
+
+    assert.is_true(called)
+    package.preload["rails-tools.ui.menu"] = nil
+    package.loaded["rails-tools.ui.menu"] = nil
   end)
 
   it("shows a clear error for an unknown subcommand instead of a traceback", function()
