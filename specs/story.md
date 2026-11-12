@@ -34,7 +34,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 0 - Foundation | 1 task | 1 | 100% |
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
 | Layer 2 - Detection | 4 tasks | 3 | 75% |
-| Layer 3 - Core Features | 8 tasks | 5 | 62% |
+| Layer 3 - Core Features | 8 tasks | 6 | 75% |
 | Layer 4 - Enhanced | 6 tasks | 0 | 0% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
@@ -50,12 +50,13 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L3-003** - Alternate File Navigation (007-alternate-file.md)
 - **L3-006** - Resource Finder (008-resource-finder.md)
 - **L3-007** - Telescope Integration (009-telescope-pickers.md)
+- **L3-008** - Rails Menu (010-menu.md)
 - **L3-011** - Rails Console (013-console.md)
 - **L3-012** - Rails Runner (014-runner.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Continue L3** - Menu, Keymaps, Routes
+1. **Continue L3** - Keymaps, Routes
 
 ---
 
@@ -197,15 +198,15 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Gracefully handle missing telescope.nvim
 - [x] Test each picker
 
-### L3-008. Rails Menu (010-menu.md)
-- [ ] Create `lua/rails-tools/ui/menu.lua`
-- [ ] Implement `M.open()` function
-- [ ] Define menu items table
-- [ ] Filter items based on enabled modules
-- [ ] Always show: Alternate File, Find Resource
-- [ ] Conditional items based on module config
-- [ ] Register `:Rails` command in commands.lua
-- [ ] Create `:Rails` command dispatch
+### L3-008. Rails Menu (010-menu.md) ✅ COMPLETE
+- [x] Create `lua/rails-tools/ui/menu.lua`
+- [x] Implement `M.open()` function
+- [x] Define menu items table
+- [ ] Filter items based on enabled modules — moved to L4-014 (first gated item)
+- [x] Always show: Alternate File, Find Resource (plus Open Console, Run Code: Phase 1, always on)
+- [ ] Conditional items based on module config — added by L3-010, L4-014, L4-015, L4-017
+- [x] Register `:Rails` command in commands.lua
+- [x] Create `:Rails` command dispatch (`:Rails` with no subcommand opens the menu)
 
 ### L3-009. Keymap Registration (011-keymaps.md)
 - [ ] Create `lua/rails-tools/keymaps.lua`
@@ -235,6 +236,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Show loading indicator
 - [ ] Telescope `routes` picker in `lua/rails-tools/telescope/init.lua` (moved from L3-007)
 - [ ] Force refresh with `:Rails routes!`
+- [ ] Add "View Routes" item to `ui/menu.lua` (moved from L3-008)
 - [ ] Create `tests/core/routes_spec.lua`
 
 ### L3-011. Rails Console (013-console.md)
@@ -267,6 +269,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Cache last executed spec
 - [ ] Register commands: `:Rails spec nearest`, `:Rails spec file`, `:Rails spec last`
 - [ ] Register keymaps: `<leader>rs`, `<leader>rS`
+- [ ] Add "Run Nearest Spec" / "Run Spec File" items to `ui/menu.lua`, shown only when `modules.rspec = true`; add the menu's filtering by `config.modules` (moved from L3-008)
 - [ ] Only active when `modules.rspec = true`
 - [ ] Create tests for RSpec runner
 
@@ -277,6 +280,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Display generator output
 - [ ] Register `:Rails generate {args}` command
 - [ ] Register keymap: `<leader>rg`
+- [ ] Add "Run Generator" item to `ui/menu.lua`, shown only when `modules.generators = true` (moved from L3-008)
 - [ ] Only active when `modules.generators = true`
 - [ ] Create `tests/core/generators_spec.lua`
 
@@ -287,6 +291,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Display Grape endpoints in picker
 - [ ] Register `:Rails grape routes` command
 - [ ] Integrate with Telescope
+- [ ] Add "Grape Endpoints" item to `ui/menu.lua`, shown only when `modules.grape = true` (moved from L3-008)
 - [ ] Only active when `modules.grape = true`
 - [ ] Create `tests/integrations/grape_spec.lua`
 

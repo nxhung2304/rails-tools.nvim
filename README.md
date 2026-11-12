@@ -94,11 +94,10 @@ Opens an interactive menu showing all available actions for the current file con
 
 ### Commands
 
-`:Rails` is wired up with a subcommand dispatch table; only `alternate` is
-registered so far, the rest are still `010-menu.md`+ scope (see
-[Status](#status)).
+`:Rails` is wired up with a subcommand dispatch table; with no subcommand it
+opens the central menu (see [Status](#status) for what is still to come).
 
-- [ ] `:Rails` — Open central menu (currently a no-op with no subcommand)
+- [x] `:Rails` — Open central menu
 - [x] `:Rails alternate` — Toggle between implementation and spec file
 - [ ] `:Rails find {type}` — Find resources (`models`, `controllers`,
       `views`, `specs`, …)

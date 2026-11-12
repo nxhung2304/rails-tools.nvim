@@ -41,6 +41,7 @@ function M.setup()
   vim.api.nvim_create_user_command("Rails", function(opts)
     local subcommand = opts.fargs[1]
     if not subcommand then
+      require("rails-tools.ui.menu").open()
       return
     end
 
