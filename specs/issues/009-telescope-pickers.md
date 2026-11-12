@@ -59,6 +59,7 @@ Steps:
 
 ## Notes
 - Approved with two changes: routes picker moves to L3-010; `lua/telescope/_extensions/rails.lua` added because Telescope's `load_extension` only requires `telescope._extensions.<name>` (checked in telescope.nvim `lua/telescope/_extensions/init.lua`).
+- After review: one picker per `finder.resources` type (not only the five listed), `:Telescope rails` with no name opens every resource, and `setup()` only registers the extension when telescope.nvim is already loaded (never loads it early; `:Telescope rails ...` still loads the extension on first use). A failed registration shows a warning.
 - Resource pickers reuse `core/finder.lua`: `finder.find(type, { provider = "telescope", picker_opts = opts })`, so `:Telescope rails models theme=dropdown` works.
 - Verified: unit tests (`tests/telescope/init_spec.lua`, new cases in `tests/core/finder_spec.lua`) and a headless run with real telescope.nvim on Neovim 0.9.5 in `test-app/`: models 2, controllers 3, services 2, specs 16 results, Enter opens the file; views shows "no views found" (test-app has no views); grape shows the placeholder message.
 - Uses require("telescope").register_extension()

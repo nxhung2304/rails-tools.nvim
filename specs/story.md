@@ -191,9 +191,9 @@ Layer 5: Polish & Integrations (Phase 3)
 ### L3-007. Telescope Integration (009-telescope-pickers.md) ✅ COMPLETE
 - [x] Create `lua/rails-tools/telescope/init.lua`
 - [x] Define exports table for Telescope registration
-- [x] Implement pickers: models, controllers, views, services, specs (routes picker moved to L3-010)
+- [x] Implement pickers: one per `finder.resources` type, plus `rails` for all (routes picker moved to L3-010)
 - [x] Add grape picker (placeholder for Phase 2)
-- [x] Register extension (`lua/telescope/_extensions/rails.lua`, loaded from `setup()`)
+- [x] Register extension (`lua/telescope/_extensions/rails.lua`, loaded from `setup()` when telescope.nvim is already loaded)
 - [x] Gracefully handle missing telescope.nvim
 - [x] Test each picker
 
@@ -568,7 +568,7 @@ schema-aware editing. Revisit only after Layers 1–5 ship.
 - `:Telescope rails views` (L3-007)
 - `:Telescope rails services` (L3-007)
 - `:Telescope rails specs` (L3-007)
-- `:Telescope rails routes` (L3-007)
+- `:Telescope rails routes` (L3-010)
 - `:Telescope rails grape` (L4-017)
 - `:Telescope rails schemas` (L5-027)
 - `:Telescope rails migrations` (L5-027)

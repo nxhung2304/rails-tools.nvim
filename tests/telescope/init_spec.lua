@@ -1,5 +1,6 @@
 local MODULES_TO_RELOAD = {
   "rails-tools.telescope",
+  "rails-tools.config",
   "rails-tools.core.finder",
   "telescope",
   "telescope._extensions.rails",
@@ -39,7 +40,20 @@ describe("rails-tools.telescope", function()
   end)
 
   describe("exports", function()
-    for _, resource_type in ipairs({ "models", "controllers", "views", "services", "specs" }) do
+    local default_resource_types = {
+      "models",
+      "controllers",
+      "views",
+      "services",
+      "policies",
+      "jobs",
+      "mailers",
+      "serializers",
+      "specs",
+      "factories",
+    }
+
+    for _, resource_type in ipairs(default_resource_types) do
       it(resource_type .. " opens the finder with Telescope and the picker options", function()
         local rails_telescope = require("rails-tools.telescope")
         local picker_opts = { layout_strategy = "vertical" }
@@ -63,6 +77,23 @@ describe("rails-tools.telescope", function()
       }, notifications)
     end)
 
+    it("rails opens the finder for every resource", function()
+      require("rails-tools.telescope").exports.rails({})
+
+      assert.are.same({ { resource_type = "all", opts = { provider = "telescope", picker_opts = {} } } }, find_calls)
+    end)
+
+    it("exports custom resources and skips disabled ones", function()
+      require("rails-tools.config").setup({
+        finder = { resources = { interactors = { paths = { "app/interactors" } }, jobs = false } },
+      })
+
+      local exports = require("rails-tools.telescope").exports
+
+      assert.is_function(exports.interactors)
+      assert.is_nil(exports.jobs)
+    end)
+
     it("does not export a routes picker", function()
       assert.is_nil(require("rails-tools.telescope").exports.routes)
     end)
@@ -77,15 +108,24 @@ describe("rails-tools.telescope", function()
       assert.is_false(loaded)
     end)
 
-    it("loads the rails extension when telescope.nvim is installed", function()
-      local loaded_extensions = {}
+    it("does not load telescope.nvim when it is installed but not loaded yet", function()
       package.preload["telescope"] = function()
-        return {
-          load_extension = function(name)
-            table.insert(loaded_extensions, name)
-          end,
-        }
+        return { load_extension = function() end }
       end
+
+      local loaded = require("rails-tools.telescope").setup()
+
+      assert.is_false(loaded)
+      assert.is_nil(package.loaded["telescope"])
+    end)
+
+    it("loads the rails extension when telescope.nvim is already loaded", function()
+      local loaded_extensions = {}
+      package.loaded["telescope"] = {
+        load_extension = function(name)
+          table.insert(loaded_extensions, name)
+        end,
+      }
 
       local loaded = require("rails-tools.telescope").setup()
 
@@ -93,16 +133,17 @@ describe("rails-tools.telescope", function()
       assert.are.same({ "rails" }, loaded_extensions)
     end)
 
-    it("returns false without error when loading the extension fails", function()
-      package.preload["telescope"] = function()
-        return {
-          load_extension = function()
-            error("boom")
-          end,
-        }
-      end
+    it("warns and returns false when loading the extension fails", function()
+      package.loaded["telescope"] = {
+        load_extension = function()
+          error("boom")
+        end,
+      }
 
       assert.is_false(require("rails-tools.telescope").setup())
+      assert.are.equal(1, #notifications)
+      assert.matches("^Rails: could not load Telescope extension: .*boom", notifications[1].msg)
+      assert.are.equal(vim.log.levels.WARN, notifications[1].level)
     end)
   end)
 
