@@ -115,14 +115,16 @@ opens the central menu (see [Status](#status) for what is still to come).
 
 ### Keymaps
 
-Default prefix: `<leader>r` — not implemented, no `keymaps.lua` exists yet.
+Default prefix: `<leader>r` (change with `keymaps.prefix`, turn off with
+`keymaps.enabled = false`). Set `vim.g.mapleader` before calling `setup()`:
+`<leader>` is resolved when the keymap is created.
 
-- [ ] `<leader>rr` — `:Rails` (open menu)
-- [ ] `<leader>ra` — `:Rails alternate`
-- [ ] `<leader>rf` — `:Rails find`
+- [x] `<leader>rr` — `:Rails` (open menu)
+- [x] `<leader>ra` — `:Rails alternate`
+- [x] `<leader>rf` — find any resource (same as the menu's Find Resource)
 - [ ] `<leader>ro` — `:Rails routes`
-- [ ] `<leader>rc` — `:Rails console`
-- [ ] `<leader>rx` — `:Rails runner` (prompt)
+- [x] `<leader>rc` — `:Rails console`
+- [x] `<leader>rx` — `:Rails runner` (prompt)
 - [ ] `<leader>rs` — `:Rails spec nearest` _(requires `modules.rspec = true`)_
 - [ ] `<leader>rS` — `:Rails spec file` _(requires `modules.rspec = true`)_
 - [ ] `<leader>rg` — `:Rails generate` _(requires `modules.generators = true`)_
