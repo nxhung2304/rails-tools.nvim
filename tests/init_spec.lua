@@ -5,6 +5,7 @@ describe("rails-tools.init", function()
     package.loaded["rails-tools.commands"] = nil
     package.loaded["rails-tools.integrations.lsp"] = nil
     package.loaded["rails-tools.integrations.cmp"] = nil
+    package.loaded["rails-tools.keymaps"] = nil
   end)
 
   it("setup() does not error with no opts", function()
@@ -35,5 +36,18 @@ describe("rails-tools.init", function()
     assert.has_no.errors(function()
       rails_tools.setup()
     end)
+  end)
+
+  it("registers the default keymaps", function()
+    local orig_mapleader = vim.g.mapleader
+    vim.g.mapleader = ","
+    local rails_tools = require("rails-tools")
+
+    rails_tools.setup()
+
+    local menu_mapping = vim.fn.maparg(",rr", "n", false, true)
+    pcall(vim.keymap.del, "n", ",rr")
+    vim.g.mapleader = orig_mapleader
+    assert.are.equal("<Cmd>Rails<CR>", menu_mapping.rhs)
   end)
 end)

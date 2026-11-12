@@ -5,23 +5,19 @@ local M = {}
 ---@class RailsToolsKeymapBinding
 ---@field suffix string
 ---@field desc string
----@field action fun()
+---@field action string|fun()
 
 ---@type RailsToolsKeymapBinding[]
 local DEFAULT_BINDINGS = {
   {
     suffix = "r",
     desc = "Rails: menu",
-    action = function()
-      require("rails-tools.ui.menu").open()
-    end,
+    action = "<Cmd>Rails<CR>",
   },
   {
     suffix = "a",
     desc = "Rails: alternate file",
-    action = function()
-      require("rails-tools.core.alternate").open()
-    end,
+    action = "<Cmd>Rails alternate<CR>",
   },
   {
     suffix = "f",
@@ -33,16 +29,12 @@ local DEFAULT_BINDINGS = {
   {
     suffix = "c",
     desc = "Rails: console",
-    action = function()
-      require("rails-tools.core.console").open()
-    end,
+    action = "<Cmd>Rails console<CR>",
   },
   {
     suffix = "x",
     desc = "Rails: run code",
-    action = function()
-      require("rails-tools.core.runner").run_prompt()
-    end,
+    action = "<Cmd>Rails runner<CR>",
   },
 }
 
@@ -50,7 +42,7 @@ local DEFAULT_BINDINGS = {
 ---Does nothing when `config.keymaps.enabled` is false.
 function M.setup()
   local keymaps_config = config.get().keymaps
-  if not keymaps_config.enabled then
+  if type(keymaps_config) ~= "table" or not keymaps_config.enabled then
     return
   end
 

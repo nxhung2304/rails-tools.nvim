@@ -1,6 +1,6 @@
 ## **Status:**
 - Review: Approved
-- PR: Todo
+- PR: Draft
 
 ## Metadata
 - **Title:** Keymap Registration
@@ -57,6 +57,6 @@ Steps:
 - Default prefix: <leader>r
 - Uses mode "n" (normal mode)
 - Keymaps are silent and noremap
-- Phase 2 keymaps (spec, generator) added when modules enabled
+- Phase 2 keymaps (spec, generator) added when modules enabled — registered by L4-014 (`<leader>rs`, `<leader>rS`) and L4-015 (`<leader>rg`), not by this task
 - `<leader>ro` (routes navigator) moved to L3-010: `core/routes.lua` does not exist yet, so the keymap is added together with the routes feature
 - A visual-mode runner keymap must not use `<Cmd>Rails runner<CR>`: `<Cmd>` passes no range, so the runner opens its prompt instead of running the selection. Use `:Rails runner<CR>` (Neovim inserts `'<,'>`) or call `require("rails-tools.core.runner").run_visual()` after leaving visual mode.

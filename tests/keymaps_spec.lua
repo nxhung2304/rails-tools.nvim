@@ -45,7 +45,7 @@ describe("rails-tools.keymaps", function()
   end
 
   local function run_mapping(lhs)
-    normal_mapping(lhs).callback()
+    vim.api.nvim_feedkeys(lhs, "x", false)
   end
 
   before_each(function()
@@ -58,9 +58,11 @@ describe("rails-tools.keymaps", function()
     end
     package.loaded["rails-tools.keymaps"] = nil
     package.loaded["rails-tools.config"] = nil
+    package.loaded["rails-tools.commands"] = nil
     stub_modules()
 
     config = require("rails-tools.config")
+    require("rails-tools.commands").setup()
     keymaps = require("rails-tools.keymaps")
   end)
 
@@ -73,6 +75,7 @@ describe("rails-tools.keymaps", function()
     end
     package.loaded["rails-tools.keymaps"] = nil
     package.loaded["rails-tools.config"] = nil
+    package.loaded["rails-tools.commands"] = nil
   end)
 
   it("registers the default keymaps under <leader>r", function()
@@ -81,7 +84,7 @@ describe("rails-tools.keymaps", function()
     keymaps.setup()
 
     for _, lhs in ipairs(DEFAULT_KEYS) do
-      assert.is_not_nil(normal_mapping(lhs).callback, lhs .. " is not mapped")
+      assert.are_not.same({}, normal_mapping(lhs), lhs .. " is not mapped")
     end
   end)
 
@@ -149,7 +152,7 @@ describe("rails-tools.keymaps", function()
     keymaps.setup()
 
     for _, lhs in ipairs(CUSTOM_PREFIX_KEYS) do
-      assert.is_not_nil(normal_mapping(lhs).callback, lhs .. " is not mapped")
+      assert.are_not.same({}, normal_mapping(lhs), lhs .. " is not mapped")
     end
     for _, lhs in ipairs(DEFAULT_KEYS) do
       assert.are.same({}, normal_mapping(lhs), lhs .. " should not be mapped")
@@ -160,6 +163,18 @@ describe("rails-tools.keymaps", function()
     config.setup({ keymaps = { enabled = false } })
 
     keymaps.setup()
+
+    for _, lhs in ipairs(DEFAULT_KEYS) do
+      assert.are.same({}, normal_mapping(lhs), lhs .. " should not be mapped")
+    end
+  end)
+
+  it("registers nothing when keymaps is set to false", function()
+    config.setup({ keymaps = false })
+
+    assert.has_no.errors(function()
+      keymaps.setup()
+    end)
 
     for _, lhs in ipairs(DEFAULT_KEYS) do
       assert.are.same({}, normal_mapping(lhs), lhs .. " should not be mapped")
