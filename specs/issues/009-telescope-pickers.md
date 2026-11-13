@@ -35,7 +35,7 @@ Steps:
 - [x] `:Telescope rails views` opens views picker
 - [x] `:Telescope rails services` opens services picker
 - [x] `:Telescope rails specs` opens specs picker
-- [ ] `:Telescope rails routes` opens routes picker — moved to L3-010 (routes module does not exist yet)
+- [x] `:Telescope rails routes` opens routes picker — moved to L3-010, done there
 - [x] `:Telescope rails grape` opens Grape routes picker (placeholder message until L4-017)
 - [x] Gracefully handles missing telescope.nvim
 
@@ -49,7 +49,7 @@ Steps:
 - [x] Implement views picker
 - [x] Implement services picker
 - [x] Implement specs picker
-- [ ] Implement routes picker — moved to L3-010
+- [x] Implement routes picker — moved to L3-010, done there
 - [x] Implement grape picker (placeholder for Phase 2)
 - [x] Create `lua/telescope/_extensions/rails.lua` calling `register_extension`
 - [x] Register extension in init.lua main file

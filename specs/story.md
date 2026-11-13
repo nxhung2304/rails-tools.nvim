@@ -220,7 +220,7 @@ Layer 5: Polish & Integrations (Phase 3)
   - [x] `<leader>rr` - Rails menu
   - [x] `<leader>ra` - Alternate file
   - [x] `<leader>rf` - Resource finder
-  - [ ] `<leader>ro` - Routes navigator — moved to L3-010
+  - [x] `<leader>ro` - Routes navigator — moved to L3-010, done there
   - [x] `<leader>rc` - Console
   - [x] `<leader>rx` - Runner
 - [x] Create tests for keymap registration

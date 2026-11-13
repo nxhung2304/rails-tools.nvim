@@ -131,7 +131,7 @@ Default prefix: `<leader>r` (change with `keymaps.prefix`, turn off with
 
 ### Telescope Integration
 
-Not implemented yet — no `telescope/init.lua` extension exists.
+Loaded automatically when telescope.nvim is already loaded when `setup()` runs.
 
 - [ ] `:Telescope rails models`
 - [ ] `:Telescope rails controllers`

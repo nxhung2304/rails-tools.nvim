@@ -14,20 +14,26 @@ function M.new(ttl)
   return setmetatable({ ttl = ttl or 300, store = {} }, Cache)
 end
 
+---@param cache RailsToolsCache
+---@param key string
+---@return boolean
+local function is_fresh(cache, key)
+  local entry = cache.store[key]
+  return entry ~= nil and (uv.hrtime() / 1e9 - entry.built_at) < cache.ttl
+end
+
 ---Return the cached value for `key`, rebuilding via `builder()` when
 ---missing or older than the cache's TTL.
 ---@param key string
 ---@param builder fun(): any
 ---@return any
 function Cache:get(key, builder)
-  local now = uv.hrtime() / 1e9
-  local entry = self.store[key]
-  if entry and (now - entry.built_at) < self.ttl then
-    return entry.value
+  if is_fresh(self, key) then
+    return self.store[key].value
   end
 
   local value = builder()
-  self.store[key] = { value = value, built_at = now }
+  self:set(key, value)
   return value
 end
 
@@ -35,9 +41,8 @@ end
 ---@param key string
 ---@return any
 function Cache:peek(key)
-  local entry = self.store[key]
-  if entry and (uv.hrtime() / 1e9 - entry.built_at) < self.ttl then
-    return entry.value
+  if is_fresh(self, key) then
+    return self.store[key].value
   end
   return nil
 end

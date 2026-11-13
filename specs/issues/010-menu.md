@@ -32,7 +32,7 @@ Steps:
 - [x] `menu.open()` displays central menu
 - [x] Menu shows "Alternate File" option
 - [x] Menu shows "Find Resource" option
-- [ ] Menu shows "View Routes" if modules.routes enabled — moved to L3-010 (routes module does not exist yet)
+- [x] Menu shows "View Routes" — moved to L3-010, done there; always shown, since routes is Phase 1 and has no `modules.routes` switch
 - [x] Menu shows "Open Console" — always shown (console is Phase 1, there is no `modules.console` flag)
 - [x] Menu shows "Run Code" — always shown (runner is Phase 1, there is no `modules.runner` flag)
 - [ ] Menu shows "Run Generator" if modules.generators enabled — moved to L4-015

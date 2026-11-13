@@ -1,6 +1,6 @@
 ## **Status:**
 - Review: Approved
-- PR: Todo
+- PR: Draft
 
 ## Metadata
 - **Title:** Routes Navigator
@@ -74,4 +74,4 @@ Steps:
 - Parse output block by block (`--expanded` format), not line by line
 - Error message on failure includes exit code and stderr
 - Cache TTL from config (default 300s)
-- Force refresh with `:Rails routes!`
+- Force refresh with `:Rails routes!`: reloads the routes and opens the picker again; it also stops a routes command that is still running

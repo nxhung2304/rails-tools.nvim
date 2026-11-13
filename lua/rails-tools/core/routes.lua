@@ -6,6 +6,7 @@ local M = {}
 
 local PICKER_TITLE = "Rails routes"
 local MAX_ERROR_LINES = 20
+local VERB_COLUMN_WIDTH = 7
 local CONTROLLERS_DIR = "app/controllers/"
 local CONTROLLER_FILE_SUFFIX = "_controller.rb"
 
@@ -47,6 +48,15 @@ local function project_root()
   return rails.root()
 end
 
+---@return string|nil
+local function rails_root_or_warn()
+  local root = project_root()
+  if not root then
+    vim.notify("Rails: not a Rails project", vim.log.levels.WARN)
+  end
+  return root
+end
+
 ---Parse the output of `rails routes --expanded`, one route per `--[ Route N ]--` block
 ---@param output string
 ---@return RailsToolsRoute[]
@@ -79,7 +89,8 @@ end
 ---@param controller_action string
 ---@return {path: string, action: string}|nil nil when the route has no controller action
 function M.controller_location(controller_action)
-  local controller, action = controller_action:match("^([%l%d_/]+)#([%w_]+)$")
+  local target = controller_action:match("^%S+") or ""
+  local controller, action = target:match("^([%l%d_/]+)#([%w_]+[?!]?)$")
   if not controller then
     return nil
   end
@@ -98,17 +109,6 @@ local function def_line(lines, action)
     end
   end
   return nil
-end
-
----Find the line of `def <action>` in a file
----@param file_path string
----@param action string
----@return integer|nil
-function M.method_line(file_path, action)
-  if vim.fn.filereadable(file_path) == 0 then
-    return nil
-  end
-  return def_line(vim.fn.readfile(file_path), action)
 end
 
 ---@param root string
@@ -134,6 +134,7 @@ local function open_route(root, route)
 
   local line_number = def_line(vim.api.nvim_buf_get_lines(0, 0, -1, false), location.action)
   if not line_number then
+    vim.api.nvim_win_set_cursor(0, { 1, 0 })
     vim.notify(("Rails: def %s not found in %s"):format(location.action, location.path), vim.log.levels.INFO)
     return
   end
@@ -143,9 +144,8 @@ end
 ---Open the controller of a route at `def <action>`
 ---@param route RailsToolsRoute
 function M.goto_action(route)
-  local root = project_root()
+  local root = rails_root_or_warn()
   if not root then
-    vim.notify("Rails: not a Rails project", vim.log.levels.WARN)
     return
   end
 
@@ -155,7 +155,8 @@ end
 ---@param route RailsToolsRoute
 ---@return string
 local function format_route(route)
-  local text = ("%-7s %s  %s"):format(route.verb or "", route.path or "", route.controller_action or "")
+  local padded_verb = ("%-" .. VERB_COLUMN_WIDTH .. "s"):format(route.verb or "")
+  local text = ("%s %s  %s"):format(padded_verb, route.path or "", route.controller_action or "")
   if route.name and route.name ~= "" then
     text = ("%s  (%s)"):format(text, route.name)
   end
@@ -292,7 +293,7 @@ local function load_routes(root, opts)
   local job_id
 
   vim.notify("Rails: loading routes...", vim.log.levels.INFO)
-  job_id = vim.fn.jobstart(command, {
+  local started, job_or_error = pcall(vim.fn.jobstart, command, {
     cwd = root,
     stdout_buffered = true,
     stderr_buffered = true,
@@ -313,10 +314,11 @@ local function load_routes(root, opts)
     end,
   })
 
-  if job_id <= 0 then
+  if not started or job_or_error <= 0 then
     vim.notify(("Rails: could not run '%s'"):format(command), vim.log.levels.ERROR)
     return
   end
+  job_id = job_or_error
   running_jobs[root] = job_id
 end
 
@@ -325,9 +327,8 @@ end
 ---@param opts? RailsToolsRoutesShowOpts
 function M.show(opts)
   opts = opts or {}
-  local root = project_root()
+  local root = rails_root_or_warn()
   if not root then
-    vim.notify("Rails: not a Rails project", vim.log.levels.WARN)
     return
   end
 
@@ -350,22 +351,14 @@ end
 ---@param opts? RailsToolsRoutesShowOpts
 function M.refresh(opts)
   opts = opts or {}
-  local root = project_root()
+  local root = rails_root_or_warn()
   if not root then
-    vim.notify("Rails: not a Rails project", vim.log.levels.WARN)
     return
   end
 
   stop_job(root)
   routes_cache:invalidate(root)
   load_routes(root, opts)
-end
-
----Stop every running routes command
-function M.stop()
-  for root in pairs(running_jobs) do
-    stop_job(root)
-  end
 end
 
 return M

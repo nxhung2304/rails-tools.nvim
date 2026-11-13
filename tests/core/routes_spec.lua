@@ -17,6 +17,7 @@ local TELESCOPE_MODULES = {
 local FIXTURE_DIR = vim.fn.fnamemodify("tests/fixtures/routes", ":p")
 local EXPANDED_FIXTURE = FIXTURE_DIR .. "expanded.txt"
 local ENGINE_FIXTURE = FIXTURE_DIR .. "expanded_with_engine.txt"
+local CONSTRAINTS_FIXTURE = FIXTURE_DIR .. "expanded_with_constraints.txt"
 local JOB_WAIT_MS = 5000
 
 local function read_fixture(path)
@@ -53,6 +54,14 @@ describe("rails-tools.core.routes", function()
     for _, name in ipairs(TELESCOPE_MODULES) do
       package.loaded[name] = nil
       package.preload[name] = nil
+    end
+  end
+
+  local function stop_running_jobs()
+    for _, channel in ipairs(vim.api.nvim_list_chans()) do
+      if channel.stream == "job" then
+        vim.fn.jobstop(channel.id)
+      end
     end
   end
 
@@ -121,7 +130,7 @@ describe("rails-tools.core.routes", function()
   end)
 
   after_each(function()
-    routes.stop()
+    stop_running_jobs()
     vim.notify = orig_notify
     vim.ui.select = orig_select
     remove_fake_telescope()
@@ -206,6 +215,25 @@ describe("rails-tools.core.routes", function()
       )
     end)
 
+    it("ignores the constraints Rails prints after controller#action", function()
+      local parsed = routes.parse(read_fixture(CONSTRAINTS_FIXTURE))
+
+      assert.are.equal("photos#show {:id=>/\\d+/}", parsed[1].controller_action)
+      assert.are.same(
+        { path = "app/controllers/photos_controller.rb", action = "show" },
+        routes.controller_location(parsed[1].controller_action)
+      )
+      assert.are.same(
+        { path = "app/controllers/items_controller.rb", action = "show" },
+        routes.controller_location(parsed[2].controller_action)
+      )
+    end)
+
+    it("keeps a trailing ? or ! in the action", function()
+      assert.are.equal("publish!", routes.controller_location("posts#publish!").action)
+      assert.are.equal("ready?", routes.controller_location("posts#ready?").action)
+    end)
+
     it("maps a namespaced controller to its subdirectory", function()
       assert.are.same(
         { path = "app/controllers/admin/users_controller.rb", action = "index" },
@@ -221,32 +249,11 @@ describe("rails-tools.core.routes", function()
     end)
   end)
 
-  describe("method_line()", function()
-    it("finds the line of def <action>", function()
-      create_file("app/controllers/users_controller.rb", {
-        "class UsersController < ApplicationController",
-        "  def index_all; end",
-        "  def index",
-        "  end",
-        "end",
-      })
-
-      assert.are.equal(3, routes.method_line(tmp_dir .. "/app/controllers/users_controller.rb", "index"))
-    end)
-
-    it("returns nil when the action is not defined", function()
-      create_file("app/controllers/users_controller.rb", { "class UsersController", "end" })
-
-      assert.is_nil(routes.method_line(tmp_dir .. "/app/controllers/users_controller.rb", "index"))
-    end)
-  end)
-
   describe("goto_action()", function()
     it("opens the controller at def <action>", function()
       create_file("app/controllers/users_controller.rb", {
         "class UsersController < ApplicationController",
-        "  def show",
-        "  end",
+        "  def index_all; end",
         "",
         "  def index",
         "  end",
@@ -256,7 +263,7 @@ describe("rails-tools.core.routes", function()
       routes.goto_action({ controller_action = "users#index" })
 
       assert.are.equal(tmp_dir .. "/app/controllers/users_controller.rb", vim.api.nvim_buf_get_name(0))
-      assert.are.equal(5, vim.api.nvim_win_get_cursor(0)[1])
+      assert.are.equal(4, vim.api.nvim_win_get_cursor(0)[1])
     end)
 
     it("opens a namespaced controller at def <action>", function()
@@ -294,7 +301,9 @@ describe("rails-tools.core.routes", function()
     end)
 
     it("opens the controller at the top when the action is not defined", function()
-      create_file("app/controllers/users_controller.rb", { "class UsersController", "end" })
+      create_file("app/controllers/users_controller.rb", { "class UsersController", "  def show", "  end", "end" })
+      vim.cmd.edit(vim.fn.fnameescape(tmp_dir .. "/app/controllers/users_controller.rb"))
+      vim.api.nvim_win_set_cursor(0, { 3, 0 })
 
       routes.goto_action({ controller_action = "users#index" })
 
@@ -412,6 +421,22 @@ describe("rails-tools.core.routes", function()
       local lines = vim.split(notifications[2].msg, "\n")
       assert.are.equal(21, #lines)
       assert.are.equal("line20", lines[21])
+    end)
+
+    it("shows a notice instead of an error when the command cannot start", function()
+      local orig_jobstart = vim.fn.jobstart
+      vim.fn.jobstart = function()
+        error("Vim:E475: Invalid argument: expected valid directory")
+      end
+
+      local ok = pcall(routes.show)
+      vim.fn.jobstart = orig_jobstart
+
+      assert.is_true(ok)
+      assert.are.same({
+        msg = "Rails: could not run 'cat " .. EXPANDED_FIXTURE .. "'",
+        level = vim.log.levels.ERROR,
+      }, notifications[2])
     end)
 
     it("shows a notice when the output has no routes", function()
