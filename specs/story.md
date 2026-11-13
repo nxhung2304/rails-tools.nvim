@@ -129,6 +129,10 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Implement `detect()`, `root()`, `is_rails()` functions
 - [x] Add caching by root path
 - [ ] Handle monorepos, Rails engines, edge cases
+  - [x] Monorepo opened at its top-level directory: features resolve the Rails root from the current file (console fixed to match finder/runner/routes)
+  - [ ] Rails engine inside a host app: the engine has its own `Gemfile` + `bin/rails`, so its directory becomes the root and schema lookup misses the host's `db/schema.rb`
+  - [ ] Projects that only have `db/structure.sql`: no schema columns (no crash)
+  - [ ] Custom column types dumped as `t.column "name", "type"` show type `column` in hover
 - [x] Create `tests/detectors/rails_spec.lua`
 
 ### L2-002. Test Framework Detection (004-rspec-minitest-detection.md)
@@ -176,7 +180,7 @@ Layer 5: Polish & Integrations (Phase 3)
   - [x] Mailer ↔ Spec
   - [x] Serializer ↔ Spec
 - [x] Support custom_mappings override
-- [ ] Handle nested namespaces
+- [x] Handle nested namespaces (default `(.+)` mappings keep sub-directories; covered by `tests/core/alternate_spec.lua`)
 - [x] Prompt to create file if alternate doesn't exist
 - [x] Create `tests/core/alternate_spec.lua`
 
