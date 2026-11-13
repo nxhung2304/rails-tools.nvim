@@ -17,9 +17,22 @@ local function is_console_active(root)
   return terminal.active_cmd() == console_command() and console_root == root
 end
 
+---@return string|nil
+local function project_root()
+  if vim.bo.buftype == "" then
+    local file = vim.api.nvim_buf_get_name(0)
+    local file_root = file ~= "" and rails.root(vim.fn.fnamemodify(file, ":p:h")) or nil
+    if file_root then
+      return file_root
+    end
+  end
+
+  return rails.root() or console_root
+end
+
 ---Open the Rails console, or show the running one if it is hidden
 function M.open()
-  local root = rails.root()
+  local root = project_root()
   if not root then
     vim.notify("Rails: not a Rails project", vim.log.levels.WARN)
     return
@@ -42,7 +55,7 @@ end
 
 ---Hide or show the running Rails console, opening it when none is running
 function M.toggle()
-  if is_console_active(rails.root()) and terminal.is_visible() then
+  if is_console_active(project_root()) and terminal.is_visible() then
     terminal.toggle()
     return
   end
