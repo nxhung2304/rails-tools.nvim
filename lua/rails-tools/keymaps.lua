@@ -27,6 +27,11 @@ local DEFAULT_BINDINGS = {
     end,
   },
   {
+    suffix = "o",
+    desc = "Rails: routes",
+    action = "<Cmd>Rails routes<CR>",
+  },
+  {
     suffix = "c",
     desc = "Rails: console",
     action = "<Cmd>Rails console<CR>",

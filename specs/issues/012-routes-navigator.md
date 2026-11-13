@@ -1,5 +1,5 @@
 ## **Status:**
-- Review: Todo
+- Review: Approved
 - PR: Todo
 
 ## Metadata
@@ -34,38 +34,38 @@ Steps:
 ---
 
 ## Acceptance Criteria
-- [ ] `routes.show()` displays routes in picker
-- [ ] `routes.refresh()` clears cache and re-parses
-- [ ] `routes.goto_action()` jumps to controller#action from selected route
-- [ ] Routes are cached with TTL from config
-- [ ] `rails routes --expanded` runs async (non-blocking)
-- [ ] Parses `--expanded` blocks: `Prefix | users`, `Verb | GET`,
+- [x] `routes.show()` displays routes in picker
+- [x] `routes.refresh()` clears cache and re-parses
+- [x] `routes.goto_action()` jumps to controller#action from selected route
+- [x] Routes are cached with TTL from config
+- [x] `rails routes --expanded` runs async (non-blocking)
+- [x] Parses `--expanded` blocks: `Prefix | users`, `Verb | GET`,
       `URI | /users(.:format)`, `Controller#Action | users#index`
-- [ ] Reads `Source Location` when present (Rails 7.1+); works without it on older Rails
-- [ ] `users#index` opens `app/controllers/users_controller.rb` at `def index`
-- [ ] Namespaced `admin/users#index` opens `app/controllers/admin/users_controller.rb` at `def index`
-- [ ] Routes without a `controller#action` (mounted engines / Rack apps,
+- [x] Reads `Source Location` when present (Rails 7.1+); works without it on older Rails
+- [x] `users#index` opens `app/controllers/users_controller.rb` at `def index`
+- [x] Namespaced `admin/users#index` opens `app/controllers/admin/users_controller.rb` at `def index`
+- [x] Routes without a `controller#action` (mounted engines / Rack apps,
       `redirect(...)`) are listed but not navigable, with a notice instead of an error
-- [ ] Shows loading indicator while parsing
-- [ ] Shows error message if routes command fails
+- [x] Shows loading indicator while parsing
+- [x] Shows error message if routes command fails
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/core/routes.lua`
+- [x] Create `lua/rails-tools/core/routes.lua`
 - [x] Create `lua/rails-tools/cache.lua` (shared cache module — already exists, reuse it)
-- [ ] Implement M.show() function
-- [ ] Implement M.refresh() function
-- [ ] Implement M.goto_action() function
-- [ ] Implement async shell command runner
-- [ ] Implement routes output parser
-- [ ] Implement controller#action → file locator
-- [ ] Implement method line finder
-- [ ] Integrate with cache module
-- [ ] Create `tests/core/routes_spec.lua`
-- [ ] Write tests for route parsing
-- [ ] Write tests for controller lookup
-- [ ] Test async loading
+- [x] Implement M.show() function
+- [x] Implement M.refresh() function
+- [x] Implement M.goto_action() function
+- [x] Implement async shell command runner
+- [x] Implement routes output parser
+- [x] Implement controller#action → file locator
+- [x] Implement method line finder
+- [x] Integrate with cache module
+- [x] Create `tests/core/routes_spec.lua`
+- [x] Write tests for route parsing
+- [x] Write tests for controller lookup
+- [x] Test async loading
 
 ---
 

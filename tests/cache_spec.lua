@@ -86,4 +86,39 @@ describe("cache", function()
     end)
     assert.are.equal(2, second)
   end)
+
+  it("peek() returns nil for a missing entry", function()
+    local cache = cache_module.new(300)
+
+    assert.is_nil(cache:peek("k"))
+  end)
+
+  it("peek() returns a value stored with set() within the TTL", function()
+    local cache = cache_module.new(300)
+
+    cache:set("k", "stored")
+
+    assert.are.equal("stored", cache:peek("k"))
+  end)
+
+  it("peek() returns nil once the TTL has elapsed", function()
+    local uv = vim.uv or vim.loop
+    local cache = cache_module.new(0)
+    cache:set("k", "stored")
+
+    uv.sleep(5)
+
+    assert.is_nil(cache:peek("k"))
+  end)
+
+  it("get() returns a value stored with set() without rebuilding", function()
+    local cache = cache_module.new(300)
+    cache:set("k", "stored")
+
+    local value = cache:get("k", function()
+      return "built"
+    end)
+
+    assert.are.equal("stored", value)
+  end)
 end)

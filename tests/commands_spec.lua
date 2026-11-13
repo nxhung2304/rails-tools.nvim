@@ -74,6 +74,39 @@ describe("rails-tools.commands", function()
     end)
   end)
 
+  describe(":Rails routes", function()
+    local calls
+
+    before_each(function()
+      calls = {}
+      package.loaded["rails-tools.core.routes"] = nil
+      package.preload["rails-tools.core.routes"] = function()
+        return {
+          show = function() table.insert(calls, "show") end,
+          refresh = function() table.insert(calls, "refresh") end,
+        }
+      end
+      require("rails-tools.commands").setup()
+    end)
+
+    after_each(function()
+      package.preload["rails-tools.core.routes"] = nil
+      package.loaded["rails-tools.core.routes"] = nil
+    end)
+
+    it("shows the routes", function()
+      vim.cmd("Rails routes")
+
+      assert.are.same({ "show" }, calls)
+    end)
+
+    it("reloads the routes with routes!", function()
+      vim.cmd("Rails routes!")
+
+      assert.are.same({ "refresh" }, calls)
+    end)
+  end)
+
   describe(":Rails runner", function()
     local calls
 

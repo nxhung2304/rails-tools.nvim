@@ -1,0 +1,252 @@
+--[ Route 1 ]-------------------------------------------------------------------
+Prefix            | root
+Verb              | GET
+URI               | /
+Controller#Action | users#index
+Source Location   | /app/config/routes.rb:5
+--[ Route 2 ]-------------------------------------------------------------------
+Prefix            | deactivate_user
+Verb              | POST
+URI               | /users/:id/deactivate(.:format)
+Controller#Action | users#deactivate
+Source Location   | /app/config/routes.rb:10
+--[ Route 3 ]-------------------------------------------------------------------
+Prefix            | promote_user
+Verb              | POST
+URI               | /users/:id/promote(.:format)
+Controller#Action | users#promote
+Source Location   | /app/config/routes.rb:11
+--[ Route 4 ]-------------------------------------------------------------------
+Prefix            | users
+Verb              | GET
+URI               | /users(.:format)
+Controller#Action | users#index
+Source Location   | /app/config/routes.rb:8
+--[ Route 5 ]-------------------------------------------------------------------
+Prefix            | 
+Verb              | POST
+URI               | /users(.:format)
+Controller#Action | users#create
+Source Location   | /app/config/routes.rb:8
+--[ Route 6 ]-------------------------------------------------------------------
+Prefix            | new_user
+Verb              | GET
+URI               | /users/new(.:format)
+Controller#Action | users#new
+Source Location   | /app/config/routes.rb:8
+--[ Route 7 ]-------------------------------------------------------------------
+Prefix            | edit_user
+Verb              | GET
+URI               | /users/:id/edit(.:format)
+Controller#Action | users#edit
+Source Location   | /app/config/routes.rb:8
+--[ Route 8 ]-------------------------------------------------------------------
+Prefix            | user
+Verb              | GET
+URI               | /users/:id(.:format)
+Controller#Action | users#show
+Source Location   | /app/config/routes.rb:8
+--[ Route 9 ]-------------------------------------------------------------------
+Prefix            | 
+Verb              | PATCH
+URI               | /users/:id(.:format)
+Controller#Action | users#update
+Source Location   | /app/config/routes.rb:8
+--[ Route 10 ]------------------------------------------------------------------
+Prefix            | 
+Verb              | PUT
+URI               | /users/:id(.:format)
+Controller#Action | users#update
+Source Location   | /app/config/routes.rb:8
+--[ Route 11 ]------------------------------------------------------------------
+Prefix            | 
+Verb              | DELETE
+URI               | /users/:id(.:format)
+Controller#Action | users#destroy
+Source Location   | /app/config/routes.rb:8
+--[ Route 12 ]------------------------------------------------------------------
+Prefix            | admin_users
+Verb              | GET
+URI               | /admin/users(.:format)
+Controller#Action | admin/users#index
+Source Location   | /app/config/routes.rb:17
+--[ Route 13 ]------------------------------------------------------------------
+Prefix            | admin_user
+Verb              | GET
+URI               | /admin/users/:id(.:format)
+Controller#Action | admin/users#show
+Source Location   | /app/config/routes.rb:17
+--[ Route 14 ]------------------------------------------------------------------
+Prefix            | 
+Verb              | PATCH
+URI               | /admin/users/:id(.:format)
+Controller#Action | admin/users#update
+Source Location   | /app/config/routes.rb:17
+--[ Route 15 ]------------------------------------------------------------------
+Prefix            | 
+Verb              | PUT
+URI               | /admin/users/:id(.:format)
+Controller#Action | admin/users#update
+Source Location   | /app/config/routes.rb:17
+--[ Route 16 ]------------------------------------------------------------------
+Prefix            | admin_settings
+Verb              | GET
+URI               | /admin/settings(.:format)
+Controller#Action | admin/settings#index
+Source Location   | /app/config/routes.rb:18
+--[ Route 17 ]------------------------------------------------------------------
+Prefix            | admin_setting
+Verb              | PATCH
+URI               | /admin/settings/:id(.:format)
+Controller#Action | admin/settings#update
+Source Location   | /app/config/routes.rb:18
+--[ Route 18 ]------------------------------------------------------------------
+Prefix            | 
+Verb              | PUT
+URI               | /admin/settings/:id(.:format)
+Controller#Action | admin/settings#update
+Source Location   | /app/config/routes.rb:18
+--[ Route 19 ]------------------------------------------------------------------
+Prefix            | health
+Verb              | GET
+URI               | /health(.:format)
+Controller#Action | Inline handler (Proc/Lambda)
+Source Location   | /app/config/routes.rb:22
+--[ Route 20 ]------------------------------------------------------------------
+Prefix            | rails_postmark_inbound_emails
+Verb              | POST
+URI               | /rails/action_mailbox/postmark/inbound_emails(.:format)
+Controller#Action | action_mailbox/ingresses/postmark/inbound_emails#create
+Source Location   | actionmailbox (7.1.6) config/routes.rb:5
+--[ Route 21 ]------------------------------------------------------------------
+Prefix            | rails_relay_inbound_emails
+Verb              | POST
+URI               | /rails/action_mailbox/relay/inbound_emails(.:format)
+Controller#Action | action_mailbox/ingresses/relay/inbound_emails#create
+Source Location   | actionmailbox (7.1.6) config/routes.rb:6
+--[ Route 22 ]------------------------------------------------------------------
+Prefix            | rails_sendgrid_inbound_emails
+Verb              | POST
+URI               | /rails/action_mailbox/sendgrid/inbound_emails(.:format)
+Controller#Action | action_mailbox/ingresses/sendgrid/inbound_emails#create
+Source Location   | actionmailbox (7.1.6) config/routes.rb:7
+--[ Route 23 ]------------------------------------------------------------------
+Prefix            | rails_mandrill_inbound_health_check
+Verb              | GET
+URI               | /rails/action_mailbox/mandrill/inbound_emails(.:format)
+Controller#Action | action_mailbox/ingresses/mandrill/inbound_emails#health_check
+Source Location   | actionmailbox (7.1.6) config/routes.rb:10
+--[ Route 24 ]------------------------------------------------------------------
+Prefix            | rails_mandrill_inbound_emails
+Verb              | POST
+URI               | /rails/action_mailbox/mandrill/inbound_emails(.:format)
+Controller#Action | action_mailbox/ingresses/mandrill/inbound_emails#create
+Source Location   | actionmailbox (7.1.6) config/routes.rb:11
+--[ Route 25 ]------------------------------------------------------------------
+Prefix            | rails_mailgun_inbound_emails
+Verb              | POST
+URI               | /rails/action_mailbox/mailgun/inbound_emails/mime(.:format)
+Controller#Action | action_mailbox/ingresses/mailgun/inbound_emails#create
+Source Location   | actionmailbox (7.1.6) config/routes.rb:14
+--[ Route 26 ]------------------------------------------------------------------
+Prefix            | rails_conductor_inbound_emails
+Verb              | GET
+URI               | /rails/conductor/action_mailbox/inbound_emails(.:format)
+Controller#Action | rails/conductor/action_mailbox/inbound_emails#index
+Source Location   | actionmailbox (7.1.6) config/routes.rb:19
+--[ Route 27 ]------------------------------------------------------------------
+Prefix            | 
+Verb              | POST
+URI               | /rails/conductor/action_mailbox/inbound_emails(.:format)
+Controller#Action | rails/conductor/action_mailbox/inbound_emails#create
+Source Location   | actionmailbox (7.1.6) config/routes.rb:19
+--[ Route 28 ]------------------------------------------------------------------
+Prefix            | new_rails_conductor_inbound_email
+Verb              | GET
+URI               | /rails/conductor/action_mailbox/inbound_emails/new(.:format)
+Controller#Action | rails/conductor/action_mailbox/inbound_emails#new
+Source Location   | actionmailbox (7.1.6) config/routes.rb:19
+--[ Route 29 ]------------------------------------------------------------------
+Prefix            | rails_conductor_inbound_email
+Verb              | GET
+URI               | /rails/conductor/action_mailbox/inbound_emails/:id(.:format)
+Controller#Action | rails/conductor/action_mailbox/inbound_emails#show
+Source Location   | actionmailbox (7.1.6) config/routes.rb:19
+--[ Route 30 ]------------------------------------------------------------------
+Prefix            | new_rails_conductor_inbound_email_source
+Verb              | GET
+URI               | /rails/conductor/action_mailbox/inbound_emails/sources/new(.:format)
+Controller#Action | rails/conductor/action_mailbox/inbound_emails/sources#new
+Source Location   | actionmailbox (7.1.6) config/routes.rb:20
+--[ Route 31 ]------------------------------------------------------------------
+Prefix            | rails_conductor_inbound_email_sources
+Verb              | POST
+URI               | /rails/conductor/action_mailbox/inbound_emails/sources(.:format)
+Controller#Action | rails/conductor/action_mailbox/inbound_emails/sources#create
+Source Location   | actionmailbox (7.1.6) config/routes.rb:21
+--[ Route 32 ]------------------------------------------------------------------
+Prefix            | rails_conductor_inbound_email_reroute
+Verb              | POST
+URI               | /rails/conductor/action_mailbox/:inbound_email_id/reroute(.:format)
+Controller#Action | rails/conductor/action_mailbox/reroutes#create
+Source Location   | actionmailbox (7.1.6) config/routes.rb:23
+--[ Route 33 ]------------------------------------------------------------------
+Prefix            | rails_conductor_inbound_email_incinerate
+Verb              | POST
+URI               | /rails/conductor/action_mailbox/:inbound_email_id/incinerate(.:format)
+Controller#Action | rails/conductor/action_mailbox/incinerates#create
+Source Location   | actionmailbox (7.1.6) config/routes.rb:24
+--[ Route 34 ]------------------------------------------------------------------
+Prefix            | rails_service_blob
+Verb              | GET
+URI               | /rails/active_storage/blobs/redirect/:signed_id/*filename(.:format)
+Controller#Action | active_storage/blobs/redirect#show
+Source Location   | activestorage (7.1.6) config/routes.rb:5
+--[ Route 35 ]------------------------------------------------------------------
+Prefix            | rails_service_blob_proxy
+Verb              | GET
+URI               | /rails/active_storage/blobs/proxy/:signed_id/*filename(.:format)
+Controller#Action | active_storage/blobs/proxy#show
+Source Location   | activestorage (7.1.6) config/routes.rb:6
+--[ Route 36 ]------------------------------------------------------------------
+Prefix            | 
+Verb              | GET
+URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)
+Controller#Action | active_storage/blobs/redirect#show
+Source Location   | activestorage (7.1.6) config/routes.rb:7
+--[ Route 37 ]------------------------------------------------------------------
+Prefix            | rails_blob_representation
+Verb              | GET
+URI               | /rails/active_storage/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format)
+Controller#Action | active_storage/representations/redirect#show
+Source Location   | activestorage (7.1.6) config/routes.rb:9
+--[ Route 38 ]------------------------------------------------------------------
+Prefix            | rails_blob_representation_proxy
+Verb              | GET
+URI               | /rails/active_storage/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)
+Controller#Action | active_storage/representations/proxy#show
+Source Location   | activestorage (7.1.6) config/routes.rb:10
+--[ Route 39 ]------------------------------------------------------------------
+Prefix            | 
+Verb              | GET
+URI               | /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)
+Controller#Action | active_storage/representations/redirect#show
+Source Location   | activestorage (7.1.6) config/routes.rb:11
+--[ Route 40 ]------------------------------------------------------------------
+Prefix            | rails_disk_service
+Verb              | GET
+URI               | /rails/active_storage/disk/:encoded_key/*filename(.:format)
+Controller#Action | active_storage/disk#show
+Source Location   | activestorage (7.1.6) config/routes.rb:13
+--[ Route 41 ]------------------------------------------------------------------
+Prefix            | update_rails_disk_service
+Verb              | PUT
+URI               | /rails/active_storage/disk/:encoded_token(.:format)
+Controller#Action | active_storage/disk#update
+Source Location   | activestorage (7.1.6) config/routes.rb:14
+--[ Route 42 ]------------------------------------------------------------------
+Prefix            | rails_direct_uploads
+Verb              | POST
+URI               | /rails/active_storage/direct_uploads(.:format)
+Controller#Action | active_storage/direct_uploads#create
+Source Location   | activestorage (7.1.6) config/routes.rb:15

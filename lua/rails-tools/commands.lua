@@ -10,6 +10,12 @@ local subcommands = {
   find = function(opts)
     require("rails-tools.core.finder").find(opts.args)
   end,
+  routes = function()
+    require("rails-tools.core.routes").show()
+  end,
+  ["routes!"] = function()
+    require("rails-tools.core.routes").refresh()
+  end,
   runner = function(opts)
     local runner = require("rails-tools.core.runner")
 
