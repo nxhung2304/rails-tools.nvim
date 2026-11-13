@@ -11,7 +11,7 @@ See [specs/story.md](specs/story.md) for the full tracker and
 
 **Implemented:**
 - [x] Rails project detection
-- [x] RSpec/Minitest detection
+- [x] RSpec/Minitest detection, Grape API detection
 - [x] Plugin entry point — `init.lua`, `setup()`, `plugin/`, the `:Rails` command
 - [x] Configuration system (`config.lua` is the single source of truth for
       alternate mappings; `core/alternate.lua` reads from it)
@@ -25,7 +25,6 @@ See [specs/story.md](specs/story.md) for the full tracker and
       [021-schema-inspector.md](specs/issues/021-schema-inspector.md))
 
 **Not implemented yet:**
-- [ ] Grape API detection
 - [ ] RSpec runner, generators, Grape support, test marker, context-aware `gf`,
       controller ↔ view navigation (Phase 2, opt-in modules)
 - [ ] Rails engines inside a host app, projects that only have `db/structure.sql`
