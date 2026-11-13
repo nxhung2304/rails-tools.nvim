@@ -2,12 +2,14 @@ local MODULES_TO_RELOAD = {
   "rails-tools.telescope",
   "rails-tools.config",
   "rails-tools.core.finder",
+  "rails-tools.core.routes",
   "telescope",
   "telescope._extensions.rails",
 }
 
 describe("rails-tools.telescope", function()
   local find_calls
+  local routes_show_calls
   local notifications
   local orig_notify
 
@@ -24,6 +26,12 @@ describe("rails-tools.telescope", function()
     package.loaded["rails-tools.core.finder"] = {
       find = function(resource_type, opts)
         table.insert(find_calls, { resource_type = resource_type, opts = opts })
+      end,
+    }
+    routes_show_calls = {}
+    package.loaded["rails-tools.core.routes"] = {
+      show = function(opts)
+        table.insert(routes_show_calls, opts)
       end,
     }
 
@@ -94,8 +102,13 @@ describe("rails-tools.telescope", function()
       assert.is_nil(exports.jobs)
     end)
 
-    it("does not export a routes picker", function()
-      assert.is_nil(require("rails-tools.telescope").exports.routes)
+    it("routes opens the routes picker with Telescope and the picker options", function()
+      local picker_opts = { layout_strategy = "vertical" }
+
+      require("rails-tools.telescope").exports.routes(picker_opts)
+
+      assert.are.same({ { provider = "telescope", picker_opts = picker_opts } }, routes_show_calls)
+      assert.are.equal(0, #find_calls)
     end)
   end)
 

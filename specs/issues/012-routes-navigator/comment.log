@@ -1,0 +1,168 @@
+Tóm tắt: 9 MUST / 4 SHOULD / 3 NIT · 0 giả định · 0 chờ xác nhận · 5 spec cần xem lại · 1 ngoài phạm vi / không cần sửa.
+Nguồn: review-branch 9 · code-review 6 · spec-review 19 (3 thiếu, 13 ngoài yêu cầu, 3 sai).
+Ghi chú: review-branch và code-review chạy trong worktree, nhưng `specs/` đã được commit nên vẫn có trong worktree (cả hai được dặn không đọc). Không có `gh`; chưa đọc comment của issue #10, chưa có PR. Hai phát hiện code-review tự ghi là "nhớ từ mã nguồn Rails" (mục 5, 6) đã được kiểm lại bằng output thật và bằng nvim trước khi sửa.
+
+### 1. MUST — `project_root()` và `use_telescope()` chép y nguyên từ finder.lua
+- **Nguồn:** `review-branch`, `code-review` (cleanup, tin cậy 90)
+- **Phân loại:** Một phần trong phạm vi · Đã xác minh · Diff có đụng: có (bản chép mới) · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua:39-49, :171-182 (bản gốc: lua/rails-tools/core/finder.lua:13-24, :122-133)
+- **Vấn đề:** Sửa cách tìm thư mục Rails hoặc cách chọn Telescope ở một chỗ thì chỗ kia không đổi theo. `project_root()` vốn đã được chép sẵn trong finder và runner trước nhánh này.
+- **Cách sửa:** Chuyển hai hàm sang `utils.lua` và cho finder, runner, routes cùng dùng. Việc này đụng code cũ (finder, runner) nên cần anh duyệt trước. Nếu không gộp, giữ bản chép như cách finder/runner đang làm.
+- **Trạng thái:** Không sửa trong PR này (anh đồng ý 2026-11-13): gộp vào `utils.lua` ở một PR refactor riêng.
+
+### 2. MUST — `M.method_line()` chỉ có test gọi, code thật dùng hàm khác
+- **Nguồn:** `review-branch`, `code-review` (cleanup, tin cậy 85), `spec-review` (b)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua (cũ: 103-112)
+- **Vấn đề:** Test kiểm tra `method_line`, còn lúc mở route chạy `def_line` trên buffer, nên sửa luật tìm `def` có thể làm hỏng đường thật mà test vẫn pass.
+- **Cách sửa:** Bỏ `M.method_line`, kiểm tra việc tìm `def` qua `goto_action` (thêm ca `def index_all` đứng trước `def index`).
+- **Trạng thái:** Đã sửa. Đổi test: bỏ 2 test `method_line()`, chuyển ca `index_all` sang test `goto_action`. Commit "fix: address review findings for routes navigator".
+
+### 3. MUST — `Cache:peek/set` lặp lại luật hết hạn của `Cache:get`
+- **Nguồn:** `review-branch`, `code-review` (cleanup, tin cậy 80)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/cache.lua:16-50
+- **Vấn đề:** Đổi luật TTL ở một chỗ thì `get` và `peek` sẽ trả kết quả khác nhau.
+- **Cách sửa:** Một hàm `is_fresh` dùng chung, `get` lưu qua `set`. Giữ nguyên hành vi `get` với giá trị `nil`/`false` đã cache (không đổi `get` thành gọi `peek`).
+- **Trạng thái:** Đã sửa, 10/10 test cache pass. Commit "fix: address review findings for routes navigator".
+
+### 4. MUST — `M.stop()` là API công khai chỉ để test dùng
+- **Nguồn:** `review-branch`, `spec-review` (b)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua (cũ: 364-369)
+- **Vấn đề:** Không có lệnh, menu hay autocmd nào gọi; chỉ `after_each` của test dùng.
+- **Cách sửa:** Bỏ `M.stop()`; test tự dừng các job qua `nvim_list_chans()`.
+- **Trạng thái:** Đã sửa. Commit "fix: address review findings for routes navigator".
+
+### 5. MUST — Route có `constraints`/`defaults` không mở được
+- **Nguồn:** `code-review` (bug, tin cậy 85)
+- **Phân loại:** Trong phạm vi · Đã xác minh (đã chụp output thật: `photos#show {:id=>/\d+/}`, `items#show {:format=>"json"}`) · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua `M.controller_location`
+- **Vấn đề:** Rails in thêm constraints sau `controller#action`, pattern cũ đòi hết dòng nên báo "has no controller action".
+- **Cách sửa:** Chỉ lấy phần đầu (tới khoảng trắng) rồi mới so pattern.
+- **Trạng thái:** Đã sửa, thêm mẫu thật `tests/fixtures/routes/expanded_with_constraints.txt` và test. Commit "fix: address review findings for routes navigator".
+
+### 6. MUST — `jobstart` ném lỗi khi thư mục dự án không còn, người dùng thấy lỗi Lua thô
+- **Nguồn:** `code-review` (bug, tin cậy 80)
+- **Phân loại:** Trong phạm vi · Đã xác minh (nvim 0.9.5: `jobstart` với cwd không tồn tại ném `E475`) · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua `load_routes`
+- **Vấn đề:** Trái quy tắc "degrade gracefully, never error".
+- **Cách sửa:** Bọc `jobstart` trong `pcall`, lỗi thì báo "could not run".
+- **Trạng thái:** Đã sửa, thêm test. Commit "fix: address review findings for routes navigator".
+
+### 7. MUST — Không có `def <action>` thì con trỏ không về đầu file
+- **Nguồn:** `spec-review` (c), trích implement.md D4: "open the file at the top and show a notice"
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua `open_route`
+- **Vấn đề:** Nếu file đã mở sẵn, con trỏ ở nguyên chỗ cũ.
+- **Cách sửa:** Đặt con trỏ về dòng 1 trước khi báo.
+- **Trạng thái:** Đã sửa, test mở file sẵn ở dòng 3 rồi kiểm tra về dòng 1. Commit "fix: address review findings for routes navigator".
+
+### 8. MUST — Action kết thúc bằng `?` hoặc `!` bị coi là không mở được
+- **Nguồn:** `spec-review` (c)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua `M.controller_location`
+- **Vấn đề:** Hiếm gặp, nhưng pattern tìm `def` đã chấp nhận `?`/`!` còn pattern action thì không.
+- **Cách sửa:** Cho phép một `?` hoặc `!` ở cuối action.
+- **Trạng thái:** Đã sửa, thêm test. Commit "fix: address review findings for routes navigator".
+
+### 9. MUST — Các mục đã chuyển sang L3-010 vẫn chưa đánh dấu xong ở spec gốc
+- **Nguồn:** `spec-review` (a)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: không (file spec khác) · Liên quan: có
+- **File:** specs/story.md (L3-009), specs/issues/009-telescope-pickers.md:38,52, specs/issues/010-menu.md:35
+- **Vấn đề:** Người đọc story/spec cũ tưởng picker Telescope routes, mục menu và phím `<leader>ro` chưa làm.
+- **Cách sửa:** Đánh dấu `[x]` kèm "moved to L3-010, done there"; với menu ghi rõ mục luôn hiện vì routes thuộc Phase 1.
+- **Trạng thái:** Đã sửa. Commit "fix: address review findings for routes navigator".
+
+### 10. SHOULD — `show()` gán lại `routes_cache.ttl` mỗi lần gọi
+- **Nguồn:** `code-review` (cleanup, tin cậy 80)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua `M.show`
+- **Vấn đề:** TTL phụ thuộc lần gọi `show()` gần nhất.
+- **Cách sửa:** Không sửa trong PR này: TTL chỉ được đọc trong `peek`, và `peek` chỉ được gọi ngay sau dòng gán trong `show()`, nên luôn dùng giá trị config hiện tại; finder.lua làm y như vậy. Trả lời reviewer: "TTL chỉ đọc ở show(), gán ngay trước khi đọc nên luôn theo config hiện tại, giống finder."
+- **Trạng thái:** Không sửa, theo đề xuất.
+
+### 11. SHOULD — `refresh()` mở picker sau khi tải lại, spec chỉ ghi "xoá cache và parse lại"
+- **Nguồn:** `spec-review` (b)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua `M.refresh`; specs/issues/012-routes-navigator.md (Notes)
+- **Vấn đề:** Hành vi đúng ý `:Rails routes!` nhưng spec chưa ghi.
+- **Cách sửa:** Ghi vào Notes của spec: `:Rails routes!` tải lại, mở picker, và dừng lệnh đang treo.
+- **Trạng thái:** Đã sửa spec. Commit "fix: address review findings for routes navigator".
+
+### 12. SHOULD — `project_root()` ưu tiên thư mục Rails của file đang mở
+- **Nguồn:** `spec-review` (b)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua:39-49
+- **Vấn đề:** Hành vi ngoài spec.
+- **Cách sửa:** Không sửa trong PR này: giống finder và runner, để `:Rails routes` mở đúng dự án của file đang sửa khi cwd khác. Trả lời reviewer: "Theo cách finder/runner đang làm."
+- **Trạng thái:** Không sửa, theo đề xuất.
+
+### 13. SHOULD — README còn câu "Telescope chưa làm" ngay trên dòng vừa tick
+- **Nguồn:** `spec-review` (b)
+- **Phân loại:** Một phần trong phạm vi · Đã xác minh · Diff có đụng: dòng tick có, câu cũ không · Liên quan: có
+- **File:** README.md:134
+- **Vấn đề:** README tự mâu thuẫn.
+- **Cách sửa:** Thay câu đó bằng mô tả đúng (extension tự nạp khi telescope.nvim đã được nạp lúc `setup()`).
+- **Trạng thái:** Đã sửa. Các dòng cũ khác của README vẫn để task Documentation (L5-024).
+
+### 14. NIT — Độ rộng cột verb `7` là số ma thuật
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua `format_route`
+- **Vấn đề:** Không rõ 7 là độ dài verb dài nhất (`OPTIONS`).
+- **Cách sửa:** Hằng `VERB_COLUMN_WIDTH`.
+- **Trạng thái:** Đã sửa. Commit "fix: address review findings for routes navigator".
+
+### 15. NIT — Lặp 3 lần đoạn kiểm tra "not a Rails project"
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua `goto_action`, `show`, `refresh`
+- **Vấn đề:** Vượt ngưỡng DRY "hơn hai lần" trong cùng file.
+- **Cách sửa:** Hàm `rails_root_or_warn()`.
+- **Trạng thái:** Đã sửa. Commit "fix: address review findings for routes navigator".
+
+### 16. NIT — routes.lua khá dài, trộn parser, job và picker
+- **Nguồn:** `review-branch` (chỉ là gợi ý theo cỡ file)
+- **Phân loại:** Trong phạm vi · Đã xác minh · Diff có đụng: có · Liên quan: có
+- **File:** lua/rails-tools/core/routes.lua (364 dòng sau khi sửa)
+- **Vấn đề:** Khó giữ mỗi phần tập trung khi file lớn thêm.
+- **Cách sửa:** Đề xuất tách `parse` + `controller_location` sang `core/routes_parser.lua`. Chưa tách vì tách file mới cần anh duyệt; cỡ hiện tại vẫn dưới ngưỡng 400 dòng.
+- **Trạng thái:** Không tách (anh đồng ý 2026-11-13); xem lại khi file vượt 400 dòng.
+
+## Spec cần xem lại
+
+Cả 5 mục dưới đây: anh đồng ý giữ như plan (2026-11-13), đã ghi vào mục Lưu ý của PR #43.
+
+### Mục "View Routes" luôn hiện, không có `modules.routes`
+- **Nguồn:** `spec-review` (a)
+- **File:** lua/rails-tools/ui/menu.lua:23-28
+- **Trích:** 010-menu.md:59 "Console and runner are Phase 1 and always on ... Filtering by `config.modules` lands with the first gated item (L4-014)."
+- **Câu hỏi:** Spec menu gốc ghi "View Routes if modules.routes enabled", quyết định sau đó là chỉ lọc từ L4-014 và routes thuộc Phase 1; code luôn hiện mục này — quyết định đó còn đúng không?
+
+### Thông báo lỗi chỉ lấy 20 dòng stderr đầu
+- **Nguồn:** `spec-review` (a)
+- **File:** lua/rails-tools/core/routes.lua `error_lines`
+- **Trích:** implement.md D7 "the first 20 non-empty stderr lines (the real error comes after the eager_load warning)"
+- **Câu hỏi:** Spec ghi "includes exit code and stderr", plan chọn cắt 20 dòng (6 dòng đầu là cảnh báo eager_load, lỗi thật còn tối đa 14 dòng) — 20 dòng có đủ không?
+
+### "Loading indicator" chỉ là một thông báo lúc bắt đầu
+- **Nguồn:** `spec-review` (c)
+- **File:** lua/rails-tools/core/routes.lua `load_routes`
+- **Trích:** implement.md D6 "a 'Rails: loading routes...' notice when the command starts"
+- **Câu hỏi:** Spec ghi "Shows loading indicator while parsing", plan chọn một notice; có cần chỉ báo kéo dài (spinner/statusline) không?
+
+### Gọi `show()` khi đang tải sẽ bỏ qua tuỳ chọn của lần gọi sau
+- **Nguồn:** `review-branch` (chưa xác minh, hỏi tác giả)
+- **File:** lua/rails-tools/core/routes.lua `M.show`
+- **Trích:** implement.md D9 "`show()` while a job runs shows 'still loading' and starts nothing"
+- **Câu hỏi:** Ví dụ `:Rails routes` đang tải rồi gõ `:Telescope rails routes`: picker vẫn mở theo kiểu của lần gọi đầu — chấp nhận được không?
+
+### Route của engine/gem tìm controller trong `app/controllers` của app chính
+- **Nguồn:** `review-branch` (chưa xác minh, hỏi tác giả); `code-review` (tin cậy 60, dưới ngưỡng)
+- **File:** lua/rails-tools/core/routes.lua `open_route`
+- **Trích:** implement.md D3 "When that file does not exist (engine or gem controller), show a notice with the expected path"
+- **Câu hỏi:** Plan chọn báo "not found" cho controller của engine/gem; engine nằm trong repo (vd. `engines/<name>/app/controllers`) cũng chỉ báo not found, và nếu app chính có controller trùng tên thì mở nhầm file đó — giữ phạm vi này cho PR đầu không?
+
+## Ngoài phạm vi / không cần sửa
+- lua/rails-tools/core/routes.lua, cache.lua — các hành vi ngoài spec nhưng đã chốt trong implement.md: nhãn engine (D1), báo not found (D3), một job mỗi dự án + "still loading" (D9), kiểm tra job cũ (D13), "no routes found" (D12), `parse`/`controller_location` công khai (D1, D2), `peek`/`set` (D8), tuỳ chọn provider/picker (D10); `spec-review` (b); Quyết định theo plan.

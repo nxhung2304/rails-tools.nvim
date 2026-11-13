@@ -34,7 +34,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 0 - Foundation | 1 task | 1 | 100% |
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
 | Layer 2 - Detection | 4 tasks | 3 | 75% |
-| Layer 3 - Core Features | 8 tasks | 7 | 88% |
+| Layer 3 - Core Features | 8 tasks | 8 | 100% |
 | Layer 4 - Enhanced | 6 tasks | 0 | 0% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
@@ -52,12 +52,13 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L3-007** - Telescope Integration (009-telescope-pickers.md)
 - **L3-008** - Rails Menu (010-menu.md)
 - **L3-009** - Keymap Registration (011-keymaps.md)
+- **L3-010** - Routes Navigator (012-routes-navigator.md)
 - **L3-011** - Rails Console (013-console.md)
 - **L3-012** - Rails Runner (014-runner.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Continue L3** - Routes
+1. **Phase 2** - Grape API Detection (L2-016), then Layer 4
 
 ---
 
@@ -219,27 +220,27 @@ Layer 5: Polish & Integrations (Phase 3)
   - [x] `<leader>rr` - Rails menu
   - [x] `<leader>ra` - Alternate file
   - [x] `<leader>rf` - Resource finder
-  - [ ] `<leader>ro` - Routes navigator — moved to L3-010
+  - [x] `<leader>ro` - Routes navigator — moved to L3-010, done there
   - [x] `<leader>rc` - Console
   - [x] `<leader>rx` - Runner
 - [x] Create tests for keymap registration
 
-### L3-010. Routes Navigator (012-routes-navigator.md)
-- [ ] Create `lua/rails-tools/core/routes.lua`
-- [ ] Implement `show()`, `refresh()`, `goto_action()` functions
-- [ ] Implement async shell command runner (vim.fn.jobstart)
-- [ ] Parse `bin/rails routes --expanded` output
-- [ ] Parse controller#action → file and method
-- [ ] Implement method line finder
-- [ ] Integrate with cache.lua (from L1-Entry)
-- [ ] Cache with TTL from config (default 300s)
-- [ ] Handle namespaced routes
-- [ ] Show loading indicator
-- [ ] Telescope `routes` picker in `lua/rails-tools/telescope/init.lua` (moved from L3-007)
-- [ ] Force refresh with `:Rails routes!`
-- [ ] Add "View Routes" item to `ui/menu.lua` (moved from L3-008)
-- [ ] Register keymap `<leader>ro` in `keymaps.lua` (moved from L3-009)
-- [ ] Create `tests/core/routes_spec.lua`
+### L3-010. Routes Navigator (012-routes-navigator.md) ✅ COMPLETE
+- [x] Create `lua/rails-tools/core/routes.lua`
+- [x] Implement `show()`, `refresh()`, `goto_action()` functions
+- [x] Implement async shell command runner (vim.fn.jobstart)
+- [x] Parse `bin/rails routes --expanded` output
+- [x] Parse controller#action → file and method
+- [x] Implement method line finder
+- [x] Integrate with cache.lua (from L1-Entry)
+- [x] Cache with TTL from config (default 300s)
+- [x] Handle namespaced routes
+- [x] Show loading indicator
+- [x] Telescope `routes` picker in `lua/rails-tools/telescope/init.lua` (moved from L3-007)
+- [x] Force refresh with `:Rails routes!`
+- [x] Add "View Routes" item to `ui/menu.lua` (moved from L3-008)
+- [x] Register keymap `<leader>ro` in `keymaps.lua` (moved from L3-009)
+- [x] Create `tests/core/routes_spec.lua`
 
 ### L3-011. Rails Console (013-console.md)
 - [x] Create `lua/rails-tools/core/console.lua`

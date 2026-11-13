@@ -1,0 +1,12 @@
+--[ Route 1 ]-------------------------------------------------------------------
+Prefix            | 
+Verb              | GET
+URI               | /photos/:id(.:format)
+Controller#Action | photos#show {:id=>/\d+/}
+Source Location   | /app/config/routes.rb:2
+--[ Route 2 ]-------------------------------------------------------------------
+Prefix            | 
+Verb              | GET
+URI               | /items/:id(.:format)
+Controller#Action | items#show {:format=>"json"}
+Source Location   | /app/config/routes.rb:3

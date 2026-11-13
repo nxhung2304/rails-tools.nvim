@@ -1,6 +1,7 @@
 local STUBBED_MODULES = {
   "rails-tools.core.alternate",
   "rails-tools.core.finder",
+  "rails-tools.core.routes",
   "rails-tools.core.console",
   "rails-tools.core.runner",
 }
@@ -21,6 +22,9 @@ describe("rails-tools.ui.menu", function()
     end
     package.preload["rails-tools.core.finder"] = function()
       return { find = function(resource_type) table.insert(calls, { "finder.find", resource_type }) end }
+    end
+    package.preload["rails-tools.core.routes"] = function()
+      return { show = function() table.insert(calls, { "routes.show" }) end }
     end
     package.preload["rails-tools.core.console"] = function()
       return { open = function() table.insert(calls, { "console.open" }) end }
@@ -88,7 +92,7 @@ describe("rails-tools.ui.menu", function()
   it("lists the Phase 1 actions in order", function()
     menu.open()
 
-    assert.are.same({ "Alternate File", "Find Resource", "Open Console", "Run Code" }, labels())
+    assert.are.same({ "Alternate File", "Find Resource", "View Routes", "Open Console", "Run Code" }, labels())
   end)
 
   it("opens the alternate file when Alternate File is chosen", function()
@@ -105,6 +109,14 @@ describe("rails-tools.ui.menu", function()
     open_menu_and_wait()
 
     assert.are.same({ { "finder.find", "all" } }, calls)
+  end)
+
+  it("shows the routes when View Routes is chosen", function()
+    pick_label = "View Routes"
+
+    open_menu_and_wait()
+
+    assert.are.same({ { "routes.show" } }, calls)
   end)
 
   it("opens the console when Open Console is chosen", function()

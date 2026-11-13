@@ -2,13 +2,14 @@ local STUBBED_MODULES = {
   "rails-tools.ui.menu",
   "rails-tools.core.alternate",
   "rails-tools.core.finder",
+  "rails-tools.core.routes",
   "rails-tools.core.console",
   "rails-tools.core.runner",
 }
 
 local TEST_LEADER = ","
-local DEFAULT_KEYS = { ",rr", ",ra", ",rf", ",rc", ",rx" }
-local CUSTOM_PREFIX_KEYS = { ",xr", ",xa", ",xf", ",xc", ",xx" }
+local DEFAULT_KEYS = { ",rr", ",ra", ",rf", ",ro", ",rc", ",rx" }
+local CUSTOM_PREFIX_KEYS = { ",xr", ",xa", ",xf", ",xo", ",xc", ",xx" }
 
 describe("rails-tools.keymaps", function()
   local keymaps
@@ -25,6 +26,9 @@ describe("rails-tools.keymaps", function()
     end
     package.preload["rails-tools.core.finder"] = function()
       return { find = function(resource_type) table.insert(calls, { "finder.find", resource_type }) end }
+    end
+    package.preload["rails-tools.core.routes"] = function()
+      return { show = function() table.insert(calls, { "routes.show" }) end }
     end
     package.preload["rails-tools.core.console"] = function()
       return { open = function() table.insert(calls, { "console.open" }) end }
@@ -126,6 +130,15 @@ describe("rails-tools.keymaps", function()
     run_mapping(",rf")
 
     assert.are.same({ { "finder.find", "all" } }, calls)
+  end)
+
+  it("shows the routes with <leader>ro", function()
+    config.setup()
+    keymaps.setup()
+
+    run_mapping(",ro")
+
+    assert.are.same({ { "routes.show" } }, calls)
   end)
 
   it("opens the console with <leader>rc", function()

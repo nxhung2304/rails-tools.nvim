@@ -25,6 +25,9 @@ local function build_exports()
   end
 
   exports[DEFAULT_PICKER] = resource_picker(ALL_RESOURCES)
+  exports.routes = function(picker_opts)
+    require("rails-tools.core.routes").show({ provider = "telescope", picker_opts = picker_opts })
+  end
   exports.grape = function()
     vim.notify("Rails: Grape routes picker is not available yet", vim.log.levels.INFO)
   end
@@ -32,7 +35,7 @@ local function build_exports()
 end
 
 ---Pickers exposed as `:Telescope rails <name>` and `require("telescope").extensions.rails.<name>`:
----one per `finder.resources` type, `rails` for every resource, and a `grape` placeholder
+---one per `finder.resources` type, `rails` for every resource, `routes`, and a `grape` placeholder
 ---@type table<string, fun(picker_opts: table|nil)>
 M.exports = build_exports()
 

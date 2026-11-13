@@ -101,8 +101,8 @@ opens the central menu (see [Status](#status) for what is still to come).
 - [x] `:Rails alternate` — Toggle between implementation and spec file
 - [ ] `:Rails find {type}` — Find resources (`models`, `controllers`,
       `views`, `specs`, …)
-- [ ] `:Rails routes` — Browse and navigate routes
-- [ ] `:Rails routes!` — Force refresh routes cache
+- [x] `:Rails routes` — Browse and navigate routes
+- [x] `:Rails routes!` — Force refresh routes cache
 - [ ] `:Rails console` — Open Rails console
 - [ ] `:Rails runner {code}` — Run a Ruby snippet via `rails runner`
 - [ ] `:Rails runner` — Open prompt to enter code
@@ -122,7 +122,7 @@ Default prefix: `<leader>r` (change with `keymaps.prefix`, turn off with
 - [x] `<leader>rr` — `:Rails` (open menu)
 - [x] `<leader>ra` — `:Rails alternate`
 - [x] `<leader>rf` — find any resource (same as the menu's Find Resource)
-- [ ] `<leader>ro` — `:Rails routes`
+- [x] `<leader>ro` — `:Rails routes`
 - [x] `<leader>rc` — `:Rails console`
 - [x] `<leader>rx` — `:Rails runner` (prompt)
 - [ ] `<leader>rs` — `:Rails spec nearest` _(requires `modules.rspec = true`)_
@@ -131,11 +131,11 @@ Default prefix: `<leader>r` (change with `keymaps.prefix`, turn off with
 
 ### Telescope Integration
 
-Not implemented yet — no `telescope/init.lua` extension exists.
+Loaded automatically when telescope.nvim is already loaded when `setup()` runs.
 
 - [ ] `:Telescope rails models`
 - [ ] `:Telescope rails controllers`
-- [ ] `:Telescope rails routes`
+- [x] `:Telescope rails routes`
 - [ ] `:Telescope rails specs`
 - [ ] Falls back to `vim.ui.select` when Telescope is not available
 

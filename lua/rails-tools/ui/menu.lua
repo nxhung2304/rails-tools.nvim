@@ -21,6 +21,12 @@ local MENU_ITEMS = {
     end,
   },
   {
+    label = "View Routes",
+    action = function()
+      require("rails-tools.core.routes").show()
+    end,
+  },
+  {
     label = "Open Console",
     action = function()
       require("rails-tools.core.console").open()
