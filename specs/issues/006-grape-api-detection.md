@@ -26,19 +26,19 @@ Steps:
 ---
 
 ## Acceptance Criteria
-- [ ] `detector.detect()` returns true if Grape detected
-- [ ] Checks app/api/ directory
-- [ ] Checks Gemfile for grape gem
-- [ ] Returns false if not detected
+- [x] `detector.detect()` returns true if Grape detected
+- [x] Checks app/api/ directory
+- [x] Checks Gemfile for grape gem
+- [x] Returns false if not detected
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/detectors/grape.lua`
-- [ ] Implement M.detect() function
-- [ ] Create `tests/detectors/grape_spec.lua`
-- [ ] Test Grape detection
-- [ ] Test non-Grape project
+- [x] Create `lua/rails-tools/detectors/grape.lua`
+- [x] Implement M.detect() function
+- [x] Create `tests/detectors/grape_spec.lua`
+- [x] Test Grape detection
+- [x] Test non-Grape project
 
 ---
 

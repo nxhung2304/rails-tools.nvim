@@ -33,7 +33,7 @@ Layer 5: Polish & Integrations (Phase 3)
 |-------|-------|-----------|----------|
 | Layer 0 - Foundation | 1 task | 1 | 100% |
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
-| Layer 2 - Detection | 4 tasks | 3 | 75% |
+| Layer 2 - Detection | 4 tasks | 4 | 100% |
 | Layer 3 - Core Features | 8 tasks | 8 | 100% |
 | Layer 4 - Enhanced | 6 tasks | 0 | 0% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
@@ -47,6 +47,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L2-001** - Rails Detection (003-rails-detection.md)
 - **L2-002** - Test Framework Detection (004-rspec-minitest-detection.md)
 - **L2-005** - Health Check (005-health-check.md)
+- **L2-016** - Grape API Detection (006-grape-api-detection.md)
 - **L3-003** - Alternate File Navigation (007-alternate-file.md)
 - **L3-006** - Resource Finder (008-resource-finder.md)
 - **L3-007** - Telescope Integration (009-telescope-pickers.md)
@@ -58,7 +59,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Phase 2** - Grape API Detection (L2-016), then Layer 4
+1. **Phase 2** - Layer 4, starting with RSpec Runner (L4-014)
 
 ---
 
@@ -155,12 +156,12 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Format output with vim.health API
 
 ### L2-016. Grape API Detection (006-grape-api-detection.md) [Phase 2]
-- [ ] Create `lua/rails-tools/detectors/grape.lua`
-- [ ] Implement `detect()` function
-- [ ] Check app/api/ directory existence
-- [ ] Check Gemfile for grape gem
-- [ ] Both conditions must be true
-- [ ] Create `tests/detectors/grape_spec.lua`
+- [x] Create `lua/rails-tools/detectors/grape.lua`
+- [x] Implement `detect()` function
+- [x] Check app/api/ directory existence
+- [x] Check Gemfile for grape gem
+- [x] Both conditions must be true
+- [x] Create `tests/detectors/grape_spec.lua`
 
 ---
 
