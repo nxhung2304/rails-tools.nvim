@@ -193,6 +193,39 @@ describe("rails-tools.core.console", function()
       end)
     end)
 
+    describe("in a monorepo opened at its top-level directory", function()
+      local app_root
+
+      before_each(function()
+        app_root = tmp_dir .. "/apps/web"
+        vim.fn.mkdir(app_root .. "/bin", "p")
+        vim.fn.mkdir(app_root .. "/app/models", "p")
+        vim.fn.writefile({}, app_root .. "/Gemfile")
+        vim.fn.writefile({}, app_root .. "/bin/rails")
+        vim.cmd("cd " .. vim.fn.fnameescape(tmp_dir))
+        vim.cmd("edit " .. vim.fn.fnameescape(app_root .. "/app/models/user.rb"))
+      end)
+
+      it("opens the console in the Rails app of the current file", function()
+        console.open()
+
+        assert.are.same({ app_root }, fake_terminal.opened_cwd)
+        assert.equals(0, #notifications)
+      end)
+
+      it("hides the running console when toggling from a non-file buffer", function()
+        console.open()
+        vim.cmd("enew")
+        vim.bo.buftype = "nofile"
+
+        console.toggle()
+
+        assert.equals(1, fake_terminal.toggled)
+        assert.equals(1, #fake_terminal.opened)
+        assert.equals(0, #notifications)
+      end)
+    end)
+
     describe("outside a Rails project", function()
       before_each(function()
         vim.cmd("cd " .. vim.fn.fnameescape(tmp_dir))

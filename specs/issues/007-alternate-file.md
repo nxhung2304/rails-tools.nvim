@@ -40,7 +40,7 @@ Steps:
 - [ ] Supports Mailer ↔ Spec mapping
 - [ ] Supports Serializer ↔ Spec mapping
 - [ ] Custom mappings have priority over default
-- [ ] Handles nested namespaces (e.g., app/models/admin/user.rb)
+- [x] Handles nested namespaces (e.g., app/models/admin/user.rb)
 - [ ] Asks to create file if alternate doesn't exist
 - [ ] Shows clear message when no alternate found
 
@@ -55,7 +55,7 @@ Steps:
 - [ ] Create `tests/core/alternate_spec.lua`
 - [ ] Write tests for all default mappings
 - [ ] Write tests for custom mappings
-- [ ] Write tests for nested namespaces
+- [x] Write tests for nested namespaces
 - [ ] Write tests for edge cases
 
 ---
