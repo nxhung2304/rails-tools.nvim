@@ -8,7 +8,7 @@ Ghi chú: review-branch và code-review chạy trong worktree, nhưng `specs/` �
 - **File:** lua/rails-tools/core/routes.lua:39-49, :171-182 (bản gốc: lua/rails-tools/core/finder.lua:13-24, :122-133)
 - **Vấn đề:** Sửa cách tìm thư mục Rails hoặc cách chọn Telescope ở một chỗ thì chỗ kia không đổi theo. `project_root()` vốn đã được chép sẵn trong finder và runner trước nhánh này.
 - **Cách sửa:** Chuyển hai hàm sang `utils.lua` và cho finder, runner, routes cùng dùng. Việc này đụng code cũ (finder, runner) nên cần anh duyệt trước. Nếu không gộp, giữ bản chép như cách finder/runner đang làm.
-- **Trạng thái:** Chưa sửa, chờ anh quyết.
+- **Trạng thái:** Không sửa trong PR này (anh đồng ý 2026-11-13): gộp vào `utils.lua` ở một PR refactor riêng.
 
 ### 2. MUST — `M.method_line()` chỉ có test gọi, code thật dùng hàm khác
 - **Nguồn:** `review-branch`, `code-review` (cleanup, tin cậy 85), `spec-review` (b)
@@ -128,9 +128,11 @@ Ghi chú: review-branch và code-review chạy trong worktree, nhưng `specs/` �
 - **File:** lua/rails-tools/core/routes.lua (364 dòng sau khi sửa)
 - **Vấn đề:** Khó giữ mỗi phần tập trung khi file lớn thêm.
 - **Cách sửa:** Đề xuất tách `parse` + `controller_location` sang `core/routes_parser.lua`. Chưa tách vì tách file mới cần anh duyệt; cỡ hiện tại vẫn dưới ngưỡng 400 dòng.
-- **Trạng thái:** Chưa sửa, chờ anh quyết.
+- **Trạng thái:** Không tách (anh đồng ý 2026-11-13); xem lại khi file vượt 400 dòng.
 
 ## Spec cần xem lại
+
+Cả 5 mục dưới đây: anh đồng ý giữ như plan (2026-11-13), đã ghi vào mục Lưu ý của PR #43.
 
 ### Mục "View Routes" luôn hiện, không có `modules.routes`
 - **Nguồn:** `spec-review` (a)
