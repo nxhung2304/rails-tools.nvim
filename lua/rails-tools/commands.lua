@@ -15,6 +15,19 @@ local subcommands = {
   console = function()
     require("rails-tools.core.console").open()
   end,
+  generate = function(opts)
+    if not require("rails-tools.config").get().modules.generators then
+      vim.notify("Rails: generators are disabled, set modules.generators = true", vim.log.levels.WARN)
+      return
+    end
+
+    local generators = require("rails-tools.core.generators")
+    if opts.args ~= "" then
+      generators.run(opts.args)
+    else
+      generators.run_prompt()
+    end
+  end,
   find = function(opts)
     require("rails-tools.core.finder").find(opts.args)
   end,

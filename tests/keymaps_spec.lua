@@ -6,12 +6,14 @@ local STUBBED_MODULES = {
   "rails-tools.core.console",
   "rails-tools.core.runner",
   "rails-tools.integrations.rspec",
+  "rails-tools.core.generators",
 }
 
 local TEST_LEADER = ","
 local DEFAULT_KEYS = { ",rr", ",ra", ",rf", ",ro", ",rc", ",rx" }
 local CUSTOM_PREFIX_KEYS = { ",xr", ",xa", ",xf", ",xo", ",xc", ",xx" }
 local RSPEC_KEYS = { ",rs", ",rS" }
+local GENERATOR_KEY = ",rg"
 
 describe("rails-tools.keymaps", function()
   local keymaps
@@ -44,9 +46,13 @@ describe("rails-tools.keymaps", function()
         run_file = function() table.insert(calls, { "rspec.run_file" }) end,
       }
     end
+    package.preload["rails-tools.core.generators"] = function()
+      return { run_prompt = function() table.insert(calls, { "generators.run_prompt" }) end }
+    end
   end
 
   local function delete_test_keymaps()
+    pcall(vim.keymap.del, "n", GENERATOR_KEY)
     for _, lhs in ipairs(vim.list_extend(vim.list_extend(vim.deepcopy(DEFAULT_KEYS), CUSTOM_PREFIX_KEYS), RSPEC_KEYS)) do
       pcall(vim.keymap.del, "n", lhs)
     end
@@ -193,6 +199,23 @@ describe("rails-tools.keymaps", function()
     run_mapping(",rS")
 
     assert.are.same({ { "rspec.run_file" } }, calls)
+  end)
+
+  it("does not register the generator keymap while modules.generators is false", function()
+    config.setup()
+
+    keymaps.setup()
+
+    assert.are.same({}, normal_mapping(GENERATOR_KEY))
+  end)
+
+  it("prompts for a generator with <leader>rg when modules.generators is true", function()
+    config.setup({ modules = { generators = true } })
+    keymaps.setup()
+
+    run_mapping(GENERATOR_KEY)
+
+    assert.are.same({ { "generators.run_prompt" } }, calls)
   end)
 
   it("uses the prefix from config", function()

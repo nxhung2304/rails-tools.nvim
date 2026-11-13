@@ -20,13 +20,14 @@ See [specs/story.md](specs/story.md) for the full tracker and
 - [x] Resource finder, Telescope pickers, central menu (`:Rails`), default keymaps
 - [x] Routes navigator, Rails console, Rails runner
 - [x] RSpec runner — nearest spec, spec file, re-run last (opt-in: `modules.rspec = true`)
+- [x] Rails generators — `:Rails generate {args}` (opt-in: `modules.generators = true`)
 - [x] Schema-aware editing for ActiveRecord columns, from `db/schema.rb` +
       `annotate` blocks: hover (`K`), go-to-definition (`gd`), `nvim-cmp`
       completion (see
       [021-schema-inspector.md](specs/issues/021-schema-inspector.md))
 
 **Not implemented yet:**
-- [ ] Generators, Grape support, test marker, context-aware `gf`,
+- [ ] Grape support, test marker, context-aware `gf`,
       controller ↔ view navigation (Phase 2, opt-in modules)
 - [ ] Rails engines inside a host app, projects that only have `db/structure.sql`
 - [ ] Schema table display — `:Rails schema {table}` (Phase 3 — see
@@ -109,7 +110,7 @@ opens the central menu (see [Status](#status) for what is still to come).
 - [x] `:Rails console` — Open Rails console
 - [x] `:Rails runner {code}` — Run a Ruby snippet via `rails runner`
 - [x] `:Rails runner` — Open prompt to enter code
-- [ ] `:Rails generate {args}` — Run a Rails generator
+- [x] `:Rails generate {args}` — Run a Rails generator
 - [x] `:Rails spec nearest` — Run the spec nearest to cursor
 - [x] `:Rails spec file` — Run the current spec file
 - [x] `:Rails spec last` — Re-run the last spec
@@ -130,7 +131,7 @@ Default prefix: `<leader>r` (change with `keymaps.prefix`, turn off with
 - [x] `<leader>rx` — `:Rails runner` (prompt)
 - [x] `<leader>rs` — `:Rails spec nearest` _(requires `modules.rspec = true`)_
 - [x] `<leader>rS` — `:Rails spec file` _(requires `modules.rspec = true`)_
-- [ ] `<leader>rg` — `:Rails generate` _(requires `modules.generators = true`)_
+- [x] `<leader>rg` — `:Rails generate` _(requires `modules.generators = true`)_
 
 ### Telescope Integration
 

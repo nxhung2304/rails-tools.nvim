@@ -55,6 +55,13 @@ local MENU_ITEMS = {
       require("rails-tools.integrations.rspec").run_file()
     end,
   },
+  {
+    label = "Run Generator",
+    module = "generators",
+    action = function()
+      require("rails-tools.core.generators").run_prompt()
+    end,
+  },
 }
 
 ---@return RailsToolsMenuItem[]

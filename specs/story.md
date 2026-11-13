@@ -35,7 +35,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
 | Layer 2 - Detection | 4 tasks | 4 | 100% |
 | Layer 3 - Core Features | 8 tasks | 8 | 100% |
-| Layer 4 - Enhanced | 6 tasks | 1 | 17% |
+| Layer 4 - Enhanced | 6 tasks | 2 | 33% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
 
@@ -57,10 +57,11 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L3-011** - Rails Console (013-console.md)
 - **L3-012** - Rails Runner (014-runner.md)
 - **L4-014** - RSpec Runner (015-rspec-runner.md)
+- **L4-015** - Rails Generators (016-generators.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Phase 2** - Layer 4, next: Rails Generators (L4-015)
+1. **Phase 2** - Layer 4, next: Grape API Support (L4-017)
 
 ---
 
@@ -283,15 +284,15 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Create tests for RSpec runner
 
 ### L4-015. Rails Generators (016-generators.md)
-- [ ] Create `lua/rails-tools/core/generators.lua`
-- [ ] Implement `run(args)` function
-- [ ] Support model, controller, migration generation
-- [ ] Display generator output
-- [ ] Register `:Rails generate {args}` command
-- [ ] Register keymap: `<leader>rg`
-- [ ] Add "Run Generator" item to `ui/menu.lua`, shown only when `modules.generators = true` (moved from L3-008)
-- [ ] Only active when `modules.generators = true`
-- [ ] Create `tests/core/generators_spec.lua`
+- [x] Create `lua/rails-tools/core/generators.lua`
+- [x] Implement `run(args)` function
+- [x] Support model, controller, migration generation
+- [x] Display generator output
+- [x] Register `:Rails generate {args}` command
+- [x] Register keymap: `<leader>rg`
+- [x] Add "Run Generator" item to `ui/menu.lua`, shown only when `modules.generators = true` (moved from L3-008)
+- [x] Only active when `modules.generators = true`
+- [x] Create `tests/core/generators_spec.lua`
 
 ### L4-017. Grape API Support (017-grape-support.md)
 - [ ] Create `lua/rails-tools/integrations/grape.lua`
