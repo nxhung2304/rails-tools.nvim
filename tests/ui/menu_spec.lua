@@ -4,6 +4,7 @@ local STUBBED_MODULES = {
   "rails-tools.core.routes",
   "rails-tools.core.console",
   "rails-tools.core.runner",
+  "rails-tools.integrations.rspec",
 }
 
 local ACTION_WAIT_MS = 100
@@ -32,6 +33,12 @@ describe("rails-tools.ui.menu", function()
     package.preload["rails-tools.core.runner"] = function()
       return { run_prompt = function() table.insert(calls, { "runner.run_prompt" }) end }
     end
+    package.preload["rails-tools.integrations.rspec"] = function()
+      return {
+        run_nearest = function() table.insert(calls, { "rspec.run_nearest" }) end,
+        run_file = function() table.insert(calls, { "rspec.run_file" }) end,
+      }
+    end
   end
 
   local function open_menu_and_wait()
@@ -56,6 +63,7 @@ describe("rails-tools.ui.menu", function()
       package.loaded[name] = nil
     end
     package.loaded["rails-tools.ui.menu"] = nil
+    package.loaded["rails-tools.config"] = nil
     stub_modules()
 
     orig_select = vim.ui.select
@@ -81,6 +89,7 @@ describe("rails-tools.ui.menu", function()
       package.loaded[name] = nil
     end
     package.loaded["rails-tools.ui.menu"] = nil
+    package.loaded["rails-tools.config"] = nil
   end)
 
   it("opens a menu titled Rails Tools", function()
@@ -133,6 +142,42 @@ describe("rails-tools.ui.menu", function()
     open_menu_and_wait()
 
     assert.are.same({ { "runner.run_prompt" } }, calls)
+  end)
+
+  describe("with modules.rspec = true", function()
+    before_each(function()
+      require("rails-tools.config").setup({ modules = { rspec = true } })
+    end)
+
+    it("adds the spec actions after the Phase 1 actions", function()
+      menu.open()
+
+      assert.are.same({
+        "Alternate File",
+        "Find Resource",
+        "View Routes",
+        "Open Console",
+        "Run Code",
+        "Run Nearest Spec",
+        "Run Spec File",
+      }, labels())
+    end)
+
+    it("runs the nearest spec when Run Nearest Spec is chosen", function()
+      pick_label = "Run Nearest Spec"
+
+      open_menu_and_wait()
+
+      assert.are.same({ { "rspec.run_nearest" } }, calls)
+    end)
+
+    it("runs the spec file when Run Spec File is chosen", function()
+      pick_label = "Run Spec File"
+
+      open_menu_and_wait()
+
+      assert.are.same({ { "rspec.run_file" } }, calls)
+    end)
   end)
 
   it("does nothing when the menu is cancelled", function()

@@ -5,11 +5,13 @@ local STUBBED_MODULES = {
   "rails-tools.core.routes",
   "rails-tools.core.console",
   "rails-tools.core.runner",
+  "rails-tools.integrations.rspec",
 }
 
 local TEST_LEADER = ","
 local DEFAULT_KEYS = { ",rr", ",ra", ",rf", ",ro", ",rc", ",rx" }
 local CUSTOM_PREFIX_KEYS = { ",xr", ",xa", ",xf", ",xo", ",xc", ",xx" }
+local RSPEC_KEYS = { ",rs", ",rS" }
 
 describe("rails-tools.keymaps", function()
   local keymaps
@@ -36,10 +38,16 @@ describe("rails-tools.keymaps", function()
     package.preload["rails-tools.core.runner"] = function()
       return { run_prompt = function() table.insert(calls, { "runner.run_prompt" }) end }
     end
+    package.preload["rails-tools.integrations.rspec"] = function()
+      return {
+        run_nearest = function() table.insert(calls, { "rspec.run_nearest" }) end,
+        run_file = function() table.insert(calls, { "rspec.run_file" }) end,
+      }
+    end
   end
 
   local function delete_test_keymaps()
-    for _, lhs in ipairs(vim.list_extend(vim.deepcopy(DEFAULT_KEYS), CUSTOM_PREFIX_KEYS)) do
+    for _, lhs in ipairs(vim.list_extend(vim.list_extend(vim.deepcopy(DEFAULT_KEYS), CUSTOM_PREFIX_KEYS), RSPEC_KEYS)) do
       pcall(vim.keymap.del, "n", lhs)
     end
   end
@@ -157,6 +165,34 @@ describe("rails-tools.keymaps", function()
     run_mapping(",rx")
 
     assert.are.same({ { "runner.run_prompt" } }, calls)
+  end)
+
+  it("does not register the spec keymaps while modules.rspec is false", function()
+    config.setup()
+
+    keymaps.setup()
+
+    for _, lhs in ipairs(RSPEC_KEYS) do
+      assert.are.same({}, normal_mapping(lhs), lhs .. " should not be mapped")
+    end
+  end)
+
+  it("runs the nearest spec with <leader>rs when modules.rspec is true", function()
+    config.setup({ modules = { rspec = true } })
+    keymaps.setup()
+
+    run_mapping(",rs")
+
+    assert.are.same({ { "rspec.run_nearest" } }, calls)
+  end)
+
+  it("runs the spec file with <leader>rS when modules.rspec is true", function()
+    config.setup({ modules = { rspec = true } })
+    keymaps.setup()
+
+    run_mapping(",rS")
+
+    assert.are.same({ { "rspec.run_file" } }, calls)
   end)
 
   it("uses the prefix from config", function()

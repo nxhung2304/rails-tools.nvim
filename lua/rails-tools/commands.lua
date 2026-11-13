@@ -1,5 +1,13 @@
 local M = {}
 
+local SPEC_USAGE = "Rails: usage: :Rails spec nearest|file|last"
+
+local SPEC_ACTIONS = {
+  nearest = "run_nearest",
+  file = "run_file",
+  last = "run_last",
+}
+
 local subcommands = {
   alternate = function()
     require("rails-tools.core.alternate").open()
@@ -31,6 +39,20 @@ local subcommands = {
     else
       runner.run_prompt()
     end
+  end,
+  spec = function(opts)
+    if not require("rails-tools.config").get().modules.rspec then
+      vim.notify("Rails: RSpec runner is disabled, set modules.rspec = true", vim.log.levels.WARN)
+      return
+    end
+
+    local action = SPEC_ACTIONS[opts.args]
+    if not action then
+      vim.notify(SPEC_USAGE, vim.log.levels.ERROR)
+      return
+    end
+
+    require("rails-tools.integrations.rspec")[action]()
   end,
 }
 

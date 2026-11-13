@@ -11,7 +11,7 @@ See [specs/story.md](specs/story.md) for the full tracker and
 
 **Implemented:**
 - [x] Rails project detection
-- [x] RSpec/Minitest detection
+- [x] RSpec/Minitest detection, Grape API detection
 - [x] Plugin entry point — `init.lua`, `setup()`, `plugin/`, the `:Rails` command
 - [x] Configuration system (`config.lua` is the single source of truth for
       alternate mappings; `core/alternate.lua` reads from it)
@@ -19,14 +19,14 @@ See [specs/story.md](specs/story.md) for the full tracker and
 - [x] Alternate file navigation (app ↔ spec/test, including nested namespaces)
 - [x] Resource finder, Telescope pickers, central menu (`:Rails`), default keymaps
 - [x] Routes navigator, Rails console, Rails runner
+- [x] RSpec runner — nearest spec, spec file, re-run last (opt-in: `modules.rspec = true`)
 - [x] Schema-aware editing for ActiveRecord columns, from `db/schema.rb` +
       `annotate` blocks: hover (`K`), go-to-definition (`gd`), `nvim-cmp`
       completion (see
       [021-schema-inspector.md](specs/issues/021-schema-inspector.md))
 
 **Not implemented yet:**
-- [ ] Grape API detection
-- [ ] RSpec runner, generators, Grape support, test marker, context-aware `gf`,
+- [ ] Generators, Grape support, test marker, context-aware `gf`,
       controller ↔ view navigation (Phase 2, opt-in modules)
 - [ ] Rails engines inside a host app, projects that only have `db/structure.sql`
 - [ ] Schema table display — `:Rails schema {table}` (Phase 3 — see
@@ -110,9 +110,9 @@ opens the central menu (see [Status](#status) for what is still to come).
 - [x] `:Rails runner {code}` — Run a Ruby snippet via `rails runner`
 - [x] `:Rails runner` — Open prompt to enter code
 - [ ] `:Rails generate {args}` — Run a Rails generator
-- [ ] `:Rails spec nearest` — Run the spec nearest to cursor
-- [ ] `:Rails spec file` — Run the current spec file
-- [ ] `:Rails spec last` — Re-run the last spec
+- [x] `:Rails spec nearest` — Run the spec nearest to cursor
+- [x] `:Rails spec file` — Run the current spec file
+- [x] `:Rails spec last` — Re-run the last spec
 - [ ] `:Rails grape routes` — Browse Grape API endpoints
 - [ ] `:Rails doctor` — Diagnose project issues _(experimental backlog)_
 
@@ -128,8 +128,8 @@ Default prefix: `<leader>r` (change with `keymaps.prefix`, turn off with
 - [x] `<leader>ro` — `:Rails routes`
 - [x] `<leader>rc` — `:Rails console`
 - [x] `<leader>rx` — `:Rails runner` (prompt)
-- [ ] `<leader>rs` — `:Rails spec nearest` _(requires `modules.rspec = true`)_
-- [ ] `<leader>rS` — `:Rails spec file` _(requires `modules.rspec = true`)_
+- [x] `<leader>rs` — `:Rails spec nearest` _(requires `modules.rspec = true`)_
+- [x] `<leader>rS` — `:Rails spec file` _(requires `modules.rspec = true`)_
 - [ ] `<leader>rg` — `:Rails generate` _(requires `modules.generators = true`)_
 
 ### Telescope Integration

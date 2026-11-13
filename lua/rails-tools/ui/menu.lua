@@ -1,3 +1,5 @@
+local config = require("rails-tools.config")
+
 local M = {}
 
 local MENU_TITLE = "Rails Tools"
@@ -5,6 +7,7 @@ local MENU_TITLE = "Rails Tools"
 ---@class RailsToolsMenuItem
 ---@field label string
 ---@field action fun()
+---@field module? string config.modules key that must be true to show the item
 
 ---@type RailsToolsMenuItem[]
 local MENU_ITEMS = {
@@ -38,11 +41,33 @@ local MENU_ITEMS = {
       require("rails-tools.core.runner").run_prompt()
     end,
   },
+  {
+    label = "Run Nearest Spec",
+    module = "rspec",
+    action = function()
+      require("rails-tools.integrations.rspec").run_nearest()
+    end,
+  },
+  {
+    label = "Run Spec File",
+    module = "rspec",
+    action = function()
+      require("rails-tools.integrations.rspec").run_file()
+    end,
+  },
 }
+
+---@return RailsToolsMenuItem[]
+local function enabled_items()
+  local enabled_modules = config.get().modules
+  return vim.tbl_filter(function(item)
+    return not item.module or enabled_modules[item.module]
+  end, MENU_ITEMS)
+end
 
 ---Show the Rails Tools menu and run the chosen action
 function M.open()
-  vim.ui.select(MENU_ITEMS, {
+  vim.ui.select(enabled_items(), {
     prompt = MENU_TITLE,
     format_item = function(item)
       return item.label

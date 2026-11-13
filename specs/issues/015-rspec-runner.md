@@ -29,24 +29,24 @@ Steps:
 ---
 
 ## Acceptance Criteria
-- [ ] Runs nearest spec from cursor
-- [ ] Runs entire spec file
-- [ ] Re-runs last executed spec
-- [ ] Displays test results
-- [ ] Handles test failures
-- [ ] Works with RSpec test framework
+- [x] Runs nearest spec from cursor
+- [x] Runs entire spec file
+- [x] Re-runs last executed spec
+- [x] Displays test results
+- [x] Handles test failures
+- [x] Works with RSpec test framework
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/integrations/rspec.lua`
-- [ ] Implement M.run_nearest() function
-- [ ] Implement M.run_file() function
-- [ ] Implement M.run_last() function
-- [ ] Create tests for RSpec runner
-- [ ] Test nearest spec execution
-- [ ] Test file execution
-- [ ] Test last spec re-run
+- [x] Create `lua/rails-tools/integrations/rspec.lua`
+- [x] Implement M.run_nearest() function
+- [x] Implement M.run_file() function
+- [x] Implement M.run_last() function
+- [x] Create tests for RSpec runner
+- [x] Test nearest spec execution
+- [x] Test file execution
+- [x] Test last spec re-run
 
 ---
 

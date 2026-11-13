@@ -176,6 +176,78 @@ describe("rails-tools.commands", function()
     end)
   end)
 
+  describe(":Rails spec", function()
+    local calls
+    local notifications
+    local orig_notify
+
+    before_each(function()
+      calls = {}
+      notifications = {}
+      orig_notify = vim.notify
+      vim.notify = function(msg, level)
+        table.insert(notifications, { msg = msg, level = level })
+      end
+      package.loaded["rails-tools.config"] = nil
+      package.loaded["rails-tools.integrations.rspec"] = nil
+      package.preload["rails-tools.integrations.rspec"] = function()
+        return {
+          run_nearest = function() table.insert(calls, "run_nearest") end,
+          run_file = function() table.insert(calls, "run_file") end,
+          run_last = function() table.insert(calls, "run_last") end,
+        }
+      end
+      require("rails-tools.config").setup({ modules = { rspec = true } })
+      require("rails-tools.commands").setup()
+    end)
+
+    after_each(function()
+      vim.notify = orig_notify
+      package.preload["rails-tools.integrations.rspec"] = nil
+      package.loaded["rails-tools.integrations.rspec"] = nil
+      package.loaded["rails-tools.config"] = nil
+    end)
+
+    it("runs the nearest spec", function()
+      vim.cmd("Rails spec nearest")
+
+      assert.are.same({ "run_nearest" }, calls)
+    end)
+
+    it("runs the spec file", function()
+      vim.cmd("Rails spec file")
+
+      assert.are.same({ "run_file" }, calls)
+    end)
+
+    it("re-runs the last spec", function()
+      vim.cmd("Rails spec last")
+
+      assert.are.same({ "run_last" }, calls)
+    end)
+
+    it("shows the usage for a missing or unknown action", function()
+      vim.cmd("Rails spec")
+      vim.cmd("Rails spec bogus")
+
+      assert.are.same({}, calls)
+      assert.equals(2, #notifications)
+      assert.equals("Rails: usage: :Rails spec nearest|file|last", notifications[1].msg)
+      assert.equals(vim.log.levels.ERROR, notifications[1].level)
+      assert.equals("Rails: usage: :Rails spec nearest|file|last", notifications[2].msg)
+    end)
+
+    it("runs nothing and says how to enable it when modules.rspec is false", function()
+      require("rails-tools.config").setup({})
+
+      vim.cmd("Rails spec nearest")
+
+      assert.are.same({}, calls)
+      assert.equals("Rails: RSpec runner is disabled, set modules.rspec = true", notifications[1].msg)
+      assert.equals(vim.log.levels.WARN, notifications[1].level)
+    end)
+  end)
+
   it("does not error with no subcommand", function()
     local orig_select = vim.ui.select
     vim.ui.select = function(_, _, on_choice) on_choice(nil) end
