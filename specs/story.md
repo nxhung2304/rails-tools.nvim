@@ -35,7 +35,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
 | Layer 2 - Detection | 4 tasks | 4 | 100% |
 | Layer 3 - Core Features | 8 tasks | 8 | 100% |
-| Layer 4 - Enhanced | 6 tasks | 0 | 0% |
+| Layer 4 - Enhanced | 6 tasks | 1 | 17% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
 
@@ -56,10 +56,11 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L3-010** - Routes Navigator (012-routes-navigator.md)
 - **L3-011** - Rails Console (013-console.md)
 - **L3-012** - Rails Runner (014-runner.md)
+- **L4-014** - RSpec Runner (015-rspec-runner.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Phase 2** - Layer 4, starting with RSpec Runner (L4-014)
+1. **Phase 2** - Layer 4, next: Rails Generators (L4-015)
 
 ---
 
@@ -209,7 +210,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Create `lua/rails-tools/ui/menu.lua`
 - [x] Implement `M.open()` function
 - [x] Define menu items table
-- [ ] Filter items based on enabled modules — moved to L4-014 (first gated item)
+- [x] Filter items based on enabled modules — done in L4-014 (first gated item)
 - [x] Always show: Alternate File, Find Resource (plus Open Console, Run Code: Phase 1, always on)
 - [ ] Conditional items based on module config — added by L3-010, L4-014, L4-015, L4-017
 - [x] Register `:Rails` command in commands.lua
@@ -270,16 +271,16 @@ Layer 5: Polish & Integrations (Phase 3)
 **Depends on**: Layer 3 (Core Features)
 
 ### L4-014. RSpec Runner (015-rspec-runner.md)
-- [ ] Create `lua/rails-tools/integrations/rspec.lua`
-- [ ] Implement `run_nearest()`, `run_file()`, `run_last()` functions
-- [ ] Display test results
-- [ ] Handle test failures
-- [ ] Cache last executed spec
-- [ ] Register commands: `:Rails spec nearest`, `:Rails spec file`, `:Rails spec last`
-- [ ] Register keymaps: `<leader>rs`, `<leader>rS`
-- [ ] Add "Run Nearest Spec" / "Run Spec File" items to `ui/menu.lua`, shown only when `modules.rspec = true`; add the menu's filtering by `config.modules` (moved from L3-008)
-- [ ] Only active when `modules.rspec = true`
-- [ ] Create tests for RSpec runner
+- [x] Create `lua/rails-tools/integrations/rspec.lua`
+- [x] Implement `run_nearest()`, `run_file()`, `run_last()` functions
+- [x] Display test results
+- [x] Handle test failures
+- [x] Cache last executed spec
+- [x] Register commands: `:Rails spec nearest`, `:Rails spec file`, `:Rails spec last`
+- [x] Register keymaps: `<leader>rs`, `<leader>rS`
+- [x] Add "Run Nearest Spec" / "Run Spec File" items to `ui/menu.lua`, shown only when `modules.rspec = true`; add the menu's filtering by `config.modules` (moved from L3-008)
+- [x] Only active when `modules.rspec = true`
+- [x] Create tests for RSpec runner
 
 ### L4-015. Rails Generators (016-generators.md)
 - [ ] Create `lua/rails-tools/core/generators.lua`
