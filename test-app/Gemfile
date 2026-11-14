@@ -36,3 +36,6 @@ gem 'rubocop-rails', require: false
 # Optional: Admin namespace support
 gem 'pundit', '~> 2.3'
 gem 'active_model_serializers', '~> 0.10'
+
+# Grape API
+gem 'grape', '~> 2.0'

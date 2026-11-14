@@ -21,6 +21,8 @@ Rails.application.routes.draw do
   # Health check
   get '/health', to: proc { [200, {}, ['OK']] }
 
+  mount BaseApi => '/'
+
   # API routes (for Grape testing later)
   # API versioning will be handled in Grape API mount
 end
