@@ -110,7 +110,7 @@ opens the central menu (see [Status](#status) for what is still to come).
 - [x] `:Rails console` — Open Rails console
 - [x] `:Rails runner {code}` — Run a Ruby snippet via `rails runner`
 - [x] `:Rails runner` — Open prompt to enter code
-- [x] `:Rails generate {args}` — Run a Rails generator
+- [x] `:Rails generate {args}` (or `:Rails g {args}`) — Run a Rails generator
 - [x] `:Rails spec nearest` — Run the spec nearest to cursor
 - [x] `:Rails spec file` — Run the current spec file
 - [x] `:Rails spec last` — Re-run the last spec

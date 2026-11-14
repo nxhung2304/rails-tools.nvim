@@ -69,6 +69,8 @@ local subcommands = {
   end,
 }
 
+subcommands.g = subcommands.generate
+
 local registered = false
 
 ---Register the `:Rails {subcommand}` user command with a dispatch table.

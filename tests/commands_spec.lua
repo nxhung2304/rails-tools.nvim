@@ -291,6 +291,13 @@ describe("rails-tools.commands", function()
       assert.are.same({ { "run_prompt" } }, calls)
     end)
 
+    it("accepts g as a short name for generate", function()
+      vim.cmd("Rails g model User name:string")
+      vim.cmd("Rails g")
+
+      assert.are.same({ { "run", "model User name:string" }, { "run_prompt" } }, calls)
+    end)
+
     it("runs nothing and says how to enable it when modules.generators is false", function()
       require("rails-tools.config").setup({})
 
