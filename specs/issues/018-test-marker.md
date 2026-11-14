@@ -1,5 +1,5 @@
 ## **Status:**
-- Review: Todo
+- Review: Approved
 - PR: Todo
 
 ## Metadata
@@ -26,22 +26,22 @@ Steps:
 ---
 
 ## Acceptance Criteria
-- [ ] Detects if test is focused
-- [ ] Adds focus marker (fit, fcontext)
-- [ ] Removes focus marker
-- [ ] Toggles focus status
+- [x] Detects if test is focused
+- [x] Adds focus marker (fit, fcontext)
+- [x] Removes focus marker
+- [x] Toggles focus status
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/integrations/test_marker.lua`
-- [ ] Implement M.is_focused() function
-- [ ] Implement M.focus() function
-- [ ] Implement M.unfocus() function
-- [ ] Implement M.toggle() function
-- [ ] Create tests for test marker
-- [ ] Test focus detection
-- [ ] Test focus/unfocus toggle
+- [x] Create `lua/rails-tools/integrations/test_marker.lua`
+- [x] Implement M.is_focused() function
+- [x] Implement M.focus() function
+- [x] Implement M.unfocus() function
+- [x] Implement M.toggle() function
+- [x] Create tests for test marker
+- [x] Test focus detection
+- [x] Test focus/unfocus toggle
 
 ---
 

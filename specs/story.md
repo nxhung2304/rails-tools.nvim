@@ -35,7 +35,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
 | Layer 2 - Detection | 4 tasks | 4 | 100% |
 | Layer 3 - Core Features | 8 tasks | 8 | 100% |
-| Layer 4 - Enhanced | 6 tasks | 3 | 50% |
+| Layer 4 - Enhanced | 6 tasks | 4 | 67% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
 
@@ -59,10 +59,11 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L4-014** - RSpec Runner (015-rspec-runner.md)
 - **L4-015** - Rails Generators (016-generators.md)
 - **L4-017** - Grape API Support (017-grape-support.md)
+- **L4-018** - Test Marker (018-test-marker.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Phase 2** - Layer 4, next: Test Marker (L4-018)
+1. **Phase 2** - Layer 4, next: Context-Aware gf (L4-019)
 
 ---
 
@@ -307,11 +308,11 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Create `tests/integrations/grape_spec.lua`
 
 ### L4-018. Test Marker (018-test-marker.md)
-- [ ] Create `lua/rails-tools/integrations/test_marker.lua`
-- [ ] Implement `is_focused()`, `focus()`, `unfocus()`, `toggle()` functions
-- [ ] Support RSpec syntax (fit, fdescribe, fcontext)
-- [ ] Only active when `modules.test_marker = true`
-- [ ] Create tests for test marker
+- [x] Create `lua/rails-tools/integrations/test_marker.lua`
+- [x] Implement `is_focused()`, `focus()`, `unfocus()`, `toggle()` functions
+- [x] Support RSpec syntax (fit, fdescribe, fcontext)
+- [x] Only active when `modules.test_marker = true`
+- [x] Create tests for test marker
 
 ### L4-019. Context-Aware gf (019-context-aware-gf.md)
 - [ ] Create `lua/rails-tools/core/gf.lua`
