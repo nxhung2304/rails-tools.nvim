@@ -76,6 +76,7 @@ describe("rails-tools.config", function()
       "routes",
       "console",
       "runner",
+      "generators",
       "keymaps",
       "alternate",
       "view",

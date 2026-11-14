@@ -28,21 +28,21 @@ Steps:
 ---
 
 ## Acceptance Criteria
-- [ ] `generators.run(args)` executes `rails generate {args}`
-- [ ] Supports model generation
-- [ ] Supports controller generation
-- [ ] Supports migration generation
-- [ ] Displays generator output
-- [ ] Shows errors on failure
+- [x] `generators.run(args)` executes `rails generate {args}`
+- [x] Supports model generation
+- [x] Supports controller generation
+- [x] Supports migration generation
+- [x] Displays generator output
+- [x] Shows errors on failure
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/core/generators.lua`
-- [ ] Implement M.run(args) function
-- [ ] Create `tests/core/generators_spec.lua`
-- [ ] Test various generator types
-- [ ] Test error handling
+- [x] Create `lua/rails-tools/core/generators.lua`
+- [x] Implement M.run(args) function
+- [x] Create `tests/core/generators_spec.lua`
+- [x] Test various generator types
+- [x] Test error handling
 
 ---
 

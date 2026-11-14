@@ -108,6 +108,9 @@ M.defaults = {
   runner = {
     command = "rails runner",
   },
+  generators = {
+    command = "rails generate",
+  },
   keymaps = {
     enabled = true,
     prefix = "<leader>r",

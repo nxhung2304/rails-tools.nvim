@@ -54,6 +54,12 @@ local DEFAULT_BINDINGS = {
     action = "<Cmd>Rails spec file<CR>",
     module = "rspec",
   },
+  {
+    suffix = "g",
+    desc = "Rails: run generator",
+    action = "<Cmd>Rails generate<CR>",
+    module = "generators",
+  },
 }
 
 ---Register the default normal-mode keymaps under `config.keymaps.prefix`.

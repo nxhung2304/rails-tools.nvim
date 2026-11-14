@@ -5,6 +5,7 @@ local STUBBED_MODULES = {
   "rails-tools.core.console",
   "rails-tools.core.runner",
   "rails-tools.integrations.rspec",
+  "rails-tools.core.generators",
 }
 
 local ACTION_WAIT_MS = 100
@@ -38,6 +39,9 @@ describe("rails-tools.ui.menu", function()
         run_nearest = function() table.insert(calls, { "rspec.run_nearest" }) end,
         run_file = function() table.insert(calls, { "rspec.run_file" }) end,
       }
+    end
+    package.preload["rails-tools.core.generators"] = function()
+      return { run_prompt = function() table.insert(calls, { "generators.run_prompt" }) end }
     end
   end
 
@@ -177,6 +181,29 @@ describe("rails-tools.ui.menu", function()
       open_menu_and_wait()
 
       assert.are.same({ { "rspec.run_file" } }, calls)
+    end)
+  end)
+
+  describe("with modules.generators = true", function()
+    before_each(function()
+      require("rails-tools.config").setup({ modules = { generators = true } })
+    end)
+
+    it("adds Run Generator after the Phase 1 actions", function()
+      menu.open()
+
+      assert.are.same(
+        { "Alternate File", "Find Resource", "View Routes", "Open Console", "Run Code", "Run Generator" },
+        labels()
+      )
+    end)
+
+    it("prompts for a generator when Run Generator is chosen", function()
+      pick_label = "Run Generator"
+
+      open_menu_and_wait()
+
+      assert.are.same({ { "generators.run_prompt" } }, calls)
     end)
   end)
 

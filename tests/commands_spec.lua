@@ -248,6 +248,67 @@ describe("rails-tools.commands", function()
     end)
   end)
 
+  describe(":Rails generate", function()
+    local calls
+    local notifications
+    local orig_notify
+
+    before_each(function()
+      calls = {}
+      notifications = {}
+      orig_notify = vim.notify
+      vim.notify = function(msg, level)
+        table.insert(notifications, { msg = msg, level = level })
+      end
+      package.loaded["rails-tools.config"] = nil
+      package.loaded["rails-tools.core.generators"] = nil
+      package.preload["rails-tools.core.generators"] = function()
+        return {
+          run = function(args) table.insert(calls, { "run", args }) end,
+          run_prompt = function() table.insert(calls, { "run_prompt" }) end,
+        }
+      end
+      require("rails-tools.config").setup({ modules = { generators = true } })
+      require("rails-tools.commands").setup()
+    end)
+
+    after_each(function()
+      vim.notify = orig_notify
+      package.preload["rails-tools.core.generators"] = nil
+      package.loaded["rails-tools.core.generators"] = nil
+      package.loaded["rails-tools.config"] = nil
+    end)
+
+    it("runs the generator arguments after the subcommand", function()
+      vim.cmd("Rails generate model User name:string")
+
+      assert.are.same({ { "run", "model User name:string" } }, calls)
+    end)
+
+    it("prompts when no arguments are given", function()
+      vim.cmd("Rails generate")
+
+      assert.are.same({ { "run_prompt" } }, calls)
+    end)
+
+    it("accepts g as a short name for generate", function()
+      vim.cmd("Rails g model User name:string")
+      vim.cmd("Rails g")
+
+      assert.are.same({ { "run", "model User name:string" }, { "run_prompt" } }, calls)
+    end)
+
+    it("runs nothing and says how to enable it when modules.generators is false", function()
+      require("rails-tools.config").setup({})
+
+      vim.cmd("Rails generate model User")
+
+      assert.are.same({}, calls)
+      assert.equals("Rails: generators are disabled, set modules.generators = true", notifications[1].msg)
+      assert.equals(vim.log.levels.WARN, notifications[1].level)
+    end)
+  end)
+
   it("does not error with no subcommand", function()
     local orig_select = vim.ui.select
     vim.ui.select = function(_, _, on_choice) on_choice(nil) end
