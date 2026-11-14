@@ -1,9 +1,9 @@
+local config = require("rails-tools.config")
 local rails = require("rails-tools.detectors.rails")
 local terminal = require("rails-tools.ui.terminal")
 
 local M = {}
 
-local GENERATE_COMMAND = "rails generate"
 local PROMPT = "Rails generate: "
 
 ---@return string|nil
@@ -19,7 +19,7 @@ local function project_root()
   return rails.root()
 end
 
----Run `rails generate {args}` in the plugin terminal
+---Run `config.generators.command {args}` (default `rails generate`) in the plugin terminal
 ---@param args string|nil generator name and its arguments, e.g. "model User name:string"
 function M.run(args)
   local trimmed_args = args and vim.trim(args) or ""
@@ -38,7 +38,7 @@ function M.run(args)
     return
   end
 
-  terminal.open(GENERATE_COMMAND .. " " .. trimmed_args, { cwd = root })
+  terminal.open(config.get().generators.command .. " " .. trimmed_args, { cwd = root })
 end
 
 ---Ask for generator arguments and run `rails generate` with them

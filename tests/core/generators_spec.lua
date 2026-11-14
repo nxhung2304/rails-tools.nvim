@@ -2,6 +2,7 @@ local generators
 
 local MODULES_TO_RELOAD = {
   "rails-tools.core.generators",
+  "rails-tools.config",
   "rails-tools.detectors.rails",
   "rails-tools.ui.terminal",
 }
@@ -51,6 +52,7 @@ describe("rails-tools.core.generators", function()
       end,
     }
 
+    require("rails-tools.config").setup({})
     generators = require("rails-tools.core.generators")
   end)
 
@@ -85,6 +87,14 @@ describe("rails-tools.core.generators", function()
       generators.run("migration AddAgeToUsers age:integer")
 
       assert.equals("rails generate migration AddAgeToUsers age:integer", opened[1].cmd)
+    end)
+
+    it("uses the generator command from config", function()
+      require("rails-tools.config").setup({ generators = { command = "bin/rails generate" } })
+
+      generators.run("model Post")
+
+      assert.equals("bin/rails generate model Post", opened[1].cmd)
     end)
 
     it("trims surrounding spaces from the arguments", function()

@@ -525,6 +525,11 @@ schema-aware editing. Revisit only after Layers 1–5 ship.
     command = "rails runner",
   },
 
+  -- Generator settings (L4-015)
+  generators = {
+    command = "rails generate",
+  },
+
   -- Keymap settings (L3-009)
   keymaps = {
     enabled = true,
