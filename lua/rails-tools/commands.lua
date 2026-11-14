@@ -1,11 +1,17 @@
 local M = {}
 
 local SPEC_USAGE = "Rails: usage: :Rails spec nearest|file|last"
+local GRAPE_USAGE = "Rails: usage: :Rails grape routes|routes!"
 
 local SPEC_ACTIONS = {
   nearest = "run_nearest",
   file = "run_file",
   last = "run_last",
+}
+
+local GRAPE_ACTIONS = {
+  routes = "show",
+  ["routes!"] = "refresh",
 }
 
 local subcommands = {
@@ -27,6 +33,20 @@ local subcommands = {
     else
       generators.run_prompt()
     end
+  end,
+  grape = function(opts)
+    if not require("rails-tools.config").get().modules.grape then
+      vim.notify("Rails: Grape support is disabled, set modules.grape = true", vim.log.levels.WARN)
+      return
+    end
+
+    local action = GRAPE_ACTIONS[opts.args]
+    if not action then
+      vim.notify(GRAPE_USAGE, vim.log.levels.ERROR)
+      return
+    end
+
+    require("rails-tools.integrations.grape")[action]()
   end,
   find = function(opts)
     require("rails-tools.core.finder").find(opts.args)

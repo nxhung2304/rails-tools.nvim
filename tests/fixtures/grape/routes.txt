@@ -1,0 +1,4 @@
+RAILS_TOOLS_GRAPE_ROUTE {"verb":"GET","path":"/api/v1/users","description":"List users","api":"BaseApi","file":"/projects/test-app/app/api/v1/users.rb","line":7}
+RAILS_TOOLS_GRAPE_ROUTE {"verb":"GET","path":"/api/v1/users/:id","description":"Show a user","api":"BaseApi","file":"/projects/test-app/app/api/v1/users.rb","line":13}
+RAILS_TOOLS_GRAPE_ROUTE {"verb":"POST","path":"/api/v1/users/:id/deactivate","description":"Deactivate a user","api":"BaseApi","file":"/projects/test-app/app/api/v1/users.rb","line":18}
+RAILS_TOOLS_GRAPE_ROUTE {"verb":"GET","path":"/api/v1/ping","description":"","api":"BaseApi","file":"/projects/test-app/app/api/v1/health.rb","line":5}

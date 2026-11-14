@@ -21,13 +21,16 @@ See [specs/story.md](specs/story.md) for the full tracker and
 - [x] Routes navigator, Rails console, Rails runner
 - [x] RSpec runner — nearest spec, spec file, re-run last (opt-in: `modules.rspec = true`)
 - [x] Rails generators — `:Rails generate {args}` (opt-in: `modules.generators = true`)
+- [x] Grape endpoints — `:Rails grape routes` lists the Grape APIs mounted in
+      `config/routes.rb` (via `runner.command`) and jumps to the endpoint
+      (opt-in: `modules.grape = true`)
 - [x] Schema-aware editing for ActiveRecord columns, from `db/schema.rb` +
       `annotate` blocks: hover (`K`), go-to-definition (`gd`), `nvim-cmp`
       completion (see
       [021-schema-inspector.md](specs/issues/021-schema-inspector.md))
 
 **Not implemented yet:**
-- [ ] Grape support, test marker, context-aware `gf`,
+- [ ] Test marker, context-aware `gf`,
       controller ↔ view navigation (Phase 2, opt-in modules)
 - [ ] Rails engines inside a host app, projects that only have `db/structure.sql`
 - [ ] Schema table display — `:Rails schema {table}` (Phase 3 — see
@@ -114,7 +117,8 @@ opens the central menu (see [Status](#status) for what is still to come).
 - [x] `:Rails spec nearest` — Run the spec nearest to cursor
 - [x] `:Rails spec file` — Run the current spec file
 - [x] `:Rails spec last` — Re-run the last spec
-- [ ] `:Rails grape routes` — Browse Grape API endpoints
+- [x] `:Rails grape routes` — Browse Grape API endpoints _(requires `modules.grape = true`)_
+- [x] `:Rails grape routes!` — Force refresh the Grape endpoints cache
 - [ ] `:Rails doctor` — Diagnose project issues _(experimental backlog)_
 
 ### Keymaps
@@ -141,6 +145,7 @@ Loaded automatically when telescope.nvim is already loaded when `setup()` runs.
 - [x] `:Telescope rails controllers`
 - [x] `:Telescope rails routes`
 - [x] `:Telescope rails specs`
+- [x] `:Telescope rails grape`
 - [x] Falls back to `vim.ui.select` when Telescope is not available
 
 ### Health Check
