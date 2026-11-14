@@ -1,6 +1,7 @@
 local M = {}
 
 local SPEC_USAGE = "Rails: usage: :Rails spec nearest|file|last"
+local FOCUS_USAGE = "Rails: usage: :Rails focus"
 local GRAPE_USAGE = "Rails: usage: :Rails grape routes|routes!"
 
 local SPEC_ACTIONS = {
@@ -47,6 +48,19 @@ local subcommands = {
     end
 
     require("rails-tools.integrations.grape")[action]()
+  end,
+  focus = function(opts)
+    if not require("rails-tools.config").get().modules.test_marker then
+      vim.notify("Rails: test marker is disabled, set modules.test_marker = true", vim.log.levels.WARN)
+      return
+    end
+
+    if opts.args ~= "" then
+      vim.notify(FOCUS_USAGE, vim.log.levels.ERROR)
+      return
+    end
+
+    require("rails-tools.integrations.test_marker").toggle()
   end,
   find = function(opts)
     require("rails-tools.core.finder").find(opts.args)

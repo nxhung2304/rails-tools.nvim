@@ -24,13 +24,15 @@ See [specs/story.md](specs/story.md) for the full tracker and
 - [x] Grape endpoints — `:Rails grape routes` lists the Grape APIs mounted in
       `config/routes.rb` (via `runner.command`) and jumps to the endpoint
       (opt-in: `modules.grape = true`)
+- [x] Test marker — `:Rails focus` toggles `fit` / `fdescribe` / ... on the
+      RSpec example or group at the cursor (opt-in: `modules.test_marker = true`)
 - [x] Schema-aware editing for ActiveRecord columns, from `db/schema.rb` +
       `annotate` blocks: hover (`K`), go-to-definition (`gd`), `nvim-cmp`
       completion (see
       [021-schema-inspector.md](specs/issues/021-schema-inspector.md))
 
 **Not implemented yet:**
-- [ ] Test marker, context-aware `gf`,
+- [ ] Context-aware `gf`,
       controller ↔ view navigation (Phase 2, opt-in modules)
 - [ ] Rails engines inside a host app, projects that only have `db/structure.sql`
 - [ ] Schema table display — `:Rails schema {table}` (Phase 3 — see
@@ -68,6 +70,7 @@ require("rails-tools").setup({
     rspec      = true,   -- RSpec runner (default: false)
     generators = true,   -- Rails generators (default: false)
     grape      = true,   -- Grape API support (default: false)
+    test_marker = true,  -- Focus/unfocus RSpec examples (default: false)
   },
   terminal = {
     provider  = "auto",        -- "auto" | "toggleterm" | "native"
@@ -119,6 +122,10 @@ opens the central menu (see [Status](#status) for what is still to come).
 - [x] `:Rails spec last` — Re-run the last spec
 - [x] `:Rails grape routes` — Browse Grape API endpoints _(requires `modules.grape = true`)_
 - [x] `:Rails grape routes!` — Force refresh the Grape endpoints cache
+- [x] `:Rails focus` — Toggle focus (`it` ↔ `fit`, `describe` ↔ `fdescribe`, ...) on the
+      example or group at the cursor _(requires `modules.test_marker = true`)_.
+      Focus only takes effect when the project's RSpec config has
+      `config.filter_run_when_matching :focus`
 - [ ] `:Rails doctor` — Diagnose project issues _(experimental backlog)_
 
 ### Keymaps

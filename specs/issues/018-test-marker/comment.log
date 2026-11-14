@@ -1,0 +1,26 @@
+# Review — feature/hung-#18-test-marker-focus-unfocus (vòng 2)
+
+Tóm tắt: 0 MUST / 1 SHOULD / 0 NIT · 1 giả định · 0 chờ xác nhận · 5 cần xem lại spec · 0 ngoài phạm vi.
+Số phát hiện theo nguồn: review-branch 0 / code-review 2 / spec-review 1.
+Ghi chú:
+- Toàn bộ thay đổi đang staged nên các nguồn chạy trong worktree của nhánh và có thể thấy spec.
+- Nguồn code-review là review thủ công theo cách của skill code-review (hai lỗi bên dưới đã được tái hiện bằng Neovim headless).
+- Chưa có PR hay issue comment để lấy quyết định trước đó.
+
+Kết quả vòng 1:
+- #1 (con trỏ trong `let ... do` chọn nhầm ví dụ một dòng phía trên): Đã sửa (chưa commit) — `find_target` bỏ qua dòng trống và hạ `limit` khi gặp dòng nông hơn không phải target (lua/rails-tools/integrations/test_marker.lua:91-107); test "targets the parent group from a let block body below a one-line example" (tests/integrations/test_marker_spec.lua:171) chạy qua.
+- #2 (test buffer không sửa được chỉ kiểm `focus`): Đã sửa (chưa commit) — test lặp qua focus / unfocus / toggle (tests/integrations/test_marker_spec.lua:~325-338), chạy qua.
+
+### 1. SHOULD — Dòng nội dung heredoc ở cột 0 trong thân `it` có thể làm mất target
+- **Nguồn:** `spec-review`
+- **Phân loại:** Trong phạm vi · Giả định (suy từ code, chưa chạy) · Diff chạm: có · Liên quan: có
+- **File:** lua/rails-tools/integrations/test_marker.lua:102-104
+- **Vấn đề:** Bản sửa #1 hạ `limit` khi gặp bất kỳ dòng không trống nào nông hơn, kể cả nội dung heredoc ở cột 0 (`<<-SQL` / `<<SQL`) trong thân `it`, nên `limit` thành -1 và `it` bao ngoài không còn được tìm thấy (báo "no example or group at the cursor"). Spec bước dò ngược lên chưa mô tả quy tắc hạ `limit` mới này.
+- **Sửa:** Trước hết chạy thử một buffer có heredoc cột 0 trong thân `it`, con trỏ ở dòng sau heredoc; nếu không tái hiện thì bỏ qua. Nếu tái hiện: không sửa code trong PR này, chỉ thêm vào Known limits của spec ("nội dung heredoc ở cột 0 ...") và ghi quy tắc hạ `limit` vào bước dò ngược, vì kết quả xấu nhất là cảnh báo, không sửa sai file.
+
+## Cần xem lại spec
+- **Biến hoặc phép gán trùng tên từ khóa bị coi là target và bị sửa thành code Ruby sai** — Nguồn: `code-review` (tái hiện headless) — File: test_marker.lua:49-52. Spec dòng 60-61: "it starts with one of the keywords above followed by a space, `(`, or the end of the line." Với `describe 'x' do` / `  it 'a' do` / `    context = build(:c)` / `    foo`, con trỏ ở dòng 3 hoặc 4 rồi `focus()` biến dòng 3 thành `fcontext = build(:c)` (code Ruby hỏng), thay vì focus `it` dòng 2. Spec chọn "theo sau là dấu cách", code làm đúng như vậy nhưng gây sửa sai file — quy tắc này còn đúng không? Đề xuất: loại dòng mà sau từ khóa là `=` (không phải `==`), toán tử hoặc `.`; thêm test `context = ...`.
+- **Ví dụ một dòng (`it { ... }`) bị chọn khi con trỏ ở dòng anh em cùng indent hoặc dòng trống ngay sau nó** — Nguồn: `code-review` (tái hiện headless) — File: test_marker.lua:91-107. Spec dòng 93-94: "A one-line example ... has no separate block-end line, so a cursor on the next sibling line at the same indent targets it." Spec chấp nhận hạn chế này, code đúng như vậy — quyết định này còn đúng không?
+- **`focus()` / `unfocus()` / `is_focused()` công khai nhưng chỉ test gọi** (từ vòng 1) — Nguồn: `review-branch` — Spec dòng 140: "`focus()` / `unfocus()` / `is_focused()` stay as Lua API for users' own mappings." Quyết định này còn đúng không?
+- **`focus()` trên dòng đã focus im lặng, kể cả khi buffer không sửa được** (từ vòng 1) — Nguồn: `spec-review` — Spec dòng 105: "`focus()` on an already focused target and `unfocus()` on an unfocused one change nothing and say nothing." Quyết định này còn đúng không?
+- **Khối `{ ... }` nhiều dòng đóng bằng `}` không hạ `limit`** (từ vòng 1) — Nguồn: `review-branch` — Spec dòng 95: "A multi-line `{ ... }` block closes with `}`, not `end`, so it does not lower the limit." Quyết định này còn đúng không?
