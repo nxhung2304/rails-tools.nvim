@@ -6,6 +6,7 @@ local STUBBED_MODULES = {
   "rails-tools.core.runner",
   "rails-tools.integrations.rspec",
   "rails-tools.core.generators",
+  "rails-tools.integrations.grape",
 }
 
 local ACTION_WAIT_MS = 100
@@ -42,6 +43,9 @@ describe("rails-tools.ui.menu", function()
     end
     package.preload["rails-tools.core.generators"] = function()
       return { run_prompt = function() table.insert(calls, { "generators.run_prompt" }) end }
+    end
+    package.preload["rails-tools.integrations.grape"] = function()
+      return { show = function() table.insert(calls, { "grape.show" }) end }
     end
   end
 
@@ -204,6 +208,29 @@ describe("rails-tools.ui.menu", function()
       open_menu_and_wait()
 
       assert.are.same({ { "generators.run_prompt" } }, calls)
+    end)
+  end)
+
+  describe("with modules.grape = true", function()
+    before_each(function()
+      require("rails-tools.config").setup({ modules = { grape = true } })
+    end)
+
+    it("adds Grape Endpoints after the Phase 1 actions", function()
+      menu.open()
+
+      assert.are.same(
+        { "Alternate File", "Find Resource", "View Routes", "Open Console", "Run Code", "Grape Endpoints" },
+        labels()
+      )
+    end)
+
+    it("shows the Grape endpoints when Grape Endpoints is chosen", function()
+      pick_label = "Grape Endpoints"
+
+      open_menu_and_wait()
+
+      assert.are.same({ { "grape.show" } }, calls)
     end)
   end)
 

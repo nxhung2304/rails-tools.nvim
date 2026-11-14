@@ -62,6 +62,13 @@ local MENU_ITEMS = {
       require("rails-tools.core.generators").run_prompt()
     end,
   },
+  {
+    label = "Grape Endpoints",
+    module = "grape",
+    action = function()
+      require("rails-tools.integrations.grape").show()
+    end,
+  },
 }
 
 ---@return RailsToolsMenuItem[]

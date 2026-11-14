@@ -3,6 +3,7 @@ local MODULES_TO_RELOAD = {
   "rails-tools.config",
   "rails-tools.core.finder",
   "rails-tools.core.routes",
+  "rails-tools.integrations.grape",
   "telescope",
   "telescope._extensions.rails",
 }
@@ -10,6 +11,7 @@ local MODULES_TO_RELOAD = {
 describe("rails-tools.telescope", function()
   local find_calls
   local routes_show_calls
+  local grape_show_calls
   local notifications
   local orig_notify
 
@@ -32,6 +34,13 @@ describe("rails-tools.telescope", function()
     package.loaded["rails-tools.core.routes"] = {
       show = function(opts)
         table.insert(routes_show_calls, opts)
+      end,
+    }
+
+    grape_show_calls = {}
+    package.loaded["rails-tools.integrations.grape"] = {
+      show = function(opts)
+        table.insert(grape_show_calls, opts)
       end,
     }
 
@@ -74,15 +83,13 @@ describe("rails-tools.telescope", function()
       end)
     end
 
-    it("grape shows a not-available message without opening the finder", function()
-      local rails_telescope = require("rails-tools.telescope")
+    it("grape opens the Grape endpoints picker with Telescope and the picker options", function()
+      local picker_opts = { layout_strategy = "vertical" }
 
-      rails_telescope.exports.grape({})
+      require("rails-tools.telescope").exports.grape(picker_opts)
 
       assert.are.equal(0, #find_calls)
-      assert.are.same({
-        { msg = "Rails: Grape routes picker is not available yet", level = vim.log.levels.INFO },
-      }, notifications)
+      assert.are.same({ { provider = "telescope", picker_opts = picker_opts } }, grape_show_calls)
     end)
 
     it("rails opens the finder for every resource", function()

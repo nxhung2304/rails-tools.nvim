@@ -309,6 +309,70 @@ describe("rails-tools.commands", function()
     end)
   end)
 
+  describe(":Rails grape", function()
+    local calls
+    local notifications
+    local orig_notify
+
+    before_each(function()
+      calls = {}
+      notifications = {}
+      orig_notify = vim.notify
+      vim.notify = function(msg, level)
+        table.insert(notifications, { msg = msg, level = level })
+      end
+      package.loaded["rails-tools.config"] = nil
+      package.loaded["rails-tools.integrations.grape"] = nil
+      package.preload["rails-tools.integrations.grape"] = function()
+        return {
+          show = function() table.insert(calls, "show") end,
+          refresh = function() table.insert(calls, "refresh") end,
+        }
+      end
+      require("rails-tools.config").setup({ modules = { grape = true } })
+      require("rails-tools.commands").setup()
+    end)
+
+    after_each(function()
+      vim.notify = orig_notify
+      package.preload["rails-tools.integrations.grape"] = nil
+      package.loaded["rails-tools.integrations.grape"] = nil
+      package.loaded["rails-tools.config"] = nil
+    end)
+
+    it("shows the Grape routes", function()
+      vim.cmd("Rails grape routes")
+
+      assert.are.same({ "show" }, calls)
+    end)
+
+    it("reloads the Grape routes with routes!", function()
+      vim.cmd("Rails grape routes!")
+
+      assert.are.same({ "refresh" }, calls)
+    end)
+
+    it("shows the usage for a missing or unknown action", function()
+      vim.cmd("Rails grape")
+      vim.cmd("Rails grape bogus")
+
+      assert.are.same({}, calls)
+      assert.equals(2, #notifications)
+      assert.equals("Rails: usage: :Rails grape routes|routes!", notifications[1].msg)
+      assert.equals(vim.log.levels.ERROR, notifications[1].level)
+    end)
+
+    it("runs nothing and says how to enable it when modules.grape is false", function()
+      require("rails-tools.config").setup({})
+
+      vim.cmd("Rails grape routes")
+
+      assert.are.same({}, calls)
+      assert.equals("Rails: Grape support is disabled, set modules.grape = true", notifications[1].msg)
+      assert.equals(vim.log.levels.WARN, notifications[1].level)
+    end)
+  end)
+
   it("does not error with no subcommand", function()
     local orig_select = vim.ui.select
     vim.ui.select = function(_, _, on_choice) on_choice(nil) end

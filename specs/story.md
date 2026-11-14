@@ -35,7 +35,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
 | Layer 2 - Detection | 4 tasks | 4 | 100% |
 | Layer 3 - Core Features | 8 tasks | 8 | 100% |
-| Layer 4 - Enhanced | 6 tasks | 2 | 33% |
+| Layer 4 - Enhanced | 6 tasks | 3 | 50% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
 
@@ -58,10 +58,11 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L3-012** - Rails Runner (014-runner.md)
 - **L4-014** - RSpec Runner (015-rspec-runner.md)
 - **L4-015** - Rails Generators (016-generators.md)
+- **L4-017** - Grape API Support (017-grape-support.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Phase 2** - Layer 4, next: Grape API Support (L4-017)
+1. **Phase 2** - Layer 4, next: Test Marker (L4-018)
 
 ---
 
@@ -295,15 +296,15 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Create `tests/core/generators_spec.lua`
 
 ### L4-017. Grape API Support (017-grape-support.md)
-- [ ] Create `lua/rails-tools/integrations/grape.lua`
-- [ ] Implement Grape routes parser
-- [ ] Implement endpoint finder
-- [ ] Display Grape endpoints in picker
-- [ ] Register `:Rails grape routes` command
-- [ ] Integrate with Telescope
-- [ ] Add "Grape Endpoints" item to `ui/menu.lua`, shown only when `modules.grape = true` (moved from L3-008)
-- [ ] Only active when `modules.grape = true`
-- [ ] Create `tests/integrations/grape_spec.lua`
+- [x] Create `lua/rails-tools/integrations/grape.lua`
+- [x] Implement Grape routes parser (lists the Grape APIs mounted in the Rails routes with `runner.command`)
+- [x] Implement endpoint finder
+- [x] Display Grape endpoints in picker
+- [x] Register `:Rails grape routes` command (`:Rails grape routes!` refreshes the cache)
+- [x] Integrate with Telescope
+- [x] Add "Grape Endpoints" item to `ui/menu.lua`, shown only when `modules.grape = true` (moved from L3-008)
+- [x] Only active when `modules.grape = true`
+- [x] Create `tests/integrations/grape_spec.lua`
 
 ### L4-018. Test Marker (018-test-marker.md)
 - [ ] Create `lua/rails-tools/integrations/test_marker.lua`
