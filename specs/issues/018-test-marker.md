@@ -59,7 +59,9 @@ Rules:
     (`lib/rspec/core/configuration.rb`, main branch), so `RSpec.fdescribe`, `RSpec.fcontext` and `RSpec.ffeature` exist.
 - A line matches when, after its leading whitespace (and the optional `RSpec.` prefix for groups),
   it starts with one of the keywords above followed by a space, `(`, or the end of the line.
-  So `items.each`, `it_behaves_like`, `describe_thing`, `features` and `fitness` do not match.
+  A line also does not match when the first non-space character after the keyword is `=` (so `==` and `=~` too), `.`,
+  or one of `+ - * / % < > | & , ) ] } ?`, because the word is then a variable or an operand, not a test call.
+  So `items.each`, `it_behaves_like`, `describe_thing`, `features`, `fitness` and `context = build(:c)` do not match.
 - Not supported, the line is not a target and is skipped while searching:
   - `focus: true` / `:focus` metadata: removing it means editing the argument list, not one keyword.
   - `focus "..."` (rspec-core alias of `fit`): unfocusing it has two valid results (`it` or `specify`).
@@ -168,7 +170,7 @@ Work in a worktree from `main` HEAD: the main checkout has unrelated unresolved 
 - [x] Implement `M.toggle()`
 - [x] Add `focus` to the dispatch table in `lua/rails-tools/commands.lua`, gated by `modules.test_marker`, usage error on any argument
 - [x] Create `tests/integrations/test_marker_spec.lua` (setup like `tests/integrations/rspec_spec.lua`: temp `_spec.rb` file, `vim.notify` stub, `%bwipeout!` after each)
-  - [x] Test focus detection: each of the 7 pairs (including Capybara `feature` / `ffeature`, `scenario` / `fscenario`), `RSpec.describe` / `RSpec.fdescribe`, no-match words (`it_behaves_like`, `items.each`, `features`, `xit`, `focus`)
+  - [x] Test focus detection: each of the 7 pairs (including Capybara `feature` / `ffeature`, `scenario` / `fscenario`), `RSpec.describe` / `RSpec.fdescribe`, no-match words (`it_behaves_like`, `items.each`, `features`, `xit`, `focus`, `context = build(:c)`)
   - [x] Test `is_focused()` returns `nil` with no notify when not a spec file and when there is no target
   - [x] Test target search: cursor on the keyword line, in the body, on the block's `end`, below an ended sibling, below an `end  # comment` sibling, blank line, no target
   - [x] Test focus / unfocus: keyword changes, rest of line kept, no-op when already in that state, one undo step

@@ -3,6 +3,7 @@ local M = {}
 local SPEC_FILE_SUFFIX = "_spec.rb"
 local GROUP_PREFIX = "RSpec."
 local FOCUSED_PREFIX = "f"
+local NON_CALL_FOLLOWER_PATTERN = "^[=.+%-*/%%<>|&,%)%]}?]$"
 
 local KEYWORD_PAIRS = {
   { unfocused = "it", is_group = false },
@@ -48,6 +49,11 @@ local function parse_keyword(text)
 
   local next_char = rest:sub(#keyword + 1, #keyword + 1)
   if next_char ~= "" and next_char ~= " " and next_char ~= "(" then
+    return nil
+  end
+
+  local first_char_after_keyword = rest:sub(#keyword + 1):match("^%s*(.)")
+  if first_char_after_keyword and first_char_after_keyword:match(NON_CALL_FOLLOWER_PATTERN) then
     return nil
   end
 

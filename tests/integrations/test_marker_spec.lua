@@ -81,6 +81,13 @@ describe("rails-tools.integrations.test_marker", function()
       '  xit "a" do',
       '  focus "a" do',
       "  RSpec.it",
+      "  context = build(:c)",
+      "  example == 1",
+      "  it =~ /a/",
+      "  it .foo",
+      "  it + 1",
+      "  it, 1",
+      "  it?",
     }
 
     for _, text in ipairs(non_targets) do
@@ -183,6 +190,36 @@ describe("rails-tools.integrations.test_marker", function()
 
       assert.equals("fdescribe Foo do", buffer_lines()[1])
       assert.equals("  it { is_expected.to be }", buffer_lines()[2])
+    end)
+
+    it("skips a variable named like a keyword and targets the example above it", function()
+      open_spec({
+        "describe 'x' do",
+        "  it 'a' do",
+        "    context = build(:c)",
+        "    foo",
+        "  end",
+        "end",
+      }, { 4, 0 })
+
+      test_marker.focus()
+
+      assert.same({
+        "describe 'x' do",
+        "  fit 'a' do",
+        "    context = build(:c)",
+        "    foo",
+        "  end",
+        "end",
+      }, buffer_lines())
+    end)
+
+    it("still targets a group whose argument is a symbol", function()
+      open_spec({ "describe :sym do", "end" }, { 1, 0 })
+
+      test_marker.focus()
+
+      assert.equals("fdescribe :sym do", buffer_lines()[1])
     end)
 
     it("does nothing and warns when there is no target", function()
