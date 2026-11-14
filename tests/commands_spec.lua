@@ -248,6 +248,61 @@ describe("rails-tools.commands", function()
     end)
   end)
 
+  describe(":Rails focus", function()
+    local calls
+    local notifications
+    local orig_notify
+
+    before_each(function()
+      calls = {}
+      notifications = {}
+      orig_notify = vim.notify
+      vim.notify = function(msg, level)
+        table.insert(notifications, { msg = msg, level = level })
+      end
+      package.loaded["rails-tools.config"] = nil
+      package.loaded["rails-tools.integrations.test_marker"] = nil
+      package.preload["rails-tools.integrations.test_marker"] = function()
+        return {
+          toggle = function() table.insert(calls, "toggle") end,
+        }
+      end
+      require("rails-tools.config").setup({ modules = { test_marker = true } })
+      require("rails-tools.commands").setup()
+    end)
+
+    after_each(function()
+      vim.notify = orig_notify
+      package.preload["rails-tools.integrations.test_marker"] = nil
+      package.loaded["rails-tools.integrations.test_marker"] = nil
+      package.loaded["rails-tools.config"] = nil
+    end)
+
+    it("toggles the focus at the cursor", function()
+      vim.cmd("Rails focus")
+
+      assert.are.same({ "toggle" }, calls)
+    end)
+
+    it("shows the usage and calls nothing when an argument is given", function()
+      vim.cmd("Rails focus off")
+
+      assert.are.same({}, calls)
+      assert.equals("Rails: usage: :Rails focus", notifications[1].msg)
+      assert.equals(vim.log.levels.ERROR, notifications[1].level)
+    end)
+
+    it("runs nothing and says how to enable it when modules.test_marker is false", function()
+      require("rails-tools.config").setup({})
+
+      vim.cmd("Rails focus")
+
+      assert.are.same({}, calls)
+      assert.equals("Rails: test marker is disabled, set modules.test_marker = true", notifications[1].msg)
+      assert.equals(vim.log.levels.WARN, notifications[1].level)
+    end)
+  end)
+
   describe(":Rails generate", function()
     local calls
     local notifications
