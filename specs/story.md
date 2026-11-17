@@ -316,10 +316,9 @@ Layer 5: Polish & Integrations (Phase 3)
 
 ### L4-019. Context-Aware gf (019-context-aware-gf.md)
 - [ ] Create `lua/rails-tools/core/gf.lua`
-- [ ] Implement context detection (Treesitter + regex fallback)
+- [ ] Implement context detection (regex on the current line; Treesitter dropped at spec review)
 - [ ] Implement partial path parser: `"shared/header"` → `app/views/shared/_header.html.erb`
-- [ ] Implement fixture finder: `:users` → `test/fixtures/users.yml`
-- [ ] Implement migration finder: `User` → latest `db/migrate/*_create_users.rb`
+- [ ] Implement fixture finder: `fixtures :users` / `users(:alice)` → `test/fixtures/users.yml`
 - [ ] Implement table → model finder in migrations: cursor on a table symbol/string
       (`create_table :course_progresses`, `change_table`, `add_column :users, ...`)
       → `app/models/course_progress.rb`; `t.references :enrollment` → `app/models/enrollment.rb`.
@@ -331,6 +330,8 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Fallback to default `gf` if no Rails context
 - [ ] Only active when `modules.gf = true`
 - [ ] Create `tests/core/gf_spec.lua`
+- Removed at spec review: migration finder `User` → latest `*_create_users.rb`
+  (constant → file is 030; model → migration is a related file in L4-020)
 
 ### L4-020. Controller-View Navigation (020-controller-view-navigation.md)
 - [ ] Create `lua/rails-tools/core/controller_view.lua`
