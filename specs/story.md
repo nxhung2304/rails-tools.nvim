@@ -35,7 +35,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
 | Layer 2 - Detection | 4 tasks | 4 | 100% |
 | Layer 3 - Core Features | 8 tasks | 8 | 100% |
-| Layer 4 - Enhanced | 6 tasks | 4 | 67% |
+| Layer 4 - Enhanced | 6 tasks | 5 | 83% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
 
@@ -60,10 +60,11 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L4-015** - Rails Generators (016-generators.md)
 - **L4-017** - Grape API Support (017-grape-support.md)
 - **L4-018** - Test Marker (018-test-marker.md)
+- **L4-019** - Context-Aware gf (019-context-aware-gf.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Phase 2** - Layer 4, next: Context-Aware gf (L4-019)
+1. **Phase 2** - Layer 4, next: Controller-View Navigation (L4-020)
 
 ---
 
@@ -315,21 +316,21 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Create tests for test marker
 
 ### L4-019. Context-Aware gf (019-context-aware-gf.md)
-- [ ] Create `lua/rails-tools/core/gf.lua`
-- [ ] Implement context detection (regex on the current line; Treesitter dropped at spec review)
-- [ ] Implement partial path parser: `"shared/header"` → `app/views/shared/_header.html.erb`
-- [ ] Implement fixture finder: `fixtures :users` / `users(:alice)` → `test/fixtures/users.yml`
-- [ ] Implement table → model finder in migrations: cursor on a table symbol/string
+- [x] Create `lua/rails-tools/core/gf.lua`
+- [x] Implement context detection (regex on the current line; Treesitter dropped at spec review)
+- [x] Implement partial path parser: `"shared/header"` → `app/views/shared/_header.html.erb`
+- [x] Implement fixture finder: `fixtures :users` / `users(:alice)` → `test/fixtures/users.yml`
+- [x] Implement table → model finder in migrations: cursor on a table symbol/string
       (`create_table :course_progresses`, `change_table`, `add_column :users, ...`)
       → `app/models/course_progress.rb`; `t.references :enrollment` → `app/models/enrollment.rb`.
       Prefer the annotate `# Table name:` mapping (custom `self.table_name`), else singularize + camelize
-- [ ] Implement route finder: route name → controller#action
-- [ ] Support visual selection for complex paths
-- [ ] Detect view engine: .erb, .haml, .slim
-- [ ] Detect format: .html, .json, .xml
-- [ ] Fallback to default `gf` if no Rails context
-- [ ] Only active when `modules.gf = true`
-- [ ] Create `tests/core/gf_spec.lua`
+- [x] Implement route finder: route name → controller#action
+- [x] Support visual selection for complex paths
+- [x] Detect view engine: .erb, .haml, .slim
+- [x] Detect format: .html, .json, .xml
+- [x] Fallback to default `gf` if no Rails context
+- [x] Only active when `modules.gf = true`
+- [x] Create `tests/core/gf_spec.lua`
 - Removed at spec review: migration finder `User` → latest `*_create_users.rb`
   (constant → file is 030; model → migration is a related file in L4-020)
 

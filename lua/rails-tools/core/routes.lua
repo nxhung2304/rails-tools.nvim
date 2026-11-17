@@ -29,6 +29,7 @@ local FIELD_NAMES = {
 ---@class RailsToolsRoutesShowOpts
 ---@field provider? "auto"|"telescope"|"native" overrides `finder.provider`
 ---@field picker_opts? table passed to the Telescope picker
+---@field on_loaded? fun(parsed: RailsToolsRoute[]) called with the loaded routes instead of opening the picker
 
 local routes_cache = cache.new()
 
@@ -271,6 +272,10 @@ local function on_command_finished(root, exit_code, stdout, stderr, opts)
   end
 
   routes_cache:set(root, parsed)
+  if opts.on_loaded then
+    opts.on_loaded(parsed)
+    return
+  end
   pick(root, parsed, opts)
 end
 
@@ -345,6 +350,29 @@ function M.show(opts)
   end
 
   load_routes(root, opts)
+end
+
+---Call `callback` with the routes of the current Rails project, from the cache or by running the routes command async.
+---@param callback fun(parsed: RailsToolsRoute[])
+function M.with_routes(callback)
+  local root = rails_root_or_warn()
+  if not root then
+    return
+  end
+
+  routes_cache.ttl = config.get().routes.cache_ttl
+  local cached = routes_cache:peek(root)
+  if cached then
+    callback(cached)
+    return
+  end
+
+  if running_jobs[root] then
+    vim.notify("Rails: routes are still loading (:Rails routes! to restart)", vim.log.levels.INFO)
+    return
+  end
+
+  load_routes(root, { on_loaded = callback })
 end
 
 ---Clear the cached routes, stop a running routes command and load the routes again

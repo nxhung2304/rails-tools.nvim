@@ -1,0 +1,7 @@
+<%= render "shared/header" %>
+
+<h1>Users</h1>
+
+<%= render partial: "user", collection: @users %>
+
+<%= link_to "New user", new_user_path %>

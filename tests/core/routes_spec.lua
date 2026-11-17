@@ -462,6 +462,43 @@ describe("rails-tools.core.routes", function()
     end)
   end)
 
+  describe("with_routes()", function()
+    it("loads the routes async and passes them to the callback without a picker", function()
+      local loaded
+
+      routes.with_routes(function(parsed)
+        loaded = parsed
+      end)
+      vim.wait(JOB_WAIT_MS, function()
+        return loaded ~= nil
+      end)
+
+      assert.are.equal(42, #loaded)
+      assert.are.equal(0, #select_calls)
+    end)
+
+    it("uses the cache filled by show()", function()
+      routes.show()
+      wait_for_picker()
+      use_routes_command("sh", "-c 'exit 7'")
+      local loaded
+
+      routes.with_routes(function(parsed)
+        loaded = parsed
+      end)
+
+      assert.are.equal(42, #loaded)
+    end)
+
+    it("warns outside a Rails project", function()
+      vim.fn.delete(tmp_dir .. "/Gemfile")
+
+      routes.with_routes(function() end)
+
+      assert.are.same({ { msg = "Rails: not a Rails project", level = vim.log.levels.WARN } }, notifications)
+    end)
+  end)
+
   describe("refresh()", function()
     it("runs the command again even when routes are cached", function()
       routes.show()

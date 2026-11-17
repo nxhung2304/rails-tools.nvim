@@ -1,5 +1,12 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: admin_users
+#
+#  id       :integer          not null, primary key
+#  username :string
+#
 module Admin
   class User < ApplicationRecord
     # Admin namespace user model for testing nested navigation

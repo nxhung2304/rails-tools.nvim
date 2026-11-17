@@ -1,6 +1,6 @@
 ## **Status:**
 - Review: Approved
-- PR: Todo
+- PR: Draft
 
 ## Metadata
 - **Title:** Context-Aware gf
@@ -86,7 +86,9 @@ no root → no resolver matches → default `gf`.
      `remove_belongs_to`, `add_timestamps`, `remove_timestamps`, `add_foreign_key` (both),
      `remove_foreign_key` (both).
      - Model lookup: the model whose annotate block says `# Table name: <table>`
-       (`core/annotate.scan`), else `app/models/<singularize(table)>.rb`
+       (each `app/models/**/*.rb` read with `core/annotate.parse`; `annotate.scan` is not
+       used because it keys models by class name without namespace, so `admin/user.rb`
+       and `user.rb` collide), else `app/models/<singularize(table)>.rb`
        (`core/model_context.singularize`).
    - Any other argument (e.g. the column `:email` in `add_column :users, :email`) is not
      recognized.
@@ -134,43 +136,44 @@ M.resolve(ctx)
 M.resolve_text(ctx)
 ```
 `GfTarget` is one of:
-- `{ kind = "file", paths = string[], lnum? = integer }` — open (one path) or pick (several)
+- `{ kind = "file", paths = string[], lnum? = integer, notice? = string }` — open (one path)
+  or pick (several); `notice` is shown after opening
 - `{ kind = "route", name = string }` — look up the route, then `goto_action`
 - `{ kind = "missing", message = string }` — recognized but nothing to open
 
 ---
 
 ## Acceptance Criteria
-- [ ] Context detection by regex on the current line (no Treesitter)
-- [ ] Partial: `render "shared/header"` → `app/views/shared/_header.html.erb`; name without
+- [x] Context detection by regex on the current line (no Treesitter)
+- [x] Partial: `render "shared/header"` → `app/views/shared/_header.html.erb`; name without
       `/` resolves from the current view folder or controller
-- [ ] Fixture: `fixtures :users` and `users(:alice)` in test/spec files →
+- [x] Fixture: `fixtures :users` and `users(:alice)` in test/spec files →
       `test/fixtures/users.yml` (or `spec/fixtures/`), jumping to `alice:`
-- [ ] Table → model in migrations: `create_table :course_progresses`, `change_table`,
+- [x] Table → model in migrations: `create_table :course_progresses`, `change_table`,
       `add_column :users, ...` → `app/models/course_progress.rb` / `user.rb`;
       `t.references :enrollment` → `app/models/enrollment.rb`; annotate `# Table name:` wins
-- [ ] Route: `edit_user_path` / `users_url` → `controller#action` of the named route
-- [ ] Visual selection runs the same resolvers on the selected text
-- [ ] View engine follows `view.engine` / `view.priority` (erb, haml, slim)
-- [ ] Format follows the current file (html, json, xml), default html
-- [ ] Recognized but missing → notify, no fallback; not recognized → Neovim's own `gf`
-- [ ] Only active when `modules.gf = true`
+- [x] Route: `edit_user_path` / `users_url` → `controller#action` of the named route
+- [x] Visual selection runs the same resolvers on the selected text
+- [x] View engine follows `view.engine` / `view.priority` (erb, haml, slim)
+- [x] Format follows the current file (html, json, xml), default html
+- [x] Recognized but missing → notify, no fallback; not recognized → Neovim's own `gf`
+- [x] Only active when `modules.gf = true`
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/core/gf.lua` with `setup()`, `resolve()`, `resolve_text()`
-- [ ] Partial resolver (name, folder, format, engine order, select when several)
-- [ ] Fixture resolver (`fixtures :x`, `x(:key)`, test/ and spec/ fixture folders, key line)
-- [ ] Table → model resolver (method/argument table above, annotate table name first)
-- [ ] Route helper resolver + `routes.with_routes(callback)` (`opts.on_loaded` in `core/routes.lua`)
-- [ ] Visual-mode mapping and `resolve_text()`
-- [ ] Default `gf` fallback without a Lua stack trace
-- [ ] Buffer-local mappings for ruby/eruby/haml/slim, gated by `modules.gf`; call from `init.lua`
-- [ ] Sample files in `test-app/` for manual testing (views with partials, fixtures, a migration)
-- [ ] Create `tests/core/gf_spec.lua` (each resolver, not-recognized cases, gating)
-- [ ] Add a test for `routes.with_routes()` in `tests/core/routes_spec.lua`
-- [ ] Update README (Implemented list, Configuration, Usage) and `specs/story.md`
+- [x] Create `lua/rails-tools/core/gf.lua` with `setup()`, `resolve()`, `resolve_text()`
+- [x] Partial resolver (name, folder, format, engine order, select when several)
+- [x] Fixture resolver (`fixtures :x`, `x(:key)`, test/ and spec/ fixture folders, key line)
+- [x] Table → model resolver (method/argument table above, annotate table name first)
+- [x] Route helper resolver + `routes.with_routes(callback)` (`opts.on_loaded` in `core/routes.lua`)
+- [x] Visual-mode mapping and `resolve_text()`
+- [x] Default `gf` fallback without a Lua stack trace
+- [x] Buffer-local mappings for ruby/eruby/haml/slim, gated by `modules.gf`; call from `init.lua`
+- [x] Sample files in `test-app/` for manual testing (views with partials, fixtures, a migration)
+- [x] Create `tests/core/gf_spec.lua` (each resolver, not-recognized cases, gating)
+- [x] Add a test for `routes.with_routes()` in `tests/core/routes_spec.lua`
+- [x] Update README (Implemented list, Configuration, Usage) and `specs/story.md`
 
 ---
 
@@ -199,6 +202,9 @@ M.resolve_text(ctx)
   on another line is not recognized; a fixture file in a sub-folder
   (`test/fixtures/admin/users.yml`, accessor `admin_users`) is not found.
 - `030-gf-constant-stub-generator.md` (#34) adds a constant resolver to this module later.
+- The default-`gf` fallback runs `normal! gf`, so a filetype plugin's own buffer-local `gf`
+  (Neovim's Ruby ftplugin maps `gf` to resolve `require` paths) is replaced in buffers where
+  this module attaches.
 - Installation example uses `ft = { "ruby", "eruby" }`; haml/slim buffers only get the mapping
   once the plugin is loaded.
 
@@ -206,3 +212,4 @@ M.resolve_text(ctx)
 
 ## Decision Log
 - 2026-11-17: Design settled in discussion (9 questions, all accepted as recommended) — see Design and Key Decisions above
+- 2026-11-17: Table → model reads annotate blocks per file instead of `annotate.scan` (namespace collision) — see Design above
