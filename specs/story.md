@@ -343,7 +343,7 @@ Layer 5: Polish & Integrations (Phase 3)
 - [ ] Implement `from_migration()` - Migration → model of the table it creates/changes
       (first `create_table` / `change_table` / `add_column` table in the file), listed in `related_menu()`
 - [ ] Implement `related_menu()` - Show available related files
-- [ ] Register `:R [type]` and `:Rails related [type]` commands
+- [ ] Register `:Rails related [type]` command (`:R` dropped at spec review: all subcommands go through `:Rails`)
 - [ ] Register keymap: `<leader>rv`
 - [ ] Smart view engine detection (.erb, .haml, .slim)
 - [ ] Smart format detection (.html, .json, .xml)
