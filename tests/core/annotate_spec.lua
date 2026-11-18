@@ -89,6 +89,24 @@ describe("annotate.parse", function()
   end)
 end)
 
+describe("annotate.declared_table_name", function()
+  it("reads a double-quoted name", function()
+    assert.are.equal("orders", annotate.declared_table_name({ "class A", '  self.table_name = "orders"', "end" }))
+  end)
+
+  it("reads a single-quoted name", function()
+    assert.are.equal("orders", annotate.declared_table_name({ "class A", "  self.table_name = 'orders'", "end" }))
+  end)
+
+  it("returns nil when the line is absent", function()
+    assert.is_nil(annotate.declared_table_name({ "class A", "end" }))
+  end)
+
+  it("returns nil for a symbol value", function()
+    assert.is_nil(annotate.declared_table_name({ "class A", "  self.table_name = :orders", "end" }))
+  end)
+end)
+
 describe("annotate.scan", function()
   local tmp_dir
 
@@ -178,5 +196,13 @@ describe("annotate.scan", function()
 
     assert.is_nil(by_model.Searchable)
     assert.is_nil(by_model["Concerns::Searchable"])
+  end)
+
+  it("stores the table name declared with self.table_name", function()
+    write_model("legacy", { "class Legacy < ApplicationRecord", '  self.table_name = "legacy_users"', "end" })
+
+    local by_model = annotate.scan(tmp_dir)
+
+    assert.are.equal("legacy_users", by_model.Legacy.declared_table_name)
   end)
 end)

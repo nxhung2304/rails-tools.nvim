@@ -126,4 +126,20 @@ function M.model_for_path(path)
   return table.concat(segments, "::")
 end
 
+---@param path string absolute or relative file path
+---@return string[] candidate table names, most specific first; empty if the path isn't an app/models file
+function M.table_name_candidates(path)
+  local relative = path:match(MODEL_PATH_PATTERN)
+  if not relative then
+    return {}
+  end
+  local plural = M.pluralize(relative)
+  local namespaced = plural:gsub("/", "_")
+  local last_segment = plural:match("([^/]+)$")
+  if last_segment == namespaced then
+    return { namespaced }
+  end
+  return { namespaced, last_segment }
+end
+
 return M
