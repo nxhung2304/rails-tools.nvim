@@ -1,5 +1,6 @@
 local MODULES_TO_RELOAD = {
   "rails-tools.core.gf",
+  "rails-tools.core.rails_paths",
   "rails-tools.core.routes",
   "rails-tools.config",
   "rails-tools.detectors.rails",

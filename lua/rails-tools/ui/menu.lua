@@ -69,6 +69,13 @@ local MENU_ITEMS = {
       require("rails-tools.integrations.grape").show()
     end,
   },
+  {
+    label = "Related Files",
+    module = "controller_view",
+    action = function()
+      require("rails-tools.core.controller_view").related_menu()
+    end,
+  },
 }
 
 ---@return RailsToolsMenuItem[]

@@ -65,6 +65,22 @@ local subcommands = {
   find = function(opts)
     require("rails-tools.core.finder").find(opts.args)
   end,
+  related = function(opts)
+    if not require("rails-tools.config").get().modules.controller_view then
+      vim.notify(
+        "Rails: controller-view navigation is disabled, set modules.controller_view = true",
+        vim.log.levels.WARN
+      )
+      return
+    end
+
+    local controller_view = require("rails-tools.core.controller_view")
+    if opts.args == "" then
+      controller_view.related_menu()
+    else
+      controller_view.open_type(opts.args)
+    end
+  end,
   routes = function()
     require("rails-tools.core.routes").show()
   end,

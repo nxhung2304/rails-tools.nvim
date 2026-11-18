@@ -60,6 +60,14 @@ local DEFAULT_BINDINGS = {
     action = "<Cmd>Rails generate<CR>",
     module = "generators",
   },
+  {
+    suffix = "v",
+    desc = "Rails: switch controller / view",
+    action = function()
+      require("rails-tools.core.controller_view").toggle()
+    end,
+    module = "controller_view",
+  },
 }
 
 ---Register the default normal-mode keymaps under `config.keymaps.prefix`.

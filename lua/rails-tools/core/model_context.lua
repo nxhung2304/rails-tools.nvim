@@ -21,6 +21,17 @@ function M.singularize(word)
   return word
 end
 
+---@param word string
+---@return string
+function M.pluralize(word)
+  if word:match("[^aeiou]y$") then
+    return (word:gsub("y$", "ies"))
+  elseif word:match("[sxz]$") or word:match("[cs]h$") then
+    return word .. "es"
+  end
+  return word .. "s"
+end
+
 ---Resolve a receiver expression (`user`, `self`, `current_user`, `orders`, …)
 ---to one of the project's known model names.
 ---
