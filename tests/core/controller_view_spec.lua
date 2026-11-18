@@ -1,5 +1,7 @@
 local MODULES_TO_RELOAD = {
   "rails-tools.core.controller_view",
+  "rails-tools.core.related_files",
+  "rails-tools.core.rails_file_kind",
   "rails-tools.core.rails_paths",
   "rails-tools.config",
   "rails-tools.detectors.rails",
