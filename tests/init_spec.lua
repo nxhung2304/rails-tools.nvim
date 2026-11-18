@@ -94,4 +94,39 @@ describe("rails-tools.init", function()
     rails_tools.setup()
     assert.are.equal(1, gf_setup_calls)
   end)
+
+  describe("modules.schema", function()
+    local registered_sources
+
+    before_each(function()
+      pcall(vim.api.nvim_del_augroup_by_name, "rails_tools_schema_cache")
+      pcall(vim.api.nvim_del_augroup_by_name, "rails_tools_lsp_schema")
+      registered_sources = {}
+      package.loaded["cmp"] = {
+        register_source = function(name)
+          table.insert(registered_sources, name)
+        end,
+      }
+    end)
+
+    after_each(function()
+      package.loaded["cmp"] = nil
+    end)
+
+    it("skips the schema cache, LSP override and cmp source when modules.schema is false", function()
+      require("rails-tools").setup({ modules = { schema = false } })
+
+      assert.are.equal(0, vim.fn.exists("#rails_tools_schema_cache"))
+      assert.are.equal(0, vim.fn.exists("#rails_tools_lsp_schema"))
+      assert.are.same({}, registered_sources)
+    end)
+
+    it("sets up the schema cache, LSP override and cmp source by default", function()
+      require("rails-tools").setup()
+
+      assert.are.equal(1, vim.fn.exists("#rails_tools_schema_cache"))
+      assert.are.equal(1, vim.fn.exists("#rails_tools_lsp_schema"))
+      assert.are.same({ "rails_schema" }, registered_sources)
+    end)
+  end)
 end)

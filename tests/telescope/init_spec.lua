@@ -84,12 +84,23 @@ describe("rails-tools.telescope", function()
     end
 
     it("grape opens the Grape endpoints picker with Telescope and the picker options", function()
+      require("rails-tools.config").setup({ modules = { grape = true } })
       local picker_opts = { layout_strategy = "vertical" }
 
       require("rails-tools.telescope").exports.grape(picker_opts)
 
       assert.are.equal(0, #find_calls)
       assert.are.same({ { provider = "telescope", picker_opts = picker_opts } }, grape_show_calls)
+    end)
+
+    it("grape warns and does nothing when modules.grape is false", function()
+      require("rails-tools.telescope").exports.grape({})
+
+      assert.are.equal(0, #grape_show_calls)
+      assert.are.same(
+        { { msg = "Rails: Grape support is disabled, set modules.grape = true", level = vim.log.levels.WARN } },
+        notifications
+      )
     end)
 
     it("rails opens the finder for every resource", function()

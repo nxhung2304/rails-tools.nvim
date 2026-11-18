@@ -17,10 +17,15 @@ function M.setup(opts)
   commands.setup()
   require("rails-tools.keymaps").setup()
 
-  require("rails-tools.core.schema").setup()
+  local schema_enabled = config.get().modules.schema
+  if schema_enabled then
+    require("rails-tools.core.schema").setup()
+  end
   require("rails-tools.core.gf").setup()
-  require("rails-tools.integrations.lsp").setup()
-  require("rails-tools.integrations.cmp").setup()
+  if schema_enabled then
+    require("rails-tools.integrations.lsp").setup()
+    require("rails-tools.integrations.cmp").setup()
+  end
   require("rails-tools.telescope").setup()
 
   setup_done = true

@@ -363,9 +363,9 @@ Layer 5: Polish & Integrations (Phase 3)
 Each task links its GitHub issue, which holds the evidence and full acceptance criteria.
 
 ### BF-054. Module gating for schema and Telescope grape (GitHub #54)
-- [ ] `modules.schema = false` skips schema cache autocmd, LSP `K`/`gd` override and cmp source
-- [ ] `modules.grape = false` hides or blocks the Telescope `grape` picker
-- [ ] Regression tests for both flags
+- [x] `modules.schema = false` skips schema cache autocmd, LSP `K`/`gd` override and cmp source
+- [x] `modules.grape = false` hides or blocks the Telescope `grape` picker
+- [x] Regression tests for both flags
 
 ### BF-055. setup() can be retried after a failed sub-module (GitHub #55)
 - [x] Mark setup done only after every sub-module setup succeeds
