@@ -379,11 +379,11 @@ Each task links its GitHub issue, which holds the evidence and full acceptance c
 - [x] Unit tests for each pair in both directions
 
 ### BF-056. Namespaced models and `&.` receivers (GitHub #56)
-- [ ] `model_for_path` returns `Admin::User` for `app/models/admin/user.rb`
-- [ ] `annotate.scan` keys models by full namespaced name
-- [ ] Decide and document how `app/models/concerns/**` is handled
-- [ ] `user&.email` resolves receiver `user` for hover, `gd` and completion
-- [ ] Regression tests with a namespaced fixture and a `&.` case
+- [x] `model_for_path` returns `Admin::User` for `app/models/admin/user.rb`
+- [x] `annotate.scan` keys models by full namespaced name
+- [x] Decide and document how `app/models/concerns/**` is handled
+- [x] `user&.email` resolves receiver `user` for hover, `gd` and completion
+- [x] Regression tests with a namespaced fixture and a `&.` case
 
 ### BF-057. Schema columns for models without an annotate block (GitHub #57)
 - [ ] Infer the table name from the model name; `self.table_name = "..."` wins when present

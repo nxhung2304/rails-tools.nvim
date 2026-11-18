@@ -82,4 +82,16 @@ describe("integrations.cmp", function()
     assert.equals(1, #result.items)
     assert.equals("email", result.items[1].label)
   end)
+
+  it("suggests columns after a safe navigation receiver", function()
+    config.setup({})
+    vim.lsp.get_clients = function()
+      return {}
+    end
+
+    local result = complete("user&.")
+
+    assert.equals(1, #result.items)
+    assert.equals("email", result.items[1].label)
+  end)
 end)

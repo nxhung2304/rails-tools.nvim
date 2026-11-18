@@ -19,7 +19,7 @@ end
 
 ---@return string|nil
 local function receiver_before_cursor(cursor_before_line)
-  return cursor_before_line:match("@?([%a_][%w_]*)%.[%w_]*$")
+  return cursor_before_line:match("@?([%a_][%w_]*)&?%.[%w_]*$")
 end
 
 ---@param name string
