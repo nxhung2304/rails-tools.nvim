@@ -368,9 +368,9 @@ Each task links its GitHub issue, which holds the evidence and full acceptance c
 - [ ] Regression tests for both flags
 
 ### BF-055. setup() can be retried after a failed sub-module (GitHub #55)
-- [ ] Mark setup done only after every sub-module setup succeeds
-- [ ] A second `setup()` after success is still a no-op
-- [ ] Regression test: failing sub-module, then a successful retry
+- [x] Mark setup done only after every sub-module setup succeeds
+- [x] A second `setup()` after success is still a no-op
+- [x] Regression test: failing sub-module, then a successful retry
 
 ### BF-061. singularize/pluralize irregular and uncountable words (GitHub #61)
 - [ ] Irregular table (person, child, man, woman, mouse, ox)

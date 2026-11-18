@@ -8,6 +8,10 @@ describe("rails-tools.init", function()
     package.loaded["rails-tools.keymaps"] = nil
   end)
 
+  after_each(function()
+    package.loaded["rails-tools.core.gf"] = nil
+  end)
+
   it("setup() does not error with no opts", function()
     local rails_tools = require("rails-tools")
     assert.has_no.errors(function()
@@ -49,5 +53,45 @@ describe("rails-tools.init", function()
     pcall(vim.keymap.del, "n", ",rr")
     vim.g.mapleader = orig_mapleader
     assert.are.equal("<Cmd>Rails<CR>", menu_mapping.rhs)
+  end)
+
+  it("setup() runs again after a sub-module error", function()
+    local gf_setup_calls = 0
+    package.loaded["rails-tools.core.gf"] = {
+      setup = function()
+        gf_setup_calls = gf_setup_calls + 1
+        error("forced gf failure")
+      end,
+    }
+    local rails_tools = require("rails-tools")
+    assert.has.errors(function()
+      rails_tools.setup()
+    end)
+
+    package.loaded["rails-tools.core.gf"] = {
+      setup = function()
+        gf_setup_calls = gf_setup_calls + 1
+      end,
+    }
+    assert.has_no.errors(function()
+      rails_tools.setup()
+    end)
+
+    assert.are.equal(2, gf_setup_calls)
+    assert.are.equal(1, #vim.api.nvim_get_autocmds({ group = "rails_tools_schema_cache" }))
+    assert.are.equal(1, #vim.api.nvim_get_autocmds({ group = "rails_tools_lsp_schema" }))
+  end)
+
+  it("setup() is a no-op after a successful run", function()
+    local gf_setup_calls = 0
+    package.loaded["rails-tools.core.gf"] = {
+      setup = function()
+        gf_setup_calls = gf_setup_calls + 1
+      end,
+    }
+    local rails_tools = require("rails-tools")
+    rails_tools.setup()
+    rails_tools.setup()
+    assert.are.equal(1, gf_setup_calls)
   end)
 end)
