@@ -584,7 +584,7 @@ schema-aware editing. Revisit only after Layers 1–5 ship.
 - `:Rails generate {args}` - Run generator (L4-015)
 - `:Rails grape routes` - View Grape routes (L4-017)
 - `:Rails doctor` - Run diagnostics (L5-023, backlog)
-- `:R [type]` - Jump to related file (L4-020)
+- `:Rails related [type]` - Jump to related file (L4-020)
 
 ### Telescope Commands
 - `:Telescope rails models` (L3-007)
