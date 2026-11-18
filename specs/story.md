@@ -36,6 +36,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 2 - Detection | 4 tasks | 4 | 100% |
 | Layer 3 - Core Features | 8 tasks | 8 | 100% |
 | Layer 4 - Enhanced | 6 tasks | 6 | 100% |
+| Bug Fixes - Review | 11 tasks | 0 | 0% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
 
@@ -65,7 +66,8 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Phase 3** - Layer 5, next: Schema Display (L5-028)
+1. **Bug Fixes** - BF-054 + BF-055 → BF-061 → BF-056 → BF-057 → BF-058 → BF-059 + BF-060 → BF-062 → BF-063 + BF-064
+2. **Phase 3** - Layer 5, next: Schema Display (L5-028)
 
 ---
 
@@ -352,6 +354,74 @@ Layer 5: Polish & Integrations (Phase 3)
 - [x] Prompt to create missing views
 - [x] Only active when `modules.controller_view = true`
 - [x] Create `tests/core/controller_view_spec.lua`
+
+---
+
+## Bug Fixes — Review Findings
+
+**Depends on**: nothing new; fixes for Layers 1–5. Do these before the remaining Layer 5 tasks, in the order below.
+Each task links its GitHub issue, which holds the evidence and full acceptance criteria.
+
+### BF-054. Module gating for schema and Telescope grape (GitHub #54)
+- [ ] `modules.schema = false` skips schema cache autocmd, LSP `K`/`gd` override and cmp source
+- [ ] `modules.grape = false` hides or blocks the Telescope `grape` picker
+- [ ] Regression tests for both flags
+
+### BF-055. setup() can be retried after a failed sub-module (GitHub #55)
+- [ ] Mark setup done only after every sub-module setup succeeds
+- [ ] A second `setup()` after success is still a no-op
+- [ ] Regression test: failing sub-module, then a successful retry
+
+### BF-061. singularize/pluralize irregular and uncountable words (GitHub #61)
+- [ ] Irregular table (person, child, man, woman, mouse, ox)
+- [ ] Uncountables (equipment, information, series, species, news)
+- [ ] Keep `movie`-type words correct for the `-ies` rule
+- [ ] Unit tests for each pair in both directions
+
+### BF-056. Namespaced models and `&.` receivers (GitHub #56)
+- [ ] `model_for_path` returns `Admin::User` for `app/models/admin/user.rb`
+- [ ] `annotate.scan` keys models by full namespaced name
+- [ ] Decide and document how `app/models/concerns/**` is handled
+- [ ] `user&.email` resolves receiver `user` for hover, `gd` and completion
+- [ ] Regression tests with a namespaced fixture and a `&.` case
+
+### BF-057. Schema columns for models without an annotate block (GitHub #57)
+- [ ] Infer the table name from the model name; `self.table_name = "..."` wins when present
+- [ ] Columns come from `db/schema.rb`, `gd` jumps to the schema line
+- [ ] Annotated models unchanged
+- [ ] Regression test with an un-annotated model fixture
+
+### BF-058. Detector cache invalidation (GitHub #58)
+- [ ] Do not cache negative results forever (re-check on `DirChanged` or after a TTL)
+- [ ] Public, documented way to clear detector caches
+- [ ] Regression test: detect in empty dir, add `Gemfile` + `bin/rails`, detect again
+
+### BF-059. Opt-out and custom keys for the LSP `K`/`gd` override (GitHub #59)
+- [ ] Config option to disable the override or choose the keys
+- [ ] Keep an existing user buffer mapping, or document the chosen behaviour
+- [ ] Expose Rails-aware hover/definition as functions users can map
+- [ ] Regression tests for enabled, disabled and custom-key cases
+
+### BF-060. One Rails executable for all default commands (GitHub #60)
+- [ ] Console, runner, generators and routes use the same executable, preferring `bin/rails`
+- [ ] User-set commands are never changed
+- [ ] README/docs updated
+
+### BF-062. Test marker with multi-line `it(` and heredocs (GitHub #62)
+- [ ] Cursor inside a multi-line `it(...) do` focuses the `it` line
+- [ ] A heredoc with a dedented `end` does not break the search
+- [ ] Both cases added as regression tests
+
+### BF-063. Terminal leaves the finished command's window behind (GitHub #63)
+- [ ] Next command reuses or closes the previous terminal window and buffer (native and toggleterm)
+- [ ] `toggle` / `show` work on a terminal whose process has exited
+- [ ] `confirm_replace` asks only when a job is running
+- [ ] Regression test from the reproduce script in the issue
+
+### BF-064. `cmp.dedupe_with_lsp` matching and Neovim 0.9 support (GitHub #64)
+- [ ] Check each configured client name separately
+- [ ] Fall back to `get_active_clients` on Neovim 0.9
+- [ ] Tests use a real dummy LSP client instead of replacing `vim.lsp.get_clients`
 
 ---
 
