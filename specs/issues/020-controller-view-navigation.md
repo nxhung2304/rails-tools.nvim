@@ -26,7 +26,10 @@ Scope comes from `specs/story.md` L4-020. The `:R` command was dropped at spec r
 
 ## Design
 - No wireframe needed
-- Module: `lua/rails-tools/core/controller_view.lua`
+- Modules:
+  - `lua/rails-tools/core/controller_view.lua` — commands, opening files, create prompt
+  - `lua/rails-tools/core/rails_file_kind.lua` — file kinds and the action at the cursor
+  - `lua/rails-tools/core/related_files.lua` — finding each related type
 - Shared path helpers: `lua/rails-tools/core/rails_paths.lua` (moved out of `core/gf.lua`, see
   "Shared helpers")
 - Command: `:Rails related [type]`, registered in `commands.lua`
@@ -201,3 +204,4 @@ M.open_type(type)
 ## Decision Log
 - 2026-11-18: Design settled in discussion (10 questions, all accepted as recommended) — see Design and Key Decisions above
 - 2026-11-18: Public API settled as `kind_of` / `action_at` / `find` / `related` and `rails_paths.migration_arguments` during implementation — see Public API above
+- 2026-11-18: Split the module into three files to keep each under 400 lines — see Design above
