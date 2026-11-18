@@ -12,7 +12,6 @@ function M.setup(opts)
   if setup_done then
     return
   end
-  setup_done = true
 
   config.setup(opts)
   commands.setup()
@@ -23,6 +22,8 @@ function M.setup(opts)
   require("rails-tools.integrations.lsp").setup()
   require("rails-tools.integrations.cmp").setup()
   require("rails-tools.telescope").setup()
+
+  setup_done = true
 end
 
 return M
