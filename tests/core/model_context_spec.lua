@@ -71,6 +71,14 @@ describe("model_context.infer_model", function()
   it("returns nil when nothing matches and there is no current buffer model", function()
     assert.is_nil(model_context.infer_model("record", known_models, nil))
   end)
+  it("resolves an irregular plural variable", function()
+    assert.are.equal("Person", model_context.infer_model("people", { Person = true }, nil))
+  end)
+
+  it("does not singularize an uncountable receiver", function()
+    assert.is_nil(model_context.infer_model("news", { New = true }, nil))
+    assert.are.equal("News", model_context.infer_model("news", { News = true }, nil))
+  end)
 end)
 
 describe("model_context.pluralize", function()
@@ -89,6 +97,53 @@ describe("model_context.pluralize", function()
     assert.are.equal("boxes", model_context.pluralize("box"))
     assert.are.equal("matches", model_context.pluralize("match"))
     assert.are.equal("wishes", model_context.pluralize("wish"))
+  end)
+end)
+
+describe("model_context irregular and uncountable words", function()
+  local irregular_pairs = {
+    { "person", "people" },
+    { "child", "children" },
+    { "man", "men" },
+    { "woman", "women" },
+    { "mouse", "mice" },
+    { "ox", "oxen" },
+    { "movie", "movies" },
+  }
+
+  for _, pair in ipairs(irregular_pairs) do
+    local singular, plural = pair[1], pair[2]
+
+    it("singularizes " .. plural .. " to " .. singular, function()
+      assert.are.equal(singular, model_context.singularize(plural))
+    end)
+
+    it("pluralizes " .. singular .. " to " .. plural, function()
+      assert.are.equal(plural, model_context.pluralize(singular))
+    end)
+  end
+
+  local uncountables = { "equipment", "information", "series", "species", "news" }
+
+  for _, word in ipairs(uncountables) do
+    it("keeps " .. word .. " unchanged in both directions", function()
+      assert.are.equal(word, model_context.singularize(word))
+      assert.are.equal(word, model_context.pluralize(word))
+    end)
+  end
+
+  it("keeps the prefix before the last / or _ segment", function()
+    assert.are.equal("sales_person", model_context.singularize("sales_people"))
+    assert.are.equal("sales_people", model_context.pluralize("sales_person"))
+    assert.are.equal("admin/person", model_context.singularize("admin/people"))
+    assert.are.equal("admin/people", model_context.pluralize("admin/person"))
+    assert.are.equal("admin/news", model_context.singularize("admin/news"))
+    assert.are.equal("admin/news", model_context.pluralize("admin/news"))
+  end)
+
+  it("matches whole segments only", function()
+    assert.are.equal("foxes", model_context.pluralize("fox"))
+    assert.are.equal("fox", model_context.singularize("foxes"))
   end)
 end)
 

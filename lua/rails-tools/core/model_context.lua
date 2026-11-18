@@ -1,5 +1,34 @@
 local M = {}
 
+local IRREGULARS = {
+  person = "people",
+  child = "children",
+  man = "men",
+  woman = "women",
+  mouse = "mice",
+  ox = "oxen",
+  movie = "movies",
+}
+
+local UNCOUNTABLES = {
+  equipment = true,
+  information = true,
+  series = true,
+  species = true,
+  news = true,
+}
+
+local SINGULARS_OF_IRREGULARS = {}
+for singular, plural in pairs(IRREGULARS) do
+  SINGULARS_OF_IRREGULARS[plural] = singular
+end
+
+---@param word string
+---@return string prefix, string last_segment
+local function split_last_segment(word)
+  return word:match("^(.-)([^/_]*)$")
+end
+
 ---@param str string
 ---@return string
 function M.camelize(str)
@@ -11,6 +40,13 @@ end
 ---@param word string
 ---@return string
 function M.singularize(word)
+  local prefix, last_segment = split_last_segment(word)
+  if UNCOUNTABLES[last_segment] then
+    return word
+  end
+  if SINGULARS_OF_IRREGULARS[last_segment] then
+    return prefix .. SINGULARS_OF_IRREGULARS[last_segment]
+  end
   if word:match("ies$") then
     return (word:gsub("ies$", "y"))
   elseif word:match("[sx]es$") or word:match("ches$") or word:match("shes$") then
@@ -24,6 +60,13 @@ end
 ---@param word string
 ---@return string
 function M.pluralize(word)
+  local prefix, last_segment = split_last_segment(word)
+  if UNCOUNTABLES[last_segment] then
+    return word
+  end
+  if IRREGULARS[last_segment] then
+    return prefix .. IRREGULARS[last_segment]
+  end
   if word:match("[^aeiou]y$") then
     return (word:gsub("y$", "ies"))
   elseif word:match("[sxz]$") or word:match("[cs]h$") then

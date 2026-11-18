@@ -373,10 +373,10 @@ Each task links its GitHub issue, which holds the evidence and full acceptance c
 - [x] Regression test: failing sub-module, then a successful retry
 
 ### BF-061. singularize/pluralize irregular and uncountable words (GitHub #61)
-- [ ] Irregular table (person, child, man, woman, mouse, ox)
-- [ ] Uncountables (equipment, information, series, species, news)
-- [ ] Keep `movie`-type words correct for the `-ies` rule
-- [ ] Unit tests for each pair in both directions
+- [x] Irregular table (person, child, man, woman, mouse, ox)
+- [x] Uncountables (equipment, information, series, species, news)
+- [x] Keep `movie`-type words correct for the `-ies` rule
+- [x] Unit tests for each pair in both directions
 
 ### BF-056. Namespaced models and `&.` receivers (GitHub #56)
 - [ ] `model_for_path` returns `Admin::User` for `app/models/admin/user.rb`
