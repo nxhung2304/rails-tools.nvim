@@ -28,13 +28,14 @@ See [specs/story.md](specs/story.md) for the full tracker and
       RSpec example or group at the cursor (opt-in: `modules.test_marker = true`)
 - [x] Context-aware `gf` — partials, fixtures, table → model in migrations, route
       helpers (opt-in: `modules.gf = true`)
+- [x] Controller ↔ view navigation and related files — `<leader>rv`, `:Rails related [type]`
+      (opt-in: `modules.controller_view = true`)
 - [x] Schema-aware editing for ActiveRecord columns, from `db/schema.rb` +
       `annotate` blocks: hover (`K`), go-to-definition (`gd`), `nvim-cmp`
       completion (see
       [021-schema-inspector.md](specs/issues/021-schema-inspector.md))
 
 **Not implemented yet:**
-- [ ] Controller ↔ view navigation (Phase 2, opt-in modules)
 - [ ] Rails engines inside a host app, projects that only have `db/structure.sql`
 - [ ] Schema table display — `:Rails schema {table}` (Phase 3 — see
       [028-schema-display.md](specs/issues/028-schema-display.md))
@@ -73,6 +74,7 @@ require("rails-tools").setup({
     grape      = true,   -- Grape API support (default: false)
     test_marker = true,  -- Focus/unfocus RSpec examples (default: false)
     gf          = true,  -- Rails-aware gf (default: false)
+    controller_view = true,  -- Controller <-> view, related files (default: false)
   },
   terminal = {
     provider  = "auto",        -- "auto" | "toggleterm" | "native"
@@ -128,6 +130,13 @@ opens the central menu (see [Status](#status) for what is still to come).
       example or group at the cursor _(requires `modules.test_marker = true`)_.
       Focus only takes effect when the project's RSpec config has
       `config.filter_run_when_matching :focus`
+- [x] `:Rails related` — Pick one of the files related to the current file
+      _(requires `modules.controller_view = true`)_:
+      controller / view → view, controller, helper, model, layout;
+      model → controller, schema, fixture, migration; migration → model; helper → controller
+- [x] `:Rails related {type}` — Open one type directly
+      (`view|controller|helper|model|layout|schema|fixture|migration`). From a controller action
+      with no view, asks before creating `app/views/<controller>/<action>.html.<engine>`
 - [ ] `:Rails doctor` — Diagnose project issues _(experimental backlog)_
 
 ### Context-aware gf
@@ -160,6 +169,7 @@ Default prefix: `<leader>r` (change with `keymaps.prefix`, turn off with
 - [x] `<leader>rs` — `:Rails spec nearest` _(requires `modules.rspec = true`)_
 - [x] `<leader>rS` — `:Rails spec file` _(requires `modules.rspec = true`)_
 - [x] `<leader>rg` — `:Rails generate` _(requires `modules.generators = true`)_
+- [x] `<leader>rv` — switch between a controller action and its view _(requires `modules.controller_view = true`)_
 
 ### Telescope Integration
 

@@ -7,6 +7,7 @@ local STUBBED_MODULES = {
   "rails-tools.core.runner",
   "rails-tools.integrations.rspec",
   "rails-tools.core.generators",
+  "rails-tools.core.controller_view",
 }
 
 local TEST_LEADER = ","
@@ -14,6 +15,7 @@ local DEFAULT_KEYS = { ",rr", ",ra", ",rf", ",ro", ",rc", ",rx" }
 local CUSTOM_PREFIX_KEYS = { ",xr", ",xa", ",xf", ",xo", ",xc", ",xx" }
 local RSPEC_KEYS = { ",rs", ",rS" }
 local GENERATOR_KEY = ",rg"
+local CONTROLLER_VIEW_KEY = ",rv"
 
 describe("rails-tools.keymaps", function()
   local keymaps
@@ -49,10 +51,14 @@ describe("rails-tools.keymaps", function()
     package.preload["rails-tools.core.generators"] = function()
       return { run_prompt = function() table.insert(calls, { "generators.run_prompt" }) end }
     end
+    package.preload["rails-tools.core.controller_view"] = function()
+      return { toggle = function() table.insert(calls, { "controller_view.toggle" }) end }
+    end
   end
 
   local function delete_test_keymaps()
     pcall(vim.keymap.del, "n", GENERATOR_KEY)
+    pcall(vim.keymap.del, "n", CONTROLLER_VIEW_KEY)
     for _, lhs in ipairs(vim.list_extend(vim.list_extend(vim.deepcopy(DEFAULT_KEYS), CUSTOM_PREFIX_KEYS), RSPEC_KEYS)) do
       pcall(vim.keymap.del, "n", lhs)
     end
@@ -216,6 +222,23 @@ describe("rails-tools.keymaps", function()
     run_mapping(GENERATOR_KEY)
 
     assert.are.same({ { "generators.run_prompt" } }, calls)
+  end)
+
+  it("does not register the controller / view keymap while modules.controller_view is false", function()
+    config.setup()
+
+    keymaps.setup()
+
+    assert.are.same({}, normal_mapping(CONTROLLER_VIEW_KEY))
+  end)
+
+  it("switches controller / view with <leader>rv when modules.controller_view is true", function()
+    config.setup({ modules = { controller_view = true } })
+    keymaps.setup()
+
+    run_mapping(CONTROLLER_VIEW_KEY)
+
+    assert.are.same({ { "controller_view.toggle" } }, calls)
   end)
 
   it("uses the prefix from config", function()

@@ -35,7 +35,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 1 - Infrastructure | 4 tasks | 4 | 100% |
 | Layer 2 - Detection | 4 tasks | 4 | 100% |
 | Layer 3 - Core Features | 8 tasks | 8 | 100% |
-| Layer 4 - Enhanced | 6 tasks | 5 | 83% |
+| Layer 4 - Enhanced | 6 tasks | 6 | 100% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
 
@@ -61,10 +61,11 @@ Layer 5: Polish & Integrations (Phase 3)
 - **L4-017** - Grape API Support (017-grape-support.md)
 - **L4-018** - Test Marker (018-test-marker.md)
 - **L4-019** - Context-Aware gf (019-context-aware-gf.md)
+- **L4-020** - Controller-View Navigation (020-controller-view-navigation.md)
 - **L5-021** - Schema Inspector: hover / `nvim-cmp` / `gd` for ActiveRecord columns (021-schema-inspector.md)
 
 ### Next Steps 📋 (In dependency order)
-1. **Phase 2** - Layer 4, next: Controller-View Navigation (L4-020)
+1. **Phase 3** - Layer 5, next: Schema Display (L5-028)
 
 ---
 
@@ -335,22 +336,22 @@ Layer 5: Polish & Integrations (Phase 3)
   (constant → file is 030; model → migration is a related file in L4-020)
 
 ### L4-020. Controller-View Navigation (020-controller-view-navigation.md)
-- [ ] Create `lua/rails-tools/core/controller_view.lua`
-- [ ] Implement `to_view()` - Controller action → View
-- [ ] Implement `views_for_controller()` - List all views
-- [ ] Implement `from_view()` - View → Controller
-- [ ] Implement related files: helper, schema, layout, fixture, migration
-- [ ] Implement `from_migration()` - Migration → model of the table it creates/changes
+- [x] Create `lua/rails-tools/core/controller_view.lua`
+- [x] Implement `to_view()` - Controller action → View
+- [x] Implement `views_for_controller()` - List all views
+- [x] Implement `from_view()` - View → Controller
+- [x] Implement related files: helper, schema, layout, fixture, migration
+- [x] Implement `from_migration()` - Migration → model of the table it creates/changes
       (first `create_table` / `change_table` / `add_column` table in the file), listed in `related_menu()`
-- [ ] Implement `related_menu()` - Show available related files
-- [ ] Register `:Rails related [type]` command (`:R` dropped at spec review: all subcommands go through `:Rails`)
-- [ ] Register keymap: `<leader>rv`
-- [ ] Smart view engine detection (.erb, .haml, .slim)
-- [ ] Smart format detection (.html, .json, .xml)
-- [ ] Handle namespaced controllers
-- [ ] Prompt to create missing views
-- [ ] Only active when `modules.controller_view = true`
-- [ ] Create `tests/core/controller_view_spec.lua`
+- [x] Implement `related_menu()` - Show available related files
+- [x] Register `:Rails related [type]` command (`:R` dropped at spec review: all subcommands go through `:Rails`)
+- [x] Register keymap: `<leader>rv`
+- [x] Smart view engine detection (.erb, .haml, .slim)
+- [x] Smart format detection (.html, .json, .xml)
+- [x] Handle namespaced controllers
+- [x] Prompt to create missing views
+- [x] Only active when `modules.controller_view = true`
+- [x] Create `tests/core/controller_view_spec.lua`
 
 ---
 

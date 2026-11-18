@@ -364,6 +364,63 @@ describe("rails-tools.commands", function()
     end)
   end)
 
+  describe(":Rails related", function()
+    local calls
+    local notifications
+    local orig_notify
+
+    before_each(function()
+      calls = {}
+      notifications = {}
+      orig_notify = vim.notify
+      vim.notify = function(msg, level)
+        table.insert(notifications, { msg = msg, level = level })
+      end
+      package.loaded["rails-tools.config"] = nil
+      package.loaded["rails-tools.core.controller_view"] = nil
+      package.preload["rails-tools.core.controller_view"] = function()
+        return {
+          related_menu = function() table.insert(calls, { "related_menu" }) end,
+          open_type = function(type) table.insert(calls, { "open_type", type }) end,
+        }
+      end
+      require("rails-tools.config").setup({ modules = { controller_view = true } })
+      require("rails-tools.commands").setup()
+    end)
+
+    after_each(function()
+      vim.notify = orig_notify
+      package.preload["rails-tools.core.controller_view"] = nil
+      package.loaded["rails-tools.core.controller_view"] = nil
+      package.loaded["rails-tools.config"] = nil
+    end)
+
+    it("lists the related files without a type", function()
+      vim.cmd("Rails related")
+
+      assert.are.same({ { "related_menu" } }, calls)
+    end)
+
+    it("opens the given type", function()
+      vim.cmd("Rails related view")
+
+      assert.are.same({ { "open_type", "view" } }, calls)
+    end)
+
+    it("runs nothing and says how to enable it when modules.controller_view is false", function()
+      require("rails-tools.config").setup({})
+
+      vim.cmd("Rails related")
+
+      assert.are.same({}, calls)
+      assert.equals(
+        "Rails: controller-view navigation is disabled, set modules.controller_view = true",
+        notifications[1].msg
+      )
+      assert.equals(vim.log.levels.WARN, notifications[1].level)
+    end)
+  end)
+
   describe(":Rails grape", function()
     local calls
     local notifications

@@ -1,6 +1,6 @@
 ## **Status:**
 - Review: Approved
-- PR: Todo
+- PR: Draft
 
 ## Metadata
 - **Title:** Controller-View Navigation
@@ -122,17 +122,23 @@ M.default_engine()                                -- view.engine when not "auto"
 M.view_candidates(root, folder, base, format)     -- ordered paths of app/views/<folder>/<base>.*
 M.model_file_for_table(root, table_name)          -- annotate "# Table name:" first, else app/models/<singular>.rb
 M.fixture_file(root, name)                        -- test/fixtures then spec/fixtures, nil when missing
-M.migration_table_arguments(line)                 -- table arguments of a schema statement line
+M.migration_arguments(line)                       -- leading symbol/string arguments, each with kind "table" | "reference" | nil
 ```
 `model_context.pluralize(word)` is added next to `singularize`: `y` after a consonant → `ies`;
 `s`, `x`, `z`, `ch`, `sh` → `es`; else `s`.
 
 ### Public API (`core/controller_view.lua`)
 ```lua
----@return {kind: string, ...}|nil
-M.kind_of(root, relative_file)
----@return {type: string, path: string, lnum?: integer}[]
-M.related(root, relative_file, cursor_lnum, buffer_lines)   -- every existing related file, in type order
+M.TYPES                                   -- { "view", "controller", "helper", "model", "layout", "schema", "fixture", "migration" }
+---@return RailsFileKind|nil
+M.kind_of(relative_file)
+---@return string|nil
+M.action_at(lines, lnum)                  -- public action at or above the cursor
+---@param ctx {root, relative_file, lines, cursor_lnum}
+---@return RelatedEntry[], RelatedMissing|nil
+M.find(ctx, type)                         -- files of one type; why nothing was found
+---@return RelatedEntry[]
+M.related(ctx)                            -- every existing related file, in type order
 M.to_view()
 M.from_view()
 M.toggle()
@@ -143,30 +149,30 @@ M.open_type(type)
 ---
 
 ## Acceptance Criteria
-- [ ] `to_view()`: controller action at the cursor → its view; several → pick; none → ask to create
-- [ ] `views_for_controller()`: cursor outside an action → every view of the controller
-- [ ] `from_view()`: view → controller at `def <action>`; mailer views → mailer
-- [ ] Related files: helper, model, layout, schema, fixture, migration
-- [ ] `from_migration()`: migration → model of the first table it creates/changes, listed in `related_menu()`
-- [ ] `related_menu()` lists only related files that exist
-- [ ] View engine order follows `view.engine` / `view.priority` (erb, haml, slim)
-- [ ] Format: html first, then format-less views
-- [ ] Namespaced controllers (`admin/users`) map to `app/views/admin/users/`
-- [ ] Prompt to create a missing action view
-- [ ] Only active when `modules.controller_view = true`
+- [x] `to_view()`: controller action at the cursor → its view; several → pick; none → ask to create
+- [x] `views_for_controller()`: cursor outside an action → every view of the controller
+- [x] `from_view()`: view → controller at `def <action>`; mailer views → mailer
+- [x] Related files: helper, model, layout, schema, fixture, migration
+- [x] `from_migration()`: migration → model of the first table it creates/changes, listed in `related_menu()`
+- [x] `related_menu()` lists only related files that exist
+- [x] View engine order follows `view.engine` / `view.priority` (erb, haml, slim)
+- [x] Format: html first, then format-less views
+- [x] Namespaced controllers (`admin/users`) map to `app/views/admin/users/`
+- [x] Prompt to create a missing action view
+- [x] Only active when `modules.controller_view = true`
 
 ---
 
 ## Implementation Checklist
-- [ ] Create `lua/rails-tools/core/rails_paths.lua`; move the shared helpers out of `core/gf.lua`
-- [ ] Add `pluralize()` to `core/model_context.lua`
-- [ ] Create `lua/rails-tools/core/controller_view.lua` (kinds, related types, toggle, menu, open_type, create prompt)
-- [ ] Register `:Rails related [type]` in `commands.lua`
-- [ ] Register keymap `<leader>rv` (gated by `modules.controller_view`)
-- [ ] Add "Related Files" menu item (gated by `modules.controller_view`)
-- [ ] Create `tests/core/rails_paths_spec.lua` and `tests/core/controller_view_spec.lua`
-- [ ] Extend command, keymap, menu and `model_context` tests
-- [ ] Update README and `specs/story.md`
+- [x] Create `lua/rails-tools/core/rails_paths.lua`; move the shared helpers out of `core/gf.lua`
+- [x] Add `pluralize()` to `core/model_context.lua`
+- [x] Create `lua/rails-tools/core/controller_view.lua` (kinds, related types, toggle, menu, open_type, create prompt)
+- [x] Register `:Rails related [type]` in `commands.lua`
+- [x] Register keymap `<leader>rv` (gated by `modules.controller_view`)
+- [x] Add "Related Files" menu item (gated by `modules.controller_view`)
+- [x] Create `tests/core/rails_paths_spec.lua` and `tests/core/controller_view_spec.lua`
+- [x] Extend command, keymap, menu and `model_context` tests
+- [x] Update README and `specs/story.md`
 
 ---
 
@@ -194,3 +200,4 @@ M.open_type(type)
 
 ## Decision Log
 - 2026-11-18: Design settled in discussion (10 questions, all accepted as recommended) — see Design and Key Decisions above
+- 2026-11-18: Public API settled as `kind_of` / `action_at` / `find` / `related` and `rails_paths.migration_arguments` during implementation — see Public API above

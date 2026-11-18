@@ -7,6 +7,7 @@ local STUBBED_MODULES = {
   "rails-tools.integrations.rspec",
   "rails-tools.core.generators",
   "rails-tools.integrations.grape",
+  "rails-tools.core.controller_view",
 }
 
 local ACTION_WAIT_MS = 100
@@ -46,6 +47,9 @@ describe("rails-tools.ui.menu", function()
     end
     package.preload["rails-tools.integrations.grape"] = function()
       return { show = function() table.insert(calls, { "grape.show" }) end }
+    end
+    package.preload["rails-tools.core.controller_view"] = function()
+      return { related_menu = function() table.insert(calls, { "controller_view.related_menu" }) end }
     end
   end
 
@@ -231,6 +235,29 @@ describe("rails-tools.ui.menu", function()
       open_menu_and_wait()
 
       assert.are.same({ { "grape.show" } }, calls)
+    end)
+  end)
+
+  describe("with modules.controller_view = true", function()
+    before_each(function()
+      require("rails-tools.config").setup({ modules = { controller_view = true } })
+    end)
+
+    it("adds Related Files after the Phase 1 actions", function()
+      menu.open()
+
+      assert.are.same(
+        { "Alternate File", "Find Resource", "View Routes", "Open Console", "Run Code", "Related Files" },
+        labels()
+      )
+    end)
+
+    it("lists the related files when Related Files is chosen", function()
+      pick_label = "Related Files"
+
+      open_menu_and_wait()
+
+      assert.are.same({ { "controller_view.related_menu" } }, calls)
     end)
   end)
 
