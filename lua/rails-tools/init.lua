@@ -19,6 +19,7 @@ function M.setup(opts)
   require("rails-tools.keymaps").setup()
 
   require("rails-tools.core.schema").setup()
+  require("rails-tools.core.gf").setup()
   require("rails-tools.integrations.lsp").setup()
   require("rails-tools.integrations.cmp").setup()
   require("rails-tools.telescope").setup()

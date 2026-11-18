@@ -26,14 +26,15 @@ See [specs/story.md](specs/story.md) for the full tracker and
       (opt-in: `modules.grape = true`)
 - [x] Test marker — `:Rails focus` toggles `fit` / `fdescribe` / ... on the
       RSpec example or group at the cursor (opt-in: `modules.test_marker = true`)
+- [x] Context-aware `gf` — partials, fixtures, table → model in migrations, route
+      helpers (opt-in: `modules.gf = true`)
 - [x] Schema-aware editing for ActiveRecord columns, from `db/schema.rb` +
       `annotate` blocks: hover (`K`), go-to-definition (`gd`), `nvim-cmp`
       completion (see
       [021-schema-inspector.md](specs/issues/021-schema-inspector.md))
 
 **Not implemented yet:**
-- [ ] Context-aware `gf`,
-      controller ↔ view navigation (Phase 2, opt-in modules)
+- [ ] Controller ↔ view navigation (Phase 2, opt-in modules)
 - [ ] Rails engines inside a host app, projects that only have `db/structure.sql`
 - [ ] Schema table display — `:Rails schema {table}` (Phase 3 — see
       [028-schema-display.md](specs/issues/028-schema-display.md))
@@ -71,6 +72,7 @@ require("rails-tools").setup({
     generators = true,   -- Rails generators (default: false)
     grape      = true,   -- Grape API support (default: false)
     test_marker = true,  -- Focus/unfocus RSpec examples (default: false)
+    gf          = true,  -- Rails-aware gf (default: false)
   },
   terminal = {
     provider  = "auto",        -- "auto" | "toggleterm" | "native"
@@ -127,6 +129,21 @@ opens the central menu (see [Status](#status) for what is still to come).
       Focus only takes effect when the project's RSpec config has
       `config.filter_run_when_matching :focus`
 - [ ] `:Rails doctor` — Diagnose project issues _(experimental backlog)_
+
+### Context-aware gf
+
+_(requires `modules.gf = true`)_ In ruby, eruby, haml and slim buffers, `gf` opens the Rails
+file under the cursor, and falls back to Neovim's own `gf` anywhere else:
+
+- [x] Partials — `render "shared/header"` → `app/views/shared/_header.html.erb`; a name without
+      `/` is looked up in the current view folder or controller's views. Format follows the
+      current file (html, json, xml), engine follows `view.engine` / `view.priority`
+- [x] Fixtures (test and spec files) — `fixtures :users`, `users(:alice)` →
+      `test/fixtures/users.yml` (or `spec/fixtures/`) at `alice:`
+- [x] Migrations — `create_table :course_progresses`, `add_column :users, ...` → the table's
+      model (annotate `# Table name:` first); `t.references :enrollment` → `app/models/enrollment.rb`
+- [x] Route helpers — `edit_user_path` / `users_url` → the controller action of the route
+- [x] Visual mode — select text such as `shared/header` and press `gf`
 
 ### Keymaps
 
