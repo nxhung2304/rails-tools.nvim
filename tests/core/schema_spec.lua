@@ -205,6 +205,28 @@ describe("schema.resolve", function()
     local resolved = schema.resolve(tmp_dir)
     assert.is_true(resolved.known_models.Order)
   end)
+
+  it("keeps namespaced models apart in models and known_models", function()
+    write("db/schema.rb", SAMPLE_SCHEMA)
+    write("app/models/user.rb", {
+      "# == Schema Information",
+      "# Table name: users",
+      "class User < ApplicationRecord",
+      "end",
+    })
+    write("app/models/admin/user.rb", {
+      "# == Schema Information",
+      "# Table name: admin_users",
+      "class Admin::User < ApplicationRecord",
+      "end",
+    })
+
+    local resolved = schema.resolve(tmp_dir)
+
+    assert.is_true(resolved.known_models.User)
+    assert.is_true(resolved.known_models["Admin::User"])
+    assert.are.equal("admin_users", resolved.models["Admin::User"].table_name)
+  end)
 end)
 
 describe("schema.setup", function()

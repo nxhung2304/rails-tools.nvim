@@ -57,10 +57,12 @@ function M.scan(root)
   for _, file in ipairs(files) do
     local ok, lines = pcall(vim.fn.readfile, file)
     if ok then
-      local model_name = model_context.camelize(vim.fn.fnamemodify(file, ":t:r"))
-      local block = M.parse(lines)
-      block.file = file
-      by_model[model_name] = block
+      local model_name = model_context.model_for_path(file)
+      if model_name then
+        local block = M.parse(lines)
+        block.file = file
+        by_model[model_name] = block
+      end
     end
   end
 

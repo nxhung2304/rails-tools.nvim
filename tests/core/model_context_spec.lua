@@ -159,4 +159,27 @@ describe("model_context.model_for_path", function()
   it("returns nil for paths outside app/models", function()
     assert.is_nil(model_context.model_for_path("app/controllers/users_controller.rb"))
   end)
+
+  it("keeps the namespace in the model name", function()
+    assert.are.equal("Admin::User", model_context.model_for_path("app/models/admin/user.rb"))
+  end)
+
+  it("joins every directory of a deep namespace", function()
+    assert.are.equal(
+      "Admin::Billing::InvoiceItem",
+      model_context.model_for_path("/rails/app/models/admin/billing/invoice_item.rb")
+    )
+  end)
+
+  it("returns nil for concerns", function()
+    assert.is_nil(model_context.model_for_path("app/models/concerns/searchable.rb"))
+  end)
+
+  it("uses the last app/models/ in the path", function()
+    assert.are.equal("User", model_context.model_for_path("/work/app/models/demo/app/models/user.rb"))
+  end)
+
+  it("returns nil for a segment that is not a valid constant name", function()
+    assert.is_nil(model_context.model_for_path("app/models/foo-bar.rb"))
+  end)
 end)

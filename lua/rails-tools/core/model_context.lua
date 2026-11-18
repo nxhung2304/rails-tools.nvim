@@ -1,5 +1,9 @@
 local M = {}
 
+local MODEL_PATH_PATTERN = ".*app/models/(.+)%.rb$"
+local CONCERNS_PREFIX = "concerns/"
+local MODEL_SEGMENT_PATTERN = "^[%w_]+$"
+
 local IRREGULARS = {
   person = "people",
   child = "children",
@@ -108,11 +112,18 @@ end
 ---@param path string absolute or relative file path
 ---@return string|nil model name (camelized), or nil if the path isn't an app/models file
 function M.model_for_path(path)
-  local base = path:match("app/models/.-([%w_]+)%.rb$")
-  if not base then
+  local relative = path:match(MODEL_PATH_PATTERN)
+  if not relative or vim.startswith(relative, CONCERNS_PREFIX) then
     return nil
   end
-  return M.camelize(base)
+  local segments = vim.split(relative, "/", { plain = true })
+  for index, segment in ipairs(segments) do
+    if not segment:match(MODEL_SEGMENT_PATTERN) then
+      return nil
+    end
+    segments[index] = M.camelize(segment)
+  end
+  return table.concat(segments, "::")
 end
 
 return M

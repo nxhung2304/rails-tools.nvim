@@ -149,4 +149,34 @@ describe("annotate.scan", function()
     assert.is_nil(by_model.Plain.table_name)
     assert.are.same({}, by_model.Plain.columns)
   end)
+
+  it("keys namespaced models by full name, so same basenames do not collide", function()
+    vim.fn.mkdir(tmp_dir .. "/app/models/admin", "p")
+    write_model("user", { "# == Schema Information", "#", "# Table name: users", "#", "class User < ApplicationRecord", "end" })
+    write_model("admin/user", {
+      "# == Schema Information",
+      "#",
+      "# Table name: admin_users",
+      "#",
+      "class Admin::User < ApplicationRecord",
+      "end",
+    })
+
+    local by_model = annotate.scan(tmp_dir)
+
+    assert.are.equal("users", by_model.User.table_name)
+    assert.are.equal("admin_users", by_model["Admin::User"].table_name)
+    assert.are.equal(tmp_dir .. "/app/models/user.rb", by_model.User.file)
+    assert.are.equal(tmp_dir .. "/app/models/admin/user.rb", by_model["Admin::User"].file)
+  end)
+
+  it("skips app/models/concerns", function()
+    vim.fn.mkdir(tmp_dir .. "/app/models/concerns", "p")
+    write_model("concerns/searchable", { "module Searchable", "end" })
+
+    local by_model = annotate.scan(tmp_dir)
+
+    assert.is_nil(by_model.Searchable)
+    assert.is_nil(by_model["Concerns::Searchable"])
+  end)
 end)

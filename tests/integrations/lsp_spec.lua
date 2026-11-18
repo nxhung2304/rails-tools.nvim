@@ -144,4 +144,30 @@ describe("integrations.lsp", function()
     assert.is_nil(lsp.hover_lines("user", "not_a_column", nil, tmp_dir))
     assert.is_nil(lsp.definition_location("user", "not_a_column", nil, tmp_dir))
   end)
+
+  describe("namespaced model file", function()
+    before_each(function()
+      vim.fn.mkdir(tmp_dir .. "/app/models/admin", "p")
+      vim.fn.writefile({
+        "# == Schema Information",
+        "#",
+        "# Table name: admin_users",
+        "#",
+        "#  username  :string not null",
+        "#",
+        "class Admin::User < ApplicationRecord",
+        "end",
+      }, tmp_dir .. "/app/models/admin/user.rb")
+    end)
+
+    it("resolves a bare column against the namespaced current model", function()
+      local lines = lsp.hover_lines(nil, "username", "Admin::User", tmp_dir)
+      assert.is_not_nil(lines)
+      assert.matches("Admin::User", table.concat(lines, "\n"))
+    end)
+
+    it("does not map the receiver `user` to a namespaced model", function()
+      assert.is_nil(lsp.hover_lines("user", "username", nil, tmp_dir))
+    end)
+  end)
 end)

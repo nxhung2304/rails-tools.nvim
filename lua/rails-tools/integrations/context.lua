@@ -37,7 +37,7 @@ function M.word_and_receiver(line, col)
   end
 
   local before = line:sub(1, start_idx - 2)
-  local receiver = before:match("@?([%a_][%w_]*)$")
+  local receiver = before:match("@?([%a_][%w_]*)&?$")
   return receiver, word
 end
 
