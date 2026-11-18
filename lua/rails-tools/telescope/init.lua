@@ -29,6 +29,10 @@ local function build_exports()
     require("rails-tools.core.routes").show({ provider = "telescope", picker_opts = picker_opts })
   end
   exports.grape = function(picker_opts)
+    if not config.get().modules.grape then
+      vim.notify("Rails: Grape support is disabled, set modules.grape = true", vim.log.levels.WARN)
+      return
+    end
     require("rails-tools.integrations.grape").show({ provider = "telescope", picker_opts = picker_opts })
   end
   return exports
