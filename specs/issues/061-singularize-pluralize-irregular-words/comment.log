@@ -1,0 +1,34 @@
+Note: A and B ran in the worktree with staged changes, so they could see the code only (they were told not to read specs/). Agent C checked the spec. All three sources ran. No issue comments and no PR existed at review time.
+
+Summary: 0 MUST / 0 SHOULD / 1 NIT. 0 assumption-based. 0 pending confirmation. 3 in "Spec to review". 1 in "Out of scope / no change needed". Findings per source: review-branch 1, code-review 3, spec-review 1.
+
+### 1. NIT — Missing blank line between two test cases
+- **Source:** `review-branch`
+- **Classification:** In scope · Verified · Diff touches: yes · Related: yes
+- **File:** tests/core/model_context_spec.lua:74
+- **Problem:** The new `it("resolves an irregular plural variable", ...)` follows the previous `end)` with no blank line. Every other `it` in this block has one.
+- **Fix:** Add one blank line before line 74.
+
+## Spec to review
+
+### A. `pluralize` of an already-plural irregular word gives `peoples`
+- **Source:** `code-review`
+- **File:** lua/rails-tools/core/model_context.lua:63-69
+- **Spec/leader decision:** implement.md Notes: "`pluralize` of an already-plural word (`people → peoples`) is not handled. No caller passes a plural to `pluralize` (`related_files.lua:157,246` pass the model path). Same as today for regular words."
+- **Question:** The spec chose to leave this as is, the code shows `people → peoples` for a legacy `app/models/people.rb`. Does that still hold?
+
+### B. Irregular words inside compound words without a separator (`salesperson`, `chairman`) are not matched
+- **Source:** `code-review`
+- **File:** lua/rails-tools/core/model_context.lua:29
+- **Spec/leader decision:** implement.md Decisions 1: "Irregulars match the whole last segment, not a plain suffix like ActiveSupport. Simpler and avoids false matches inside compound words without a separator; only `human`/`salesperson`-style models differ."
+- **Question:** The spec chose whole-segment matching, the code shows `salesperson → salespersons` where Rails gives `salespeople`. Does that still hold?
+
+### C. Uncountable list is shorter than ActiveSupport's
+- **Source:** `code-review`
+- **File:** lua/rails-tools/core/model_context.lua:13
+- **Spec/leader decision:** implement.md Decisions 3: "Keep the story's five uncountables; ActiveSupport's other defaults (`rice`, `money`, `fish`, `sheep`, `jeans`, `police`) are not added. A later add is one line each."
+- **Question:** The spec chose five words, the code shows `sheep → sheeps`. Does that still hold?
+
+## Out of scope / no change needed
+
+- specs/issues/061-singularize-pluralize-irregular-words/ (whole folder): untracked, so not staged. Source: `spec-review`. Classification: Out of scope — handled by the Finalize step, which copies the folder in; not a code change.
