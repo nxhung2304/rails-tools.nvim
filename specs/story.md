@@ -419,9 +419,9 @@ Each task links its GitHub issue, which holds the evidence and full acceptance c
 - [ ] Regression test from the reproduce script in the issue
 
 ### BF-064. `cmp.dedupe_with_lsp` matching and Neovim 0.9 support (GitHub #64)
-- [ ] Check each configured client name separately
-- [ ] Fall back to `get_active_clients` on Neovim 0.9
-- [ ] Tests use a real dummy LSP client instead of replacing `vim.lsp.get_clients`
+- [x] Check each configured client name separately
+- [x] Fall back to `get_active_clients` on Neovim 0.9
+- [x] Tests use a real dummy LSP client instead of replacing `vim.lsp.get_clients`
 
 ---
 

@@ -14,7 +14,14 @@ local function lsp_already_covers_columns(bufnr)
   if #names == 0 then
     return false
   end
-  return #vim.lsp.get_clients({ bufnr = bufnr, name = names }) > 0
+  local get_clients = vim.lsp.get_clients or vim.lsp.get_active_clients
+  for _, client in ipairs(get_clients({ bufnr = bufnr })) do
+    if vim.tbl_contains(names, client.name) then
+      return true
+    end
+  end
+
+  return false
 end
 
 ---@return string|nil
