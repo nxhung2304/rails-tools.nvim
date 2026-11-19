@@ -408,9 +408,9 @@ Each task links its GitHub issue, which holds the evidence and full acceptance c
 - [ ] README/docs updated
 
 ### BF-062. Test marker with multi-line `it(` and heredocs (GitHub #62)
-- [ ] Cursor inside a multi-line `it(...) do` focuses the `it` line
-- [ ] A heredoc with a dedented `end` does not break the search
-- [ ] Both cases added as regression tests
+- [x] Cursor inside a multi-line `it(...) do` focuses the `it` line
+- [x] A heredoc with a dedented `end` does not break the search
+- [x] Both cases added as regression tests
 
 ### BF-063. Terminal leaves the finished command's window behind (GitHub #63)
 - [ ] Next command reuses or closes the previous terminal window and buffer (native and toggleterm)

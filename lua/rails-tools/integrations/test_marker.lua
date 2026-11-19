@@ -4,6 +4,16 @@ local SPEC_FILE_SUFFIX = "_spec.rb"
 local GROUP_PREFIX = "RSpec."
 local FOCUSED_PREFIX = "f"
 local NON_CALL_FOLLOWER_PATTERN = "^[=.+%-*/%%<>|&,%)%]}?]$"
+local HEREDOC_OPENER_PATTERN = "[^%w_%)%]}]<<([~-]?)([\"'`]?)()"
+local BARE_HEREDOC_NAME_PATTERN = "^[%a_][%w_]*"
+local SINGLETON_CLASS_PATTERN = "class%s+<<"
+local CONVENTIONAL_HEREDOC_NAME_PATTERN = "^[%u_][%u%d_]*$"
+local COMMENT_LINE_PATTERN = "^%s*#"
+local EMBEDDED_DOC_BEGIN_PATTERN = "^=begin"
+local EMBEDDED_DOC_END_PATTERN = "^=end"
+local CLOSING_BRACKET_LINE_PATTERN = "^%s*[%)%]}]"
+local TRAILING_COMMENT_PATTERN = "%s+#.*$"
+local BLOCK_OPENER_SUFFIX_PATTERNS = { "[%s%)%]}]do$", "[%s%)%]}]do%s*|[^|]*|$", "{$", "{%s*|[^|]*|$" }
 
 local KEYWORD_PAIRS = {
   { unfocused = "it", is_group = false },
@@ -83,6 +93,111 @@ local function target_at(lnum)
   }
 end
 
+---@param text string
+---@return boolean
+local function opens_block_after_closing_bracket(text)
+  if not text:match(CLOSING_BRACKET_LINE_PATTERN) then
+    return false
+  end
+
+  local code = vim.trim((text:gsub(TRAILING_COMMENT_PATTERN, "")))
+  for _, pattern in ipairs(BLOCK_OPENER_SUFFIX_PATTERNS) do
+    if code:match(pattern) then
+      return true
+    end
+  end
+
+  return false
+end
+
+---@param name_text string
+---@param modifier string
+---@param quote string
+---@return string|nil
+local function heredoc_identifier(name_text, modifier, quote)
+  if quote ~= "" then
+    return name_text:match("^([^" .. quote .. "]+)" .. quote)
+  end
+
+  local identifier = name_text:match(BARE_HEREDOC_NAME_PATTERN)
+  if identifier and (modifier ~= "" or identifier:match(CONVENTIONAL_HEREDOC_NAME_PATTERN)) then
+    return identifier
+  end
+
+  return nil
+end
+
+---@param text string
+---@return string[]
+local function heredoc_identifiers(text)
+  local code = text:gsub(TRAILING_COMMENT_PATTERN, ""):gsub(SINGLETON_CLASS_PATTERN, "class ")
+  local padded_code = " " .. code
+  local identifiers = {}
+  for modifier, quote, name_start in padded_code:gmatch(HEREDOC_OPENER_PATTERN) do
+    local identifier = heredoc_identifier(padded_code:sub(name_start), modifier, quote)
+    if identifier then
+      table.insert(identifiers, identifier)
+    end
+  end
+  return identifiers
+end
+
+---@param lines string[]
+---@param opener_lnum integer
+---@param identifiers string[]
+---@return integer|nil
+local function last_terminator_lnum(lines, opener_lnum, identifiers)
+  if #identifiers == 0 then
+    return nil
+  end
+
+  local identifier_index = 1
+  for lnum = opener_lnum + 1, #lines do
+    if vim.trim(lines[lnum]) == identifiers[identifier_index] then
+      if identifier_index == #identifiers then
+        return lnum
+      end
+      identifier_index = identifier_index + 1
+    end
+  end
+
+  return nil
+end
+
+---@param body_lines table<integer, boolean>
+---@param opener_lnum integer
+---@param terminator_lnum integer
+local function mark_heredoc_body(body_lines, opener_lnum, terminator_lnum)
+  for body_lnum = opener_lnum + 1, terminator_lnum do
+    body_lines[body_lnum] = true
+  end
+end
+
+---@param last_lnum integer
+---@return table<integer, boolean>
+local function heredoc_body_lines(last_lnum)
+  local lines = vim.api.nvim_buf_get_lines(0, 0, last_lnum, false)
+  local body_lines = {}
+  local in_embedded_doc = false
+  local lnum = 1
+  while lnum <= #lines do
+    local text = lines[lnum]
+    if in_embedded_doc then
+      in_embedded_doc = not text:match(EMBEDDED_DOC_END_PATTERN)
+    elseif text:match(EMBEDDED_DOC_BEGIN_PATTERN) then
+      in_embedded_doc = true
+    elseif not text:match(COMMENT_LINE_PATTERN) then
+      local terminator_lnum = last_terminator_lnum(lines, lnum, heredoc_identifiers(text))
+      if terminator_lnum then
+        mark_heredoc_body(body_lines, lnum, terminator_lnum)
+        lnum = terminator_lnum
+      end
+    end
+    lnum = lnum + 1
+  end
+  return body_lines
+end
+
 ---@param cursor_lnum integer
 ---@return RailsToolsMarkerTarget|nil
 local function find_target(cursor_lnum)
@@ -94,20 +209,28 @@ local function find_target(cursor_lnum)
   local cursor_text = vim.api.nvim_buf_get_lines(0, cursor_lnum - 1, cursor_lnum, false)[1]
   local limit = cursor_text:match("^%s*$") and math.huge or vim.fn.indent(cursor_lnum)
 
+  local skipped_lines = heredoc_body_lines(cursor_lnum - 1)
+  local awaiting_bracket_opener = false
+
   for lnum = cursor_lnum - 1, 1, -1 do
     local text = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, false)[1]
     local indent = vim.fn.indent(lnum)
-    if indent <= limit and not text:match("^%s*$") then
+    if indent <= limit and not text:match("^%s*$") and not skipped_lines[lnum] then
       if is_block_end(text) then
         limit = indent - 1
+        awaiting_bracket_opener = false
+      elseif opens_block_after_closing_bracket(text) then
+        limit = indent
+        awaiting_bracket_opener = true
       else
         local target = target_at(lnum)
         if target then
           return target
         end
-        if indent < limit then
+        if indent < limit or awaiting_bracket_opener then
           limit = indent - 1
         end
+        awaiting_bracket_opener = false
       end
     end
   end
