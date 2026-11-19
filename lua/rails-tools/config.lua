@@ -1,5 +1,7 @@
 local M = {}
 
+local RAILS_SUBCOMMANDS = { routes = "routes", console = "console", runner = "runner", generators = "generate" }
+
 ---@type table<string, table[]>
 local built_in_mappings = {
   rspec = {
@@ -98,19 +100,12 @@ M.defaults = {
     cache_ttl = 30,
   },
   routes = {
-    command = "bin/rails routes",
     args = "--expanded",
     cache_ttl = 300,
   },
-  console = {
-    command = "rails console",
-  },
-  runner = {
-    command = "rails runner",
-  },
-  generators = {
-    command = "rails generate",
-  },
+  console = {},
+  runner = {},
+  generators = {},
   keymaps = {
     enabled = true,
     prefix = "<leader>r",
@@ -158,6 +153,17 @@ function M.alternate_mappings(framework)
   end
   vim.list_extend(mappings, built_in_mappings[framework] or {})
   return mappings
+end
+
+---@param section "routes"|"console"|"runner"|"generators"
+---@param root string|nil
+---@return string
+function M.rails_command(section, root)
+  local configured = M.get()[section].command
+  if configured then
+    return configured
+  end
+  return require("rails-tools.detectors.rails").executable(root) .. " " .. RAILS_SUBCOMMANDS[section]
 end
 
 return M

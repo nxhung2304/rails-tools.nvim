@@ -6,15 +6,16 @@ local M = {}
 
 local console_root = nil
 
+---@param root string|nil
 ---@return string
-local function console_command()
-  return config.get().console.command
+local function console_command(root)
+  return config.rails_command("console", root)
 end
 
 ---@param root string
 ---@return boolean
 local function is_console_active(root)
-  return terminal.active_cmd() == console_command() and console_root == root
+  return terminal.active_cmd() == console_command(root) and console_root == root
 end
 
 ---@return string|nil
@@ -43,7 +44,7 @@ function M.open()
       return
     end
 
-    terminal.open(console_command(), { cwd = root })
+    terminal.open(console_command(root), { cwd = root })
     console_root = root
     return
   end

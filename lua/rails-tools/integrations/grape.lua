@@ -287,7 +287,8 @@ end
 ---@param root string
 ---@param opts RailsToolsGrapeShowOpts
 local function load_routes(root, opts)
-  local command = config.get().runner.command .. " " .. vim.fn.shellescape(LIST_ROUTES_SCRIPT)
+  local runner_command = config.rails_command("runner", root)
+  local command = runner_command .. " " .. vim.fn.shellescape(LIST_ROUTES_SCRIPT)
   local stdout = {}
   local stderr = {}
   local job_id
@@ -315,7 +316,7 @@ local function load_routes(root, opts)
   })
 
   if not started or job_or_error <= 0 then
-    vim.notify(("Rails: could not run '%s'"):format(config.get().runner.command), vim.log.levels.ERROR)
+    vim.notify(("Rails: could not run '%s'"):format(runner_command), vim.log.levels.ERROR)
     return
   end
   job_id = job_or_error

@@ -67,7 +67,7 @@ function M.run(code)
     return
   end
 
-  local command = config.get().runner.command .. " " .. vim.fn.shellescape(code)
+  local command = config.rails_command("runner", root) .. " " .. vim.fn.shellescape(code)
   terminal.open(command, { cwd = root })
 end
 

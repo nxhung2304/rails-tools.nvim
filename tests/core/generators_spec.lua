@@ -74,19 +74,19 @@ describe("rails-tools.core.generators", function()
     it("generates a model in the Rails root", function()
       generators.run("model User name:string email:string")
 
-      assert.are.same({ { cmd = "rails generate model User name:string email:string", cwd = tmp_dir } }, opened)
+      assert.are.same({ { cmd = "bin/rails generate model User name:string email:string", cwd = tmp_dir } }, opened)
     end)
 
     it("generates a controller", function()
       generators.run("controller Admin::Users index show")
 
-      assert.equals("rails generate controller Admin::Users index show", opened[1].cmd)
+      assert.equals("bin/rails generate controller Admin::Users index show", opened[1].cmd)
     end)
 
     it("generates a migration", function()
       generators.run("migration AddAgeToUsers age:integer")
 
-      assert.equals("rails generate migration AddAgeToUsers age:integer", opened[1].cmd)
+      assert.equals("bin/rails generate migration AddAgeToUsers age:integer", opened[1].cmd)
     end)
 
     it("uses the generator command from config", function()
@@ -100,7 +100,7 @@ describe("rails-tools.core.generators", function()
     it("trims surrounding spaces from the arguments", function()
       generators.run("  model Post  ")
 
-      assert.equals("rails generate model Post", opened[1].cmd)
+      assert.equals("bin/rails generate model Post", opened[1].cmd)
     end)
 
     it("runs in the Rails project of the current file, not the cwd", function()
@@ -145,7 +145,7 @@ describe("rails-tools.core.generators", function()
       generators.run_prompt()
 
       assert.equals("Rails generate: ", prompt_text)
-      assert.equals("rails generate model Post title:string", opened[1].cmd)
+      assert.equals("bin/rails generate model Post title:string", opened[1].cmd)
     end)
 
     it("does nothing when the prompt is cancelled", function()
