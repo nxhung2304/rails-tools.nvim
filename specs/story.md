@@ -413,10 +413,10 @@ Each task links its GitHub issue, which holds the evidence and full acceptance c
 - [ ] Both cases added as regression tests
 
 ### BF-063. Terminal leaves the finished command's window behind (GitHub #63)
-- [ ] Next command reuses or closes the previous terminal window and buffer (native and toggleterm)
-- [ ] `toggle` / `show` work on a terminal whose process has exited
-- [ ] `confirm_replace` asks only when a job is running
-- [ ] Regression test from the reproduce script in the issue
+- [x] Next command reuses or closes the previous terminal window and buffer (native and toggleterm)
+- [x] `toggle` / `show` work on a terminal whose process has exited
+- [x] `confirm_replace` asks only when a job is running
+- [x] Regression test from the reproduce script in the issue
 
 ### BF-064. `cmp.dedupe_with_lsp` matching and Neovim 0.9 support (GitHub #64)
 - [ ] Check each configured client name separately
