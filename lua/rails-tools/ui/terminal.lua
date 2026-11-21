@@ -10,6 +10,7 @@ local state = {
   job_id = nil,
   term = nil, -- toggleterm instance
   cmd = nil,
+  finished = false,
 }
 
 local function get_cwd(opts)
@@ -69,10 +70,21 @@ local function clear_state()
   state.term = nil
   state.provider = nil
   state.cmd = nil
+  state.finished = false
 end
 
 local function setup_cleanup(bufnr)
-  vim.api.nvim_create_autocmd({ "TermClose", "BufWipeout" }, {
+  vim.api.nvim_create_autocmd("TermClose", {
+    buffer = bufnr,
+    once = true,
+    callback = function()
+      if state.bufnr == bufnr then
+        state.cmd = nil
+        state.finished = true
+      end
+    end,
+  })
+  vim.api.nvim_create_autocmd("BufWipeout", {
     buffer = bufnr,
     once = true,
     callback = function()
@@ -134,7 +146,8 @@ local function open_toggleterm(cmd, opts)
     float_opts = float_opts,
     on_exit = function(exited_term)
       if state.term == exited_term then
-        clear_state()
+        state.cmd = nil
+        state.finished = true
       end
     end,
   })
@@ -296,6 +309,11 @@ end
 ---Send text to the active terminal
 ---@param text string
 function M.send(text)
+  if state.finished then
+    vim.notify("Rails: no active terminal", vim.log.levels.WARN)
+    return
+  end
+
   local final_text = text
   if not text:match("\n$") then
     final_text = text .. "\n"

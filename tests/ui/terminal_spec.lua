@@ -229,6 +229,99 @@ describe("terminal", function()
       assert.is_nil(terminal.active_cmd())
     end)
 
+    local function open_and_finish(cmd)
+      terminal.open(cmd, { cwd = vim.fn.getcwd() })
+      vim.fn.jobwait({ vim.b.terminal_job_id }, 5000)
+      vim.wait(2000, function()
+        return terminal.active_cmd() == nil
+      end)
+    end
+
+    it("clears the active command when the native job exits", function()
+      open_and_finish("true")
+
+      assert.is_nil(terminal.active_cmd())
+      assert.is_true(terminal.is_visible())
+    end)
+
+    it("closes the finished terminal when the next command opens", function()
+      local wins_before = #vim.api.nvim_list_wins()
+      open_and_finish("echo one")
+      local first_buf = vim.api.nvim_get_current_buf()
+
+      terminal.open("echo two", { cwd = vim.fn.getcwd() })
+
+      local terminal_bufs = 0
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.bo[buf].buftype == "terminal" then
+          terminal_bufs = terminal_bufs + 1
+        end
+      end
+      assert.is_false(vim.api.nvim_buf_is_valid(first_buf))
+      assert.are.equal(1, terminal_bufs)
+      assert.are.equal(wins_before + 1, #vim.api.nvim_list_wins())
+    end)
+
+    it("warns instead of erroring when sending to a finished terminal", function()
+      open_and_finish("true")
+      local orig_notify = vim.notify
+      local warned = false
+      vim.notify = function(msg)
+        if msg:match("no active terminal") then
+          warned = true
+        end
+      end
+
+      local ok = pcall(terminal.send, "echo hi")
+      vim.notify = orig_notify
+
+      assert.is_true(ok)
+      assert.is_true(warned)
+    end)
+
+    it("toggles a terminal whose process has exited", function()
+      open_and_finish("true")
+      local orig_notify = vim.notify
+      local notified = false
+      vim.notify = function()
+        notified = true
+      end
+
+      terminal.toggle()
+      local hidden = not terminal.is_visible()
+      terminal.toggle()
+      vim.notify = orig_notify
+
+      assert.is_true(hidden)
+      assert.is_false(notified)
+      assert.is_true(terminal.is_visible())
+    end)
+
+    it("shows a terminal whose process has exited", function()
+      open_and_finish("true")
+      terminal.toggle()
+
+      terminal.show()
+
+      assert.is_true(terminal.is_visible())
+    end)
+
+    it("replaces a finished terminal without asking", function()
+      open_and_finish("true")
+      local orig_confirm = vim.fn.confirm
+      local asked = false
+      vim.fn.confirm = function()
+        asked = true
+        return 2
+      end
+
+      local replace = terminal.confirm_replace()
+      vim.fn.confirm = orig_confirm
+
+      assert.is_true(replace)
+      assert.is_false(asked)
+    end)
+
     it("reports a running job and asks before replacing it", function()
       terminal.open("cat")
       local orig_confirm = vim.fn.confirm
@@ -404,6 +497,26 @@ describe("terminal", function()
       old_on_exit(old_term)
 
       assert.are.equal("rails runner", terminal.active_cmd())
+    end)
+
+    it("shuts down a finished terminal when the next command opens", function()
+      terminal.open("rails runner")
+      local first_term = fake_term
+      terminal_args.on_exit(fake_term)
+      fake_term = vim.tbl_extend("force", {}, first_term)
+
+      terminal.open("rails console")
+
+      assert.is_true(first_term.shutdown_called)
+    end)
+
+    it("toggles a finished toggleterm terminal", function()
+      terminal.open("rails runner")
+      terminal_args.on_exit(fake_term)
+
+      terminal.toggle()
+
+      assert.is_true(fake_term.toggled)
     end)
 
     it("shows the toggleterm terminal", function()
