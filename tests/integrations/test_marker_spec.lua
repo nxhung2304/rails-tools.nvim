@@ -222,6 +222,392 @@ describe("rails-tools.integrations.test_marker", function()
       assert.equals("fdescribe :sym do", buffer_lines()[1])
     end)
 
+    local function focus_lines_at(spec_lines, lnum)
+      open_spec(vim.deepcopy(spec_lines), { lnum, 0 })
+      test_marker.focus()
+      return buffer_lines()
+    end
+
+    local multi_line_example = {
+      "RSpec.describe User do",
+      "  it(",
+      '    "multi line args"',
+      "  ) do",
+      "    expect(true).to be true",
+      "  end",
+      "end",
+    }
+
+    local heredoc_example = {
+      "RSpec.describe User do",
+      '  it "uses heredoc" do',
+      "    sql = <<~SQL",
+      "      select 1",
+      "end",
+      "    SQL",
+      "    expect(sql).to be_present",
+      "  end",
+      "end",
+    }
+
+    local function heredoc_example_with_before_block()
+      local spec_lines = vim.list_slice(heredoc_example, 1, 8)
+      vim.list_extend(spec_lines, { "", "  before do", "    x", "  end", "end" })
+      return spec_lines
+    end
+
+    it("targets an example whose arguments span several lines", function()
+      local result = focus_lines_at(multi_line_example, 5)
+
+      assert.equals("  fit(", result[2])
+      assert.equals("RSpec.describe User do", result[1])
+    end)
+
+    it("targets a multi-line example whose block takes arguments and has a comment", function()
+      local result = focus_lines_at({
+        "describe X do",
+        "  it(",
+        '    "a"',
+        "  ) do |record| # note",
+        "    record",
+        "  end",
+        "end",
+      }, 5)
+
+      assert.equals("  fit(", result[2])
+    end)
+
+    it("targets the parent group when a multi-line call that opens a block is not a target", function()
+      local result = focus_lines_at({
+        "describe X do",
+        "  it { is_expected.to be }",
+        "  shared_examples(",
+        '    "a"',
+        "  ) do",
+        "    foo",
+        "  end",
+        "end",
+      }, 6)
+
+      assert.equals("fdescribe X do", result[1])
+      assert.equals("  it { is_expected.to be }", result[2])
+    end)
+
+    it("targets the parent group from a blank line below a multi-line let", function()
+      local result = focus_lines_at({
+        "describe User do",
+        "  it { is_expected.to be_valid }",
+        "  let(:params) {",
+        "    { a: 1 }",
+        "  }",
+        "",
+        "end",
+      }, 6)
+
+      assert.equals("fdescribe User do", result[1])
+      assert.equals("  it { is_expected.to be_valid }", result[2])
+    end)
+
+    it("targets the parent group from a blank line below a multi-line example without a block", function()
+      local result = focus_lines_at({
+        "describe User do",
+        '  it "a" do',
+        "  end",
+        "  it(",
+        '    "pending"',
+        "  )",
+        "",
+        "end",
+      }, 7)
+
+      assert.equals("fdescribe User do", result[1])
+      assert.equals("  it(", result[4])
+    end)
+
+    it("targets the example around a heredoc with a dedented end line", function()
+      local result = focus_lines_at(heredoc_example, 7)
+
+      assert.equals('  fit "uses heredoc" do', result[2])
+    end)
+
+    it("targets the parent group from a before block body below an example that has such a heredoc", function()
+      local result = focus_lines_at(heredoc_example_with_before_block(), 11)
+
+      assert.equals("RSpec.fdescribe User do", result[1])
+    end)
+
+    it("targets the parent group from a blank line below an example that has such a heredoc", function()
+      local result = focus_lines_at(heredoc_example_with_before_block(), 9)
+
+      assert.equals("RSpec.fdescribe User do", result[1])
+    end)
+
+    it("skips the bodies of two heredocs opened on one line", function()
+      local result = focus_lines_at({
+        "describe X do",
+        '  it "h" do',
+        "    f(<<~A, <<~B)",
+        "end",
+        "    A",
+        "end",
+        "    B",
+        "  end",
+        "",
+        "end",
+      }, 9)
+
+      assert.equals("fdescribe X do", result[1])
+    end)
+
+    it("does not treat a shovel operator as a heredoc", function()
+      local result = focus_lines_at({
+        "describe X do",
+        '  it "h" do',
+        "    a << b",
+        "  end",
+        "",
+        "end",
+      }, 5)
+
+      assert.equals("fdescribe X do", result[1])
+    end)
+
+    it("does not treat a shovel operator without spaces as a heredoc", function()
+      local result = focus_lines_at({
+        "describe X do",
+        '  it "a" do',
+        "    list<<item",
+        "  end",
+        "",
+        '  it "b" do',
+        "    foo",
+        "  end",
+        "end",
+      }, 7)
+
+      assert.equals('  fit "b" do', result[6])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("does not treat class << self as a heredoc", function()
+      local result = focus_lines_at({
+        "describe X do",
+        '  it "a" do',
+        "    class <<self",
+        "  end",
+        "",
+        '  it "b" do',
+        "    foo",
+        "  end",
+        "end",
+      }, 7)
+
+      assert.equals('  fit "b" do', result[6])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("does not treat a heredoc opener in a trailing comment as a heredoc", function()
+      local result = focus_lines_at({
+        "describe X do",
+        '  it "a" do',
+        "    foo # see <<EOS",
+        "  end",
+        "",
+        '  it "b" do',
+        "    foo",
+        "  end",
+        "end",
+      }, 7)
+
+      assert.equals('  fit "b" do', result[6])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("does not treat a left shift by a number variable as a heredoc", function()
+      local result = focus_lines_at({
+        "describe X do",
+        '  it "a" do',
+        "    y = 1 <<n",
+        "  end",
+        "",
+        '  it "b" do',
+        "    foo",
+        "  end",
+        "end",
+      }, 7)
+
+      assert.equals('  fit "b" do', result[6])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("does not treat a left shift by a lowercase variable as a heredoc", function()
+      local result = focus_lines_at({
+        "describe X do",
+        '  it "a" do',
+        "    y = x <<y",
+        "  end",
+        "",
+        '  it "b" do',
+        "    foo",
+        "  end",
+        "end",
+      }, 7)
+
+      assert.equals('  fit "b" do', result[6])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    local function examples_around(first_example_line)
+      return {
+        "describe X do",
+        '  it "a" do',
+        first_example_line,
+        "  end",
+        "",
+        '  it "b" do',
+        "    foo",
+        "  end",
+        "end",
+      }
+    end
+
+    it("does not skip the lines below a quoted string appended without a space", function()
+      local result = focus_lines_at(examples_around('    errors <<"Name is blank"'), 7)
+
+      assert.equals('  fit "b" do', result[6])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("does not skip the lines below a one-word quoted string appended without a space", function()
+      local result = focus_lines_at(examples_around('    errors <<"msg"'), 7)
+
+      assert.equals('  fit "b" do', result[6])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("does not skip the lines below an uppercase constant appended without a space", function()
+      local result = focus_lines_at(examples_around("    list <<ITEM"), 7)
+
+      assert.equals('  fit "b" do', result[6])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("does not skip the lines below a left shift by a constant", function()
+      local result = focus_lines_at(examples_around("    y = 1 <<FLAG_BIT"), 7)
+
+      assert.equals('  fit "b" do', result[6])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("does not skip the lines below a left shift by a negated variable", function()
+      local result = focus_lines_at(examples_around("    y = x <<-n"), 7)
+
+      assert.equals('  fit "b" do', result[6])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("does not skip the lines below a heredoc-like text in a regex", function()
+      local result = focus_lines_at(examples_around("    expect(out).to match(/<<HEAD/)"), 7)
+
+      assert.equals('  fit "b" do', result[6])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("skips a heredoc whose quoted name has a dash", function()
+      local result = focus_lines_at({
+        "describe X do",
+        '  it "a" do',
+        "    x = <<~'END-OF'",
+        "      y",
+        "    END-OF",
+        "  end",
+        "",
+        '  it "b" do',
+        "    foo",
+        "  end",
+        "end",
+      }, 9)
+
+      assert.equals('  fit "b" do', result[8])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("skips a heredoc whose quoted name has spaces", function()
+      local result = focus_lines_at({
+        "describe X do",
+        '  it "a" do',
+        '    x = <<~"END OF TEXT"',
+        "      hi",
+        "    END OF TEXT",
+        "  end",
+        "",
+        '  it "b" do',
+        "    foo",
+        "  end",
+        "end",
+      }, 9)
+
+      assert.equals('  fit "b" do', result[8])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("skips the body of a heredoc whose quoted name has a dash when it has a dedented end line", function()
+      local result = focus_lines_at({
+        "describe X do",
+        '  it "a" do',
+        "    x = <<~'END-OF'",
+        "end",
+        "    END-OF",
+        "    expect(x).to be_present",
+        "  end",
+        "",
+        "end",
+      }, 8)
+
+      assert.equals("fdescribe X do", result[1])
+    end)
+
+    it("does not skip the lines below a heredoc opener inside a =begin block", function()
+      local result = focus_lines_at({
+        "describe X do",
+        '  it "a" do',
+        "=begin",
+        "    x = <<~EOS",
+        "=end",
+        "  end",
+        "",
+        '  it "b" do',
+        "    foo",
+        "  end",
+        "end",
+      }, 9)
+
+      assert.equals('  fit "b" do', result[8])
+      assert.equals('  it "a" do', result[2])
+    end)
+
+    it("does not pair a heredoc opener inside a =begin block with a later terminator", function()
+      local result = focus_lines_at({
+        "describe X do",
+        "=begin",
+        "x = <<~EOS",
+        "=end",
+        '  it "a" do',
+        "    foo",
+        "  end",
+        '  it "b" do',
+        "    sql = <<~EOS",
+        "end",
+        "    EOS",
+        "    bar",
+        "  end",
+        "end",
+      }, 12)
+
+      assert.equals('  fit "b" do', result[8])
+      assert.equals('  it "a" do', result[5])
+    end)
+
     it("does nothing and warns when there is no target", function()
       open_spec({ "let(:a) { 1 }", "puts a" }, { 2, 0 })
 
