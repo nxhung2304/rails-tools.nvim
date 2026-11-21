@@ -1,6 +1,7 @@
 local annotate = require("rails-tools.core.annotate")
 local rails = require("rails-tools.detectors.rails")
 local cache_module = require("rails-tools.cache")
+local model_context = require("rails-tools.core.model_context")
 
 local M = {}
 local resolved_cache = cache_module.new(300)
@@ -108,6 +109,24 @@ local function merge_columns(ann, schema_table, schema_path)
   return columns
 end
 
+---@param ann AnnotatedModel
+---@param schema_tables table<string, SchemaTable>
+---@return string|nil
+local function resolve_table_name(ann, schema_tables)
+  if ann.declared_table_name then
+    return ann.declared_table_name
+  end
+  if ann.table_name then
+    return ann.table_name
+  end
+  for _, candidate in ipairs(model_context.table_name_candidates(ann.file)) do
+    if schema_tables[candidate] then
+      return candidate
+    end
+  end
+  return nil
+end
+
 ---@param root string
 ---@return ResolvedSchema
 local function build(root)
@@ -120,10 +139,13 @@ local function build(root)
 
   for model_name, ann in pairs(annotated_models) do
     known_models[model_name] = true
-    local schema_table = ann.table_name and schema_tables[ann.table_name]
+    local table_name = resolve_table_name(ann, schema_tables)
+    local schema_table = table_name and schema_tables[table_name]
+    local annotate_is_stale = schema_table and ann.table_name and table_name ~= ann.table_name
+    local annotated = annotate_is_stale and { file = ann.file, columns = {} } or ann
     models[model_name] = {
-      table_name = ann.table_name,
-      columns = merge_columns(ann, schema_table, schema_path),
+      table_name = table_name,
+      columns = merge_columns(annotated, schema_table, schema_path),
     }
   end
 

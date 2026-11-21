@@ -183,3 +183,28 @@ describe("model_context.model_for_path", function()
     assert.is_nil(model_context.model_for_path("app/models/foo-bar.rb"))
   end)
 end)
+
+describe("model_context.table_name_candidates", function()
+  it("returns the plural for a top-level model", function()
+    assert.are.same({ "users" }, model_context.table_name_candidates("/r/app/models/user.rb"))
+  end)
+
+  it("handles irregular plurals", function()
+    assert.are.same({ "people" }, model_context.table_name_candidates("/r/app/models/person.rb"))
+  end)
+
+  it("returns the namespaced name first, then the last segment", function()
+    assert.are.same({ "admin_users", "users" }, model_context.table_name_candidates("/r/app/models/admin/user.rb"))
+  end)
+
+  it("joins every directory of a deep namespace", function()
+    assert.are.same(
+      { "admin_billing_invoice_items", "invoice_items" },
+      model_context.table_name_candidates("/r/app/models/admin/billing/invoice_item.rb")
+    )
+  end)
+
+  it("returns an empty list for a path outside app/models", function()
+    assert.are.same({}, model_context.table_name_candidates("/r/lib/foo.rb"))
+  end)
+end)

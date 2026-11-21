@@ -227,6 +227,115 @@ describe("schema.resolve", function()
     assert.is_true(resolved.known_models["Admin::User"])
     assert.are.equal("admin_users", resolved.models["Admin::User"].table_name)
   end)
+  it("resolves columns for an un-annotated model from db/schema.rb", function()
+    write("db/schema.rb", SAMPLE_SCHEMA)
+    write("app/models/user.rb", { "class User < ApplicationRecord", "end" })
+
+    local model = schema.resolve(tmp_dir).models.User
+
+    assert.are.equal("users", model.table_name)
+    assert.are.equal(":string null: false", model.columns.email.signature)
+    for _, column in ipairs({ "name", "status", "created_at", "updated_at" }) do
+      assert.is_not_nil(model.columns[column])
+    end
+    assert.are.same({ file = tmp_dir .. "/db/schema.rb", lnum = 3, col = 0 }, model.columns.email.location)
+  end)
+
+  it("infers an irregular plural table for an un-annotated model", function()
+    write("db/schema.rb", { 'create_table "people", force: :cascade do |t|', '  t.string "name"', "end" })
+    write("app/models/person.rb", { "class Person < ApplicationRecord", "end" })
+
+    local model = schema.resolve(tmp_dir).models.Person
+
+    assert.are.equal("people", model.table_name)
+    assert.is_not_nil(model.columns.name)
+  end)
+
+  it("prefers the namespaced table for an un-annotated namespaced model", function()
+    write("db/schema.rb", {
+      'create_table "admin_users", force: :cascade do |t|',
+      '  t.string "role"',
+      "end",
+      'create_table "users", force: :cascade do |t|',
+      '  t.string "email"',
+      "end",
+    })
+    write("app/models/admin/user.rb", { "class Admin::User < ApplicationRecord", "end" })
+
+    assert.are.equal("admin_users", schema.resolve(tmp_dir).models["Admin::User"].table_name)
+  end)
+
+  it("falls back to the last segment table for an un-annotated namespaced model", function()
+    write("db/schema.rb", SAMPLE_SCHEMA)
+    write("app/models/admin/user.rb", { "class Admin::User < ApplicationRecord", "end" })
+
+    assert.are.equal("users", schema.resolve(tmp_dir).models["Admin::User"].table_name)
+  end)
+
+  it("uses self.table_name for an un-annotated model", function()
+    write("db/schema.rb", SAMPLE_SCHEMA)
+    write("app/models/purchase.rb", {
+      "class Purchase < ApplicationRecord",
+      '  self.table_name = "orders"',
+      "end",
+    })
+
+    local model = schema.resolve(tmp_dir).models.Purchase
+
+    assert.are.equal("orders", model.table_name)
+    assert.is_not_nil(model.columns.user_id)
+  end)
+
+  it("lets self.table_name beat the annotate table and ignores its columns", function()
+    write("db/schema.rb", SAMPLE_SCHEMA)
+    write("app/models/user.rb", {
+      "# == Schema Information",
+      "#",
+      "# Table name: users",
+      "#",
+      "#  email  :string",
+      "#",
+      "class User < ApplicationRecord",
+      '  self.table_name = "orders"',
+      "end",
+    })
+
+    local model = schema.resolve(tmp_dir).models.User
+
+    assert.are.equal("orders", model.table_name)
+    assert.is_nil(model.columns.email)
+    assert.is_not_nil(model.columns.user_id)
+  end)
+
+  it("keeps annotate columns when self.table_name names a table missing from db/schema.rb", function()
+    write("db/schema.rb", SAMPLE_SCHEMA)
+    write("app/models/user.rb", {
+      "# == Schema Information",
+      "#",
+      "# Table name: users",
+      "#",
+      "#  email  :string",
+      "#",
+      "class User < ApplicationRecord",
+      '  self.table_name = "legacy_users"',
+      "end",
+    })
+
+    local model = schema.resolve(tmp_dir).models.User
+
+    assert.are.equal("legacy_users", model.table_name)
+    assert.are.equal(":string", model.columns.email.signature)
+  end)
+
+  it("leaves table_name nil and columns empty when no table matches", function()
+    write("db/schema.rb", SAMPLE_SCHEMA)
+    write("app/models/widget.rb", { "class Widget < ApplicationRecord", "end" })
+
+    local model = schema.resolve(tmp_dir).models.Widget
+
+    assert.is_nil(model.table_name)
+    assert.are.same({}, model.columns)
+  end)
 end)
 
 describe("schema.setup", function()

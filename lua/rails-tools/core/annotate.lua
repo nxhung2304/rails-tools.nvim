@@ -2,6 +2,8 @@ local model_context = require("rails-tools.core.model_context")
 
 local M = {}
 
+local DECLARED_TABLE_NAME_PATTERN = "^%s*self%.table_name%s*=%s*[\"']([%w_]+)[\"']"
+
 ---@class AnnotateColumn
 ---@field signature string everything after the column name, e.g. `:string not null`
 ---@field lnum integer 1-indexed line number within the file
@@ -44,7 +46,21 @@ function M.parse(lines)
   return { table_name = table_name, columns = columns }
 end
 
+---Find the table name set with `self.table_name = "..."` in a model file.
+---@param lines string[]
+---@return string|nil
+function M.declared_table_name(lines)
+  for _, line in ipairs(lines) do
+    local declared = line:match(DECLARED_TABLE_NAME_PATTERN)
+    if declared then
+      return declared
+    end
+  end
+  return nil
+end
+
 ---@class AnnotatedModel : AnnotateBlock
+---@field declared_table_name string|nil from `self.table_name = "..."` in the model file
 ---@field file string absolute path to the model file
 
 ---Scan every `app/models/**/*.rb` file under `root` for annotate blocks.
@@ -61,6 +77,7 @@ function M.scan(root)
       if model_name then
         local block = M.parse(lines)
         block.file = file
+        block.declared_table_name = M.declared_table_name(lines)
         by_model[model_name] = block
       end
     end
