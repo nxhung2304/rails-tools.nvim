@@ -80,6 +80,12 @@ require("rails-tools").setup({
     provider  = "auto",        -- "auto" | "toggleterm" | "native"
     direction = "float",       -- "float" | "horizontal" | "vertical"
   },
+  -- Rails commands default to bin/rails (script/rails when the app has no bin/rails).
+  -- Set a full command to override, e.g.:
+  -- console    = { command = "bundle exec rails console" },
+  -- runner     = { command = "bundle exec rails runner" },
+  -- generators = { command = "bundle exec rails generate" },
+  -- routes     = { command = "bundle exec rails routes" },
   keymaps = {
     enabled = true,
     prefix  = "<leader>r",
@@ -118,7 +124,7 @@ opens the central menu (see [Status](#status) for what is still to come).
 - [x] `:Rails routes` — Browse and navigate routes
 - [x] `:Rails routes!` — Force refresh routes cache
 - [x] `:Rails console` — Open Rails console
-- [x] `:Rails runner {code}` — Run a Ruby snippet via `rails runner`
+- [x] `:Rails runner {code}` — Run a Ruby snippet via `bin/rails runner`
 - [x] `:Rails runner` — Open prompt to enter code
 - [x] `:Rails generate {args}` (or `:Rails g {args}`) — Run a Rails generator
 - [x] `:Rails spec nearest` — Run the spec nearest to cursor

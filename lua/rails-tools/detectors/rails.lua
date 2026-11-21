@@ -1,5 +1,8 @@
 local M = {}
 
+local BIN_RAILS = "bin/rails"
+local SCRIPT_RAILS = "script/rails"
+
 ---@type table<string, {is_rails: boolean, root: string}|false>
 local cache = {}
 
@@ -60,6 +63,15 @@ end
 ---@return boolean
 function M.is_rails()
   return M.detect() ~= nil
+end
+
+---@param root string|nil
+---@return string
+function M.executable(root)
+  if root and not file_exists(root, BIN_RAILS) and file_exists(root, SCRIPT_RAILS) then
+    return SCRIPT_RAILS
+  end
+  return BIN_RAILS
 end
 
 return M

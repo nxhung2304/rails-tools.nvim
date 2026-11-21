@@ -99,7 +99,7 @@ describe("rails-tools.core.console", function()
       it("opens the default console command in the Rails root", function()
         console.open()
 
-        assert.are.same({ "rails console" }, fake_terminal.opened)
+        assert.are.same({ "bin/rails console" }, fake_terminal.opened)
         assert.are.same({ tmp_dir }, fake_terminal.opened_cwd)
       end)
 
@@ -109,6 +109,14 @@ describe("rails-tools.core.console", function()
         console.open()
 
         assert.are.same({ "bundle exec rails c" }, fake_terminal.opened)
+      end)
+
+      it("keeps a user console command exactly as given", function()
+        config.setup({ console = { command = "bundle exec rails console" } })
+
+        console.open()
+
+        assert.are.same({ "bundle exec rails console" }, fake_terminal.opened)
       end)
 
       it("shows a hidden console instead of starting a new one", function()
@@ -147,7 +155,7 @@ describe("rails-tools.core.console", function()
 
         console.open()
 
-        assert.are.same({ "rails console" }, fake_terminal.opened)
+        assert.are.same({ "bin/rails console" }, fake_terminal.opened)
         assert.equals(0, fake_terminal.toggled)
       end)
 
@@ -188,7 +196,7 @@ describe("rails-tools.core.console", function()
       it("opens the console when toggling with no console running", function()
         console.toggle()
 
-        assert.are.same({ "rails console" }, fake_terminal.opened)
+        assert.are.same({ "bin/rails console" }, fake_terminal.opened)
         assert.equals(0, fake_terminal.toggled)
       end)
     end)

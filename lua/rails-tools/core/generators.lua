@@ -38,7 +38,7 @@ function M.run(args)
     return
   end
 
-  terminal.open(config.get().generators.command .. " " .. trimmed_args, { cwd = root })
+  terminal.open(config.rails_command("generators", root) .. " " .. trimmed_args, { cwd = root })
 end
 
 ---Ask for generator arguments and run `rails generate` with them

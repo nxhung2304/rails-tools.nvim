@@ -403,9 +403,9 @@ Each task links its GitHub issue, which holds the evidence and full acceptance c
 - [ ] Regression tests for enabled, disabled and custom-key cases
 
 ### BF-060. One Rails executable for all default commands (GitHub #60)
-- [ ] Console, runner, generators and routes use the same executable, preferring `bin/rails`
-- [ ] User-set commands are never changed
-- [ ] README/docs updated
+- [x] Console, runner, generators and routes use the same executable, preferring `bin/rails`
+- [x] User-set commands are never changed
+- [x] README/docs updated
 
 ### BF-062. Test marker with multi-line `it(` and heredocs (GitHub #62)
 - [ ] Cursor inside a multi-line `it(...) do` focuses the `it` line
@@ -583,27 +583,21 @@ schema-aware editing. Revisit only after Layers 1–5 ship.
     cache_ttl = 30,
   },
 
+  -- command for routes/console/runner/generators: not set by default; built at run time as bin/rails <subcommand> (script/rails when the app has no bin/rails)
   -- Routes settings (L3-010)
   routes = {
-    command = "bin/rails routes",
     args = "--expanded",
     cache_ttl = 300,
   },
 
   -- Console settings (L3-011)
-  console = {
-    command = "rails console",
-  },
+  console = {},
 
   -- Runner settings (L3-012)
-  runner = {
-    command = "rails runner",
-  },
+  runner = {},
 
   -- Generator settings (L4-015)
-  generators = {
-    command = "rails generate",
-  },
+  generators = {},
 
   -- Keymap settings (L3-009)
   keymaps = {

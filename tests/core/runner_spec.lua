@@ -86,7 +86,17 @@ describe("rails-tools.core.runner", function()
       it("runs code with the default runner command in the Rails root", function()
         runner.run("puts User.count")
 
-        assert.are.same({ { cmd = "rails runner 'puts User.count'", cwd = tmp_dir } }, opened)
+        assert.are.same({ { cmd = "bin/rails runner 'puts User.count'", cwd = tmp_dir } }, opened)
+      end)
+
+      it("uses script/rails when the app has no bin/rails", function()
+        vim.fn.delete(tmp_dir .. "/bin", "rf")
+        vim.fn.mkdir(tmp_dir .. "/script", "p")
+        vim.fn.writefile({}, tmp_dir .. "/script/rails")
+
+        runner.run("puts 1")
+
+        assert.equals("script/rails runner 'puts 1'", opened[1].cmd)
       end)
 
       it("does not run when the user keeps the running terminal", function()
@@ -137,7 +147,7 @@ describe("rails-tools.core.runner", function()
       it("shell-escapes single quotes in the code", function()
         runner.run("puts 'hi'")
 
-        assert.equals([[rails runner 'puts '\''hi'\''']], opened[1].cmd)
+        assert.equals([[bin/rails runner 'puts '\''hi'\''']], opened[1].cmd)
       end)
 
       it("warns and runs nothing for empty code", function()
@@ -165,7 +175,7 @@ describe("rails-tools.core.runner", function()
         runner.run_prompt()
 
         assert.equals("Rails runner: ", prompt_text)
-        assert.equals("rails runner 'puts 2'", opened[1].cmd)
+        assert.equals("bin/rails runner 'puts 2'", opened[1].cmd)
       end)
 
       it("does nothing when the prompt is cancelled", function()
@@ -184,7 +194,7 @@ describe("rails-tools.core.runner", function()
 
         runner.run_visual()
 
-        assert.equals("rails runner " .. vim.fn.shellescape("puts 1\nputs 2"), opened[1].cmd)
+        assert.equals("bin/rails runner " .. vim.fn.shellescape("puts 1\nputs 2"), opened[1].cmd)
       end)
 
       it("runs whole lines for a linewise selection", function()
@@ -192,7 +202,7 @@ describe("rails-tools.core.runner", function()
 
         runner.run_visual()
 
-        assert.equals("rails runner " .. vim.fn.shellescape("puts 1\nputs 2"), opened[1].cmd)
+        assert.equals("bin/rails runner " .. vim.fn.shellescape("puts 1\nputs 2"), opened[1].cmd)
       end)
 
       it("runs a characterwise selection with selection=exclusive", function()
@@ -203,7 +213,7 @@ describe("rails-tools.core.runner", function()
         runner.run_visual()
         vim.o.selection = orig_selection
 
-        assert.equals("rails runner " .. vim.fn.shellescape("puts 1"), opened[1].cmd)
+        assert.equals("bin/rails runner " .. vim.fn.shellescape("puts 1"), opened[1].cmd)
       end)
 
       it("warns and runs nothing for a blockwise selection", function()
@@ -221,7 +231,7 @@ describe("rails-tools.core.runner", function()
 
         runner.run_lines(2, 3)
 
-        assert.equals("rails runner " .. vim.fn.shellescape("puts 2\nputs 3"), opened[1].cmd)
+        assert.equals("bin/rails runner " .. vim.fn.shellescape("puts 2\nputs 3"), opened[1].cmd)
       end)
 
       it("keeps a multibyte last character whole", function()
@@ -229,7 +239,7 @@ describe("rails-tools.core.runner", function()
 
         runner.run_visual()
 
-        assert.equals("rails runner " .. vim.fn.shellescape("puts 'héé"), opened[1].cmd)
+        assert.equals("bin/rails runner " .. vim.fn.shellescape("puts 'héé"), opened[1].cmd)
       end)
     end)
 

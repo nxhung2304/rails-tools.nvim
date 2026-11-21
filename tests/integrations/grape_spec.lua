@@ -336,6 +336,21 @@ describe("rails-tools.integrations.grape", function()
       assert.is_true(ok)
       assert.are.same(vim.log.levels.ERROR, notifications[2].level)
     end)
+
+    it("reports the default runner command when none is configured", function()
+      config.setup({ finder = { provider = "native" } })
+      local orig_jobstart = vim.fn.jobstart
+      vim.fn.jobstart = function()
+        return -1
+      end
+
+      local ok = pcall(grape.show)
+      vim.fn.jobstart = orig_jobstart
+
+      assert.is_true(ok)
+      assert.are.same(vim.log.levels.ERROR, notifications[2].level)
+      assert.is_truthy(notifications[2].msg:find("bin/rails runner", 1, true))
+    end)
   end)
 
   describe("refresh()", function()

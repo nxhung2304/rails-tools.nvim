@@ -65,7 +65,46 @@ describe("rails-tools.config", function()
     config.setup({ routes = { cache_ttl = 60 } })
     local current = config.get()
     assert.are.equal(60, current.routes.cache_ttl)
-    assert.are.equal("bin/rails routes", current.routes.command)
+    assert.is_nil(current.routes.command)
+  end)
+
+  describe("rails_command()", function()
+    local root
+
+    before_each(function()
+      root = vim.fn.tempname()
+      vim.fn.mkdir(root, "p")
+    end)
+
+    after_each(function()
+      vim.fn.delete(root, "rf")
+    end)
+
+    local function create_executable(path)
+      vim.fn.mkdir(root .. "/" .. vim.fn.fnamemodify(path, ":h"), "p")
+      vim.fn.writefile({}, root .. "/" .. path)
+    end
+
+    it("uses bin/rails for console", function()
+      create_executable("bin/rails")
+      assert.are.equal("bin/rails console", config.rails_command("console", root))
+    end)
+
+    it("uses bin/rails for routes", function()
+      create_executable("bin/rails")
+      assert.are.equal("bin/rails routes", config.rails_command("routes", root))
+    end)
+
+    it("uses script/rails generate when the root has only script/rails", function()
+      create_executable("script/rails")
+      assert.are.equal("script/rails generate", config.rails_command("generators", root))
+    end)
+
+    it("keeps a user command even when bin/rails exists", function()
+      create_executable("bin/rails")
+      config.setup({ console = { command = "rails console" } })
+      assert.are.equal("rails console", config.rails_command("console", root))
+    end)
   end)
 
   it("defaults contain every top-level key", function()

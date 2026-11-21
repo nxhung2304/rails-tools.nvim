@@ -122,6 +122,28 @@ describe("rails detector", function()
     end)
   end)
 
+  describe("executable()", function()
+    it("returns bin/rails when only bin/rails exists", function()
+      create_file("bin/rails")
+      assert.equals("bin/rails", rails.executable(tmp_dir))
+    end)
+
+    it("returns script/rails when only script/rails exists", function()
+      create_file("script/rails")
+      assert.equals("script/rails", rails.executable(tmp_dir))
+    end)
+
+    it("prefers bin/rails when both exist", function()
+      create_file("bin/rails")
+      create_file("script/rails")
+      assert.equals("bin/rails", rails.executable(tmp_dir))
+    end)
+
+    it("returns bin/rails for a nil root", function()
+      assert.equals("bin/rails", rails.executable(nil))
+    end)
+  end)
+
   describe("is_rails()", function()
     it("returns true for Rails project", function()
       create_file("Gemfile")

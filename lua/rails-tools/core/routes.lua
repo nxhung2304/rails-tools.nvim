@@ -292,7 +292,7 @@ end
 ---@param opts RailsToolsRoutesShowOpts
 local function load_routes(root, opts)
   local routes_config = config.get().routes
-  local command = vim.trim(routes_config.command .. " " .. (routes_config.args or ""))
+  local command = vim.trim(config.rails_command("routes", root) .. " " .. (routes_config.args or ""))
   local stdout = {}
   local stderr = {}
   local job_id
