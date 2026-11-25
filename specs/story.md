@@ -535,6 +535,21 @@ schema-aware editing. Revisit only after Layers 1–5 ship.
 - [ ] Add `config.syntax` settings
 - [ ] Create `tests/core/syntax_spec.lua`
 
+### Idea: All modules enabled by default (no number yet)
+Today `modules.rspec`, `generators`, `grape`, `test_marker`, `gf` and `controller_view` default to `false` (`config.lua` defaults); only `schema` is on. Flip them so a zero-config install gets every feature, each still switchable off.
+- [ ] Default every `modules.*` flag to `true`
+- [ ] A module that needs a missing optional dependency or project type (telescope, toggleterm, no Grape) skips quietly, no error
+- [ ] User `modules.<name> = false` still disables it
+- [ ] Update README, `Configuration Reference` below and the Phase 2 note in `CLAUDE.md` ("disabled by default")
+- [ ] Tests: defaults are all `true`; `false` override still works
+
+### Idea: Center the cursor after jumps (no number yet)
+After a jump to a file or definition (`gf`, alternate, resource finder, routes, controller-view, LSP `gd`), recenter the window with `zz`. Only `integrations/lsp.lua:85` does this today.
+- [ ] New option, default on (e.g. `jump.center = true`), `false` turns it off
+- [ ] One shared helper used by every jump path, not a `zz` per call site
+- [ ] Skip the recenter when the target is already visible, if that keeps the view from jumping needlessly (decide in the spec)
+- [ ] Tests for enabled and disabled
+
 ---
 
 ## Configuration Reference
