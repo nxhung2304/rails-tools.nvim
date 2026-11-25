@@ -49,8 +49,12 @@ function M.detect(cwd)
     ---@cast result {is_rails: boolean, root: string}
     return result
   end
-  cache[start_dir] = false
   return nil
+end
+
+---Forget every cached detection result, so the next call re-checks the disk.
+function M.clear_cache()
+  cache = {}
 end
 
 ---@param cwd? string

@@ -392,9 +392,9 @@ Each task links its GitHub issue, which holds the evidence and full acceptance c
 - [ ] Regression test with an un-annotated model fixture
 
 ### BF-058. Detector cache invalidation (GitHub #58)
-- [ ] Do not cache negative results forever (re-check on `DirChanged` or after a TTL)
-- [ ] Public, documented way to clear detector caches
-- [ ] Regression test: detect in empty dir, add `Gemfile` + `bin/rails`, detect again
+- [x] Do not cache negative results forever (re-check on `DirChanged` or after a TTL)
+- [x] Public, documented way to clear detector caches
+- [x] Regression test: detect in empty dir, add `Gemfile` + `bin/rails`, detect again
 
 ### BF-059. Opt-out and custom keys for the LSP `K`/`gd` override (GitHub #59)
 - [ ] Config option to disable the override or choose the keys
