@@ -192,6 +192,11 @@ Loaded automatically when telescope.nvim is already loaded when `setup()` runs.
 
 - [x] `:checkhealth rails-tools` — Neovim version, Rails detection, optional dependencies, enabled modules
 
+### Detector cache
+
+- Rails root detection is cached per folder after a match. A folder that is not Rails yet is re-checked on every call.
+- Run `:lua require("rails-tools.detectors.rails").clear_cache()` to force re-detection (e.g. after moving or deleting a project).
+
 ## License
 
 MIT
