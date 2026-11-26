@@ -1,0 +1,44 @@
+Tổng kết (vòng 1): MUST 1 / SHOULD 1 / NIT 1. Dựa trên giả định: 0. Chờ xác nhận: 0. Cần xem lại spec: 2. Ngoài phạm vi / không cần sửa: 3.
+Số phát hiện theo nguồn: review-branch 4 / code-review 6 / spec-review 3 (một số trùng giữa các nguồn).
+Ghi chú: review-branch và code-review chạy ngay trong worktree của task (có thay đổi đã stage), nên có thể thấy spec. Chưa chạy trên Neovim 0.9.5, chỉ chạy trên Neovim bản mới (0.13-dev).
+
+### 1. MUST — Helper test đợi "bất kỳ client nào" và có thể rò client sang test sau
+- **Nguồn:** `code-review`, `spec-review`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** tests/integrations/cmp_spec.lua:43-46 (`attach_dummy_client`)
+- **Trích spec:** implement.md bước 3 "`vim.wait(1000, ...)` until the client is attached to `bufnr`"
+- **Vấn đề:** Hai lỗi cùng một chỗ. (a) Phép chờ chỉ kiểm tra có client nào gắn vào buffer, không phải client vừa khởi động, nên client còn sót lại làm phép chờ qua ngay và test "chỉ client ngoài danh sách" có thể thấy 0 mục thay vì 1. (b) Khẳng định attach chạy trước `table.insert(dummy_client_ids, id)`; nếu chờ quá hạn, client đã chạy không được ghi lại nên `after_each` không dừng nó và nó rò sang test sau.
+- **Sửa:** Chờ đến khi có client với `client.name == name` gắn vào `bufnr`, và ghi `id` vào `dummy_client_ids` ngay sau khi `vim.lsp.start` trả về, trước khi khẳng định. (sketch, chưa biên dịch)
+
+### 2. SHOULD — `after_each` khẳng định detach trước khi dọn xong
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Giả định về độ chậm CI · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** tests/integrations/cmp_spec.lua:84
+- **Vấn đề:** Nếu detach mất hơn 1 giây (CI chậm), khẳng định ném lỗi trước khi xóa buffer và chạy `config.setup({})`, module giả còn lại trong `package.loaded` và client cũ được dùng lại, làm các test sau sai số mục khó hiểu.
+- **Sửa:** Đặt phần dọn dẹp (xóa buffer, `config.setup({})`, khôi phục module) trước khẳng định detach, hoặc dùng `pcall` quanh khẳng định. Chỉ cần làm nếu thấy CI chập chờn.
+
+### 3. NIT — Thiếu dòng trống sau guard
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Diff chạm: có
+- **File:** lua/rails-tools/integrations/cmp.lua:16-17
+- **Vấn đề:** Không có dòng trống giữa guard `if #names == 0 then return false end` và đoạn logic chính (quy tắc Guard Clause Spacing); file đã không thống nhất ở điểm này.
+- **Sửa:** Thêm một dòng trống sau `end` ở dòng 16.
+
+## Cần xem lại spec
+
+### A. Giá trị chuỗi cho `dedupe_with_lsp` giờ gây lỗi
+- **Nguồn:** `code-review`
+- **File:** lua/rails-tools/integrations/cmp.lua:19
+- **Trích spec:** implement.md mục 2 "A string `dedupe_with_lsp` value ... gets no guard: accepted limitation. ... the documented type is a list"
+- **Câu hỏi:** Spec chấp nhận không bảo vệ. Reviewer cho rằng người đã đặt dạng chuỗi (`"ruby_lsp"`) trước đây chạy được trên Neovim 0.10+ và nay gặp lỗi "expected table, got string" ở mỗi lần gõ `.`. Có muốn thêm guard nhỏ (đổi chuỗi thành danh sách) không? Chưa kiểm tra README cũ có từng hướng dẫn dạng chuỗi hay không (README:94 và config.lua:130 chỉ dùng danh sách).
+
+### B. `vim.lsp.stop_client` bị deprecated
+- **Nguồn:** `review-branch`, `code-review`
+- **File:** tests/integrations/cmp_spec.lua (`after_each`, dòng 78)
+- **Trích spec:** implement.md, "Decisions made without you": chấp nhận cảnh báo deprecated ở bản stable như nhiễu trong test, không phải lỗi.
+- **Câu hỏi:** Cả hai nguồn chỉ ra khi bản Neovim loại bỏ hàm này, `after_each` sẽ lỗi "attempt to call a nil value" và CI stable fail. Có muốn dùng `client:stop(true)` trên 0.10+ và giữ `stop_client` làm đường lùi cho 0.9 ngay bây giờ không?
+
+## Ngoài phạm vi / không cần sửa
+- tests/integrations/cmp_spec.lua:9 và lua/rails-tools/integrations/cmp.lua:17 — cùng đoạn `get_clients or get_active_clients` viết ở hai nơi. Nguồn: `review-branch`, `code-review`. Spec bước 3 yêu cầu chính đoạn này ở test và review-branch nhận xét chấp nhận được như phần dựng test. Phân loại: đã quyết trong spec.
+- specs/issues/064-cmp-dedupe-lsp-never-matches/issue.md — dấu tick tiêu chí chưa nằm trong diff vì thư mục spec chưa được git theo dõi. Nguồn: `spec-review`. Dấu tick đã có ở bản sao trong worktree; bước Finalize xử lý. Phân loại: không cần sửa.
+- Neovim 0.9.5 chưa được chạy cục bộ (hàm `cmd` dạng Lua của client giả, `stop_client` gọi `terminate`). Nguồn: `review-branch`, `spec-review`. CI có ma trận v0.9.5 và đã nằm trong mục "Risks to test" của spec. Phân loại: đã ghi trong spec.

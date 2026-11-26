@@ -1,0 +1,88 @@
+Tổng kết (vòng 1): MUST 1 / SHOULD 4 / NIT 1. Dựa trên giả định: 1. Chờ xác nhận: 0. Cần xem lại spec: 2. Ngoài phạm vi / không cần sửa: 4.
+Số phát hiện theo nguồn: review-branch 3 / code-review 9 (1 trùng với review-branch) / spec-review 1.
+Ghi chú: review-branch và code-review chạy ngay trong worktree của task (có thay đổi đã stage), nên có thể thấy spec.
+
+### 1. MUST — Chuỗi `<<` không phải heredoc bị coi là heredoc, làm lệch ví dụ được focus
+- **Nguồn:** `review-branch`, `code-review` (cả hai đã chạy lại và tái hiện)
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** lua/rails-tools/integrations/test_marker.lua:7 (`HEREDOC_OPENER_PATTERN`), dùng ở :116-122 (`heredoc_body_lines`)
+- **Vấn đề:** Mọi `<<` đứng trước một tên đều bị coi là mở heredoc. Với `class <<self`, bit-shift `1 <<n` / `x <<y` (có khoảng trắng trước, không có sau) và `<<EOS` nằm sau dấu `#` ở cuối dòng thì chẳng có dòng kết thúc nào, nên mọi dòng phía sau bị bỏ qua và `focus()` gắn `f` vào ví dụ sai. Đây là lỗi mới so với `main` (cùng nội dung chạy đúng trên `main`).
+- **Sửa:** Giữ phạm vi nhỏ trong `heredoc_body_lines`: (a) bỏ phần comment cuối dòng trước khi so khớp; (b) không coi là heredoc khi trước `<<` là `class ` hoặc `class<`; (c) với dạng không có `~`/`-`/dấu nháy, chỉ chấp nhận tên toàn chữ hoa (quy ước heredoc), để `x <<y` và `1 <<n` không khớp. Thêm test hồi quy cho `class <<self`, comment cuối dòng, `1 <<n`, `x <<y`; mỗi test phải fail trên code hiện tại và pass sau sửa. Không đụng tới chuỗi trong dấu nháy (spec đã chấp nhận, xem mục "Cần xem lại spec"). (sketch, chưa biên dịch)
+
+### 2. SHOULD — Một opener không có dòng kết thúc làm mất cả phần còn lại của buffer
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Một phần là giả định · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** lua/rails-tools/integrations/test_marker.lua:110-126
+- **Vấn đề:** Khi không tìm thấy dòng kết thúc trước con trỏ, mọi dòng sau opener bị bỏ qua, nên một nhận diện sai (mục 1) phá cả buffer. Trường hợp "đang gõ dở heredoc" mới chỉ suy luận từ code, chưa chạy.
+- **Sửa:** Kiểm chứng bằng một test chạy trước (buffer có heredoc chưa đóng, con trỏ ở ví dụ phía sau). Nếu lỗi thật, nếu không thấy dòng kết thúc trước con trỏ thì bỏ qua opener đó thay vì bỏ qua mọi dòng sau. Có thể bỏ qua nếu mục 1 đã đủ chặn.
+
+### 3. SHOULD — Tên heredoc có dấu nháy chứa ký tự ngoài chữ-số-gạch dưới bị cắt ngắn
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Giả định (chưa chạy) · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** lua/rails-tools/integrations/test_marker.lua:116
+- **Vấn đề:** `<<~'END-OF'` chỉ lấy `END`, nên dòng kết thúc không bao giờ khớp. Kiểm chứng trước: chạy `focus()` với heredoc này; nếu không lỗi thì bỏ qua. Dạng này hiếm trong file spec RSpec.
+- **Sửa:** Nếu lỗi thật, lấy tên trong cặp dấu nháy nguyên văn thay vì chỉ `[%a_][%w_]*`.
+
+### 4. SHOULD — Test chưa phủ các ca nằm đúng chỗ lỗi ở mục 1
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** tests/integrations/test_marker_spec.lua:225-390
+- **Vấn đề:** Chưa có test cho `class <<self`, `<<` sau comment cuối dòng, `x <<y`, và heredoc không đóng.
+- **Sửa:** Các test của mục 1 phủ ba ca đầu; thêm test heredoc không đóng nếu làm mục 2.
+
+### 5. SHOULD — Buffer được đọc hai lần mỗi lần gọi
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng (đọc code, chưa đo) · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** lua/rails-tools/integrations/test_marker.lua:139
+- **Vấn đề:** `heredoc_body_lines` đọc cả buffer, sau đó `find_target` đọc lại từng dòng bằng `nvim_buf_get_lines`. review-branch cho rằng hiệu năng chấp nhận được vì chỉ chạy khi gọi lệnh.
+- **Sửa:** Có thể bỏ qua trong PR này; nếu sửa thì truyền sẵn bảng dòng đã đọc vào `find_target`.
+
+### 6. NIT — `find_target` dài và lồng sâu
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** lua/rails-tools/integrations/test_marker.lua:130-166
+- **Vấn đề:** Hàm khoảng 37 dòng, 4 tầng lồng, cộng cờ `awaiting_bracket_opener` đổi ở 3 nhánh.
+- **Sửa:** Tách phần cập nhật `limit` mỗi dòng thành hàm nhỏ trả về `limit` và cờ mới. Hàm này nằm trong code mới của thay đổi, nên cần anh duyệt trước khi tách.
+
+## Cần xem lại spec
+
+### A. `<<` trong chuỗi ký tự vẫn bị coi là heredoc
+- **Nguồn:** `review-branch`, `code-review`
+- **File:** lua/rails-tools/integrations/test_marker.lua:120
+- **Trích spec:** implement.md, "Decisions made without you": "Heredoc openers inside string literals are not filtered ... Accept; filtering strings needs a tokenizer, beyond this fix."
+- **Câu hỏi:** Spec chấp nhận không lọc chuỗi. Tái hiện cho thấy `it "parses <<~SQL text" do` làm `focus()` chọn nhầm ví dụ; hậu quả này (focus sai ví dụ, không báo lỗi) có còn chấp nhận được không? Nếu không, cần lọc chuỗi ở mục 1 hoặc làm fallback ở mục 2.
+
+### B. Dòng kết thúc của `<<EOS` thường (không `~`/`-`) được chấp nhận khi thụt lề
+- **Nguồn:** `review-branch`
+- **File:** lua/rails-tools/integrations/test_marker.lua:116
+- **Trích spec:** implement.md, "Decisions made without you": "Plain <<SQL (no ~/-) needs a column-0 terminator in Ruby; plan accepts an indented terminator for every heredoc form."
+- **Câu hỏi:** Spec đã chọn chấp nhận; nếu có file dùng `<<EOS` thường với dòng `  EOS` thụt lề trong thân, lỗi issue #62 có thể quay lại. Spec vẫn đúng chứ?
+
+## Ngoài phạm vi / không cần sửa
+- lua/rails-tools/integrations/test_marker.lua:137 — con trỏ nằm trên dòng thân heredoc ở cột 0 làm mất ví dụ bao ngoài. Nguồn: `review-branch`. Đã có từ trước và spec đã quyết ngoài phạm vi (implement.md, mục "Decisions made without you"). Phân loại: Ngoài phạm vi, có từ trước.
+- lua/rails-tools/integrations/test_marker.lua:110 — đề xuất dùng treesitter hoặc bỏ nội dung chuỗi/comment trước khi so khớp. Nguồn: `review-branch`. Là đề xuất thiết kế lớn, vượt phạm vi sửa lỗi; mục 1 đã xử lý các ca cụ thể. Phân loại: không cần sửa.
+- tests/integrations/test_marker_spec.lua:226 và :252-256 — helper test dùng `vim.deepcopy` và hàm dựng dòng phụ. Nguồn: `spec-review`. Chỉ ảnh hưởng test, kết quả khớp spec. Phân loại: không cần sửa.
+- specs/issues/062-test-marker-multiline-heredoc/issue.md — dấu tick tiêu chí chưa nằm trong diff vì thư mục spec chưa được git theo dõi. Nguồn: `spec-review`. Dấu tick đã có trong bản sao ở worktree; bước Finalize xử lý. Phân loại: không cần sửa.
+
+## Vòng 2 (sau khi sửa mục 1 ở vòng 1)
+Tổng kết vòng 2: MUST 1 / SHOULD 1. Nguồn: review-branch và code-review (cả hai tái hiện, so sánh với main).
+
+### R2-1. MUST — Heredoc không tìm thấy dòng kết thúc làm mất toàn bộ phần còn lại của buffer
+- **Nguồn:** `review-branch`, `code-review` (cả hai đã tái hiện)
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** lua/rails-tools/integrations/test_marker.lua:7, :12, :113-134 (`heredoc_body_lines`)
+- **Vấn đề:** Khi một dòng bị nhận nhầm là mở heredoc nhưng không có dòng kết thúc trước con trỏ, mọi dòng sau đó bị bỏ qua, nên `focus()` gắn `f` vào ví dụ phía trên (trên `main` thì đúng). Các ca đã tái hiện: shovel không có khoảng trắng bên phải như `errors <<"msg"`, `list <<ITEM`, `1 <<FLAG_BIT`, `x <<-n`; `<<` trong regex `/<<HEAD/`; tên heredoc có dấu nháy chứa khoảng trắng hoặc dấu gạch như `<<~'END-OF'`, `<<~"END OF TEXT"`; `<<~EOS` bên trong khối `=begin`/`=end`.
+- **Sửa:** Xử lý nguyên nhân gốc: nếu không tìm thấy dòng kết thúc của một opener trước con trỏ thì bỏ qua opener đó (các dòng thân vẫn được xét như trước, tức bằng hành vi của `main`). Lấy tên heredoc có dấu nháy nguyên văn trong cặp dấu nháy, và bỏ qua khối `=begin`/`=end`. Thêm test hồi quy cho từng ca trên (mỗi test phải fail trước và pass sau sửa). Ca `<<` trong chuỗi nháy vẫn được chấp nhận theo spec; ca trong regex sẽ được xử lý gián tiếp bởi cơ chế bỏ qua opener không đóng.
+
+### R2-2. SHOULD — Mẫu comment cuối dòng cắt nhầm ở ` #` nằm trong chuỗi
+- **Nguồn:** `review-branch`, `code-review`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Không phải lỗi mới so với `main`
+- **File:** lua/rails-tools/integrations/test_marker.lua:12, :113-114
+- **Vấn đề:** `f("Item #1", <<~SQL)` bị cắt tại ` #` nên opener không được nhận ra; heredoc ở dòng đó không được bỏ qua (giống `main`).
+- **Sửa:** Có thể bỏ qua; ghi vào PR như giới hạn đã biết.
+
+## Kết quả sau vòng 2
+- Mục 1 (vòng 1) và R2-1 (vòng 2): đã sửa. Heredoc không tìm thấy dòng kết thúc trước con trỏ nay bị bỏ qua, nên các dòng được xét như trên `main`; tên heredoc có dấu nháy được lấy đủ; khối `=begin`/`=end` không còn bị quét. 9 ca đã tái hiện đều cho cùng kết quả với `main`; 15 test hồi quy mới fail trước sửa và pass sau sửa. Test đầy đủ (670) và lint đều qua, chưa commit khi ghi dòng này.
+- Đã đạt giới hạn số vòng review (2), nên không chạy review vòng 3. Phần sửa của vòng 2 chỉ được kiểm tra bằng các ca tái hiện của reviewer và test hồi quy, chưa qua một lần review độc lập.
+- Mục 2 đến 6 (SHOULD/NIT), R2-2 và mục "Cần xem lại spec" A, B giữ nguyên, chưa sửa.
+- Có từ trước, không liên quan đến thay đổi này: test của terminal thỉnh thoảng bị crash (SIGHUP) khi chạy toàn bộ test trên `main` (1 trong 8 lần chạy); không tái hiện trong 8 lần chạy ở nhánh này.

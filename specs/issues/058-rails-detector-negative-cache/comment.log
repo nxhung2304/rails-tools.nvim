@@ -1,0 +1,41 @@
+# Review log — #58 Rails detector caches "not a Rails project" forever
+
+Note: A and B ran in the worktree (changes are staged, not committed), so they could see the spec folder. Their instructions told them not to read `specs/`.
+
+Summary: MUST 0 / SHOULD 0 / NIT 0. Assumption-based: 0. Pending confirmation: 0. Spec to review: 4. Out of scope / no change needed: 2.
+Findings per source: `review-branch` 4 / `code-review` 5 / `spec-review` 1 (minor wording note, no defect).
+
+## Fix list
+No issues to address on this branch (reviewed via review-branch + code-review + spec-review). Every finding either follows a decision already written in the spec or lies outside this change.
+
+## Spec to review
+
+### 1. Dead `false` in the cache type and the `or nil` fallback
+- **Source:** `review-branch`, `code-review`
+- **File:** `lua/rails-tools/detectors/rails.lua:6` and `:40`
+- **Spec line:** implement.md step 1: "Keep line 40 (`return cache[start_dir] or nil`) as is." Notes: "Annotation that becomes inaccurate (NOT edited, flag in the final report): `rails.lua:6` ... `false` is no longer stored."
+- **Question for the leader:** The spec chose to leave the type annotation and `or nil` untouched to keep the diff minimal, the code shows both are now dead (nothing writes `false` any more, see the removed line in the diff) — should they be cleaned up in this PR or left?
+
+### 2. Stale test comment and a test that now duplicates another
+- **Source:** `review-branch`, `code-review`
+- **File:** `tests/detectors/rails_spec.lua:81` (comment "second call should also return nil without traversal"), test "negative result stays nil on a second call"
+- **Spec line:** implement.md Notes: "Existing test comment ... becomes inaccurate (NOT edited, flag in the final report)." Step 5: "rename the title only ... Assertions unchanged."
+- **Question for the leader:** The spec chose to rename only the title and keep the old comment and assertions, the code shows the comment is now false and the test overlaps the plain "returns nil for non-Rails project" test — should the comment be reworded or the test dropped?
+- Project rule: existing comments are not rewritten without approval, so this is left as a flag.
+
+### 3. Misses are no longer cached, so non-Rails folders re-walk the tree on every call
+- **Source:** `code-review`, `spec-review` (story wording)
+- **File:** `lua/rails-tools/detectors/rails.lua:52` (removed line); `specs/story.md:395`
+- **Spec line:** implement.md Decisions: "Fix = stop caching misses. No `DirChanged` autocmd, no TTL." Risks: "... which now walks up to `/` each time. ... Assumption, not measured: negligible for normal folder depth."
+- **Question for the leader:** The spec chose "no cache for misses" over TTL or `DirChanged`, the cost is not measured (up to 5 disk checks per folder level, on every `root()` call in a non-Rails folder; slower on network disks) — does that still hold? The story line 395 still says "re-check on `DirChanged` or after a TTL", which no longer matches what was done.
+
+### 4. Scope is the Rails detector only
+- **Source:** `review-branch`, `code-review`
+- **File:** `lua/rails-tools/detectors/rails.lua:55-58` (`clear_cache`), `README.md` section "Detector cache", `specs/story.md:396`; related `lua/rails-tools/detectors/test_framework.lua:6`, `grape.lua:10`
+- **Spec line:** implement.md Decisions: "Scope = Rails detector only. `detectors/test_framework.lua` and `detectors/grape.lua` are not changed." and "No `:Rails` subcommand." Risks: "`rails.clear_cache()` does not clear [test_framework]."
+- **Question for the leader:** The spec chose the Rails detector only and a plain Lua function (no `:Rails` subcommand), the code shows the story line 396 says "detector caches" (plural, now ticked), the README heading says "Detector cache", and the test-framework detector still keeps a stale `false` that `clear_cache()` does not clear — is a follow-up issue enough?
+- Reachable today: `:Rails alternate` in a folder before `rails new` caches the test framework as missing, and alternate keeps the `rspec` default after the project is created, until restart (implement.md Risks).
+
+## Out of scope / no change needed
+- `lua/rails-tools/detectors/rails.lua:56`, `clear_cache()` does not clear the routes cache (`core/routes.lua:34`) or the schema cache (`core/schema.lua:7`). Source: `code-review`. Out of scope: those caches already existed with their own 300 s expiry, and the README says the function forces re-detection of the Rails root only.
+- Positive detection results are cached forever and never re-checked (deleted or re-created project). Source: `code-review`. Out of scope — pre-existing, unchanged by this branch. `clear_cache()` is the new manual escape (implement.md Risks: "Accepted").

@@ -1,0 +1,73 @@
+Tổng kết (vòng 1): MUST 3 / SHOULD 3 / NIT 1. Dựa trên giả định: 1. Chờ xác nhận: 0. Cần xem lại spec: 1. Ngoài phạm vi / không cần sửa: 3.
+Số phát hiện theo nguồn: review-branch 3 / code-review 6 / spec-review 1 (2 phát hiện trùng giữa review-branch và code-review).
+Ghi chú: review-branch và code-review chạy ngay trong worktree của task (có thay đổi đã stage), nên có thể thấy spec.
+
+### 1. MUST — `send` báo lỗi thay vì cảnh báo sau khi tiến trình đã kết thúc
+- **Nguồn:** `review-branch`, `code-review` (review-branch đã tái hiện)
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** lua/rails-tools/ui/terminal.lua:326-333 (`M.send`), liên quan :80 và :146
+- **Vấn đề:** Sau khi lệnh kết thúc, `state.job_id` và buffer vẫn còn, nên `vim.fn.chansend` ném lỗi "Can't send data to closed stream". Trước thay đổi này, cùng tình huống chỉ cảnh báo "no active terminal". Hiện chưa có đường dùng nào trong `lua/` gọi `send` (chỉ test gọi), nên người dùng chưa gặp; lỗi sẽ xuất hiện khi có tính năng gọi `send`.
+- **Sửa:** Trong `M.send`, nếu terminal đã kết thúc (`state.cmd == nil`) thì cảnh báo "no active terminal" như trước, cho cả nhánh native và toggleterm; thêm một test hồi quy gọi `send` sau khi tiến trình thoát. (sketch, chưa biên dịch)
+
+### 2. MUST — Test lặp lại thân của helper `open_and_finish`
+- **Nguồn:** `review-branch`, `code-review`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** tests/ui/terminal_spec.lua:247-254
+- **Vấn đề:** Test "closes the finished terminal when the next command opens" tự lặp lại các bước `jobwait` và `vim.wait` của helper, nên sửa timing trong helper sẽ không tới test này.
+- **Sửa:** Gọi `open_and_finish("echo one")` rồi lấy `first_buf = vim.api.nvim_get_current_buf()` (buffer terminal vẫn là buffer hiện tại sau helper).
+
+### 3. MUST — Chưa tick tiêu chí trong story.md và issue.md
+- **Nguồn:** `spec-review`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Diff chạm: không — yêu cầu chưa thực hiện · Liên quan mục tiêu: có
+- **File:** specs/story.md:416-419 (BF-063), specs/issues/063-terminal-finished-window-left-behind/issue.md
+- **Trích spec:** implement.md bước 8 "Tick BF-063 items in `specs/story.md` and the acceptance criteria in `issue.md`."
+- **Vấn đề:** Cả 4 ô BF-063 trong story.md và các tiêu chí trong issue.md vẫn là `[ ]` dù báo cáo của bước code nói đã tick.
+- **Sửa:** Tick 4 ô BF-063 trong story.md (nằm trong diff) và các tiêu chí đã đạt trong issue.md; xác nhận bằng `git diff --cached specs/story.md` sau khi stage.
+
+### 4. SHOULD — Trạng thái cũ sau `:bd!` trên buffer terminal đã kết thúc
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Giả định (chưa tái hiện) · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** lua/rails-tools/ui/terminal.lua:84
+- **Vấn đề:** Dọn dẹp đầy đủ chỉ chạy ở BufWipeout. Nếu người dùng chạy `:bd!` trên terminal đã kết thúc mà BufWipeout không chạy, `nvim_buf_is_valid(state.bufnr)` vẫn đúng, `toggle`/`show` mở cửa sổ trống và `is_visible()` trả về true.
+- **Sửa:** Kiểm chứng trước bằng một test headless (kết thúc lệnh, `:bd!`, rồi `toggle`). Nếu tái hiện được, kiểm tra thêm buffer đã load trước khi hiển thị lại; nếu không thì bỏ qua.
+
+### 5. SHOULD — Stub `vim.notify` và `vim.fn.confirm` không được khôi phục khi test lỗi
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng (đọc code) · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** tests/ui/terminal_spec.lua:271
+- **Vấn đề:** Stub chỉ được trả lại khi test pass; nếu `toggle` hoặc `confirm_replace` ném lỗi, stub còn lại và làm sai các test sau kiểm tra thông báo.
+- **Sửa:** Khôi phục trong `after_each` hoặc bọc lời gọi bằng `pcall`, theo cách các test khác trong file đang làm.
+
+### 6. SHOULD — Test toggleterm đã kết thúc chỉ kiểm tra `toggled`
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** tests/ui/terminal_spec.lua:500
+- **Vấn đề:** Test "toggles a finished toggleterm terminal" không kiểm tra rằng không có cảnh báo "no terminal to toggle" và `cmd` đã bị xóa, trong khi test native tương ứng có kiểm tra.
+- **Sửa:** Thêm hai khẳng định đó cho khớp với test native.
+
+### 7. NIT — Quy tắc "terminal đã kết thúc" nằm ở hai nơi
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** lua/rails-tools/ui/terminal.lua:78-82 và :144-148
+- **Vấn đề:** Bước `state.cmd = nil` sau khi tiến trình thoát có ở cả callback native `TermClose` và `on_exit` của toggleterm.
+- **Sửa:** Có thể thêm `local function mark_finished()` cạnh `clear_state()` và gọi từ cả hai nơi. Đây là code mới của thay đổi này; cần anh duyệt trước khi tách.
+
+## Cần xem lại spec
+
+### A. Hiển thị lại terminal đã kết thúc có thể bị đóng ngay khi gõ phím đầu tiên
+- **Nguồn:** `code-review`
+- **File:** lua/rails-tools/ui/terminal.lua:80 và :297
+- **Trích spec:** story.md:417 "`toggle` / `show` work on a terminal whose process has exited"
+- **Câu hỏi:** Spec yêu cầu `toggle`/`show` hoạt động trên terminal đã kết thúc. Reviewer cho rằng khi hiển thị lại và vào chế độ terminal, Neovim đóng buffer ở phím đầu tiên nên output biến mất (suy luận từ hành vi Neovim, chưa tái hiện). Spec vẫn muốn hành vi này, hay chỉ cần hiển thị lại mà không `startinsert`?
+
+## Ngoài phạm vi / không cần sửa
+- lua/rails-tools/ui/terminal.lua:146 và :283 — với toggleterm, `state.term` còn sau khi buffer bị xóa nên `shutdown()` hoặc `toggle` có thể ném lỗi hoặc chạy lại lệnh. Nguồn: `code-review`. Đây là suy đoán về toggleterm và đã nằm trong mục "Risks to test" của spec. Phân loại: đã ghi trong spec.
+- lua/rails-tools/ui/terminal.lua:272 — `show`/`toggle` mở lại bằng hướng cấu hình thay vì hướng lúc mở. Nguồn: `code-review`. Đã có từ trước, thay đổi này chỉ làm đường đi này xảy ra thường hơn. Phân loại: Ngoài phạm vi, có từ trước.
+- tests/ui/terminal_spec.lua:232-238 — helper `open_and_finish` không có tên trong spec. Nguồn: `spec-review`. Chỉ cấu trúc test, không đổi hành vi. Phân loại: không cần sửa.
+
+## Vòng 2 (sau khi sửa mục 1, 2, 3)
+Kết quả: không có MUST mới. Mục 1, 2, 3 đã sửa (chưa commit khi review; test đầy đủ và lint đều qua). Mục 4, 5, 6, 7 giữ nguyên (SHOULD/NIT, chưa sửa) cùng mục "Cần xem lại spec" A.
+- Mục 1 (send sau khi thoát): đã sửa bằng cờ đã-kết-thúc ở trạng thái terminal; test hồi quy fail trước sửa và pass sau; review vòng 2 tái hiện lại: `send` giờ cảnh báo, không ném lỗi.
+- Mục 2 (test lặp helper): đã dùng `open_and_finish`.
+- Mục 3 (tick story.md/issue.md): 4 ô BF-063 trong story.md đã tick (có trong diff); issue.md đã tick ở bản sao worktree (thư mục chưa được git theo dõi).
+- Ghi chú vòng 2: ngoài các mục đã biết, review-branch và code-review không tìm thấy phát hiện mới. Không tái hiện được trong headless việc gõ phím đầu tiên có đóng terminal đã kết thúc hay không (mục "Cần xem lại spec" A vẫn là giả định).

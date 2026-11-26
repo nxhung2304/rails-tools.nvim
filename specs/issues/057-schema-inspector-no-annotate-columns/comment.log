@@ -1,0 +1,53 @@
+Review of branch feature/hung-#57-schema-inspector-no-annotate-columns (staged changes, base main). Note: A and B ran in the worktree checkout, so they could see the spec.
+
+Summary: 2 MUST, 2 SHOULD, 0 NIT. 2 are Assumption. 0 Pending confirmation. 3 in Spec to review. 0 out of scope. Findings per source: review-branch 3, code-review 4, spec-review 3 (some merged).
+
+## Fix list
+
+### 1. MUST [FIXED, staged, not committed; make test and make lint pass] — Annotate columns are dropped when `self.table_name` points at a table missing from `db/schema.rb`
+- **Source:** `code-review`, `spec-review`
+- **Classification:** In scope · Verified · Diff touches: yes · Related: yes
+- **File:** lua/rails-tools/core/schema.lua:144-145 (cause at :117)
+- **Problem:** `resolve_table_name` returns `self.table_name` even when `schema.rb` has no such table, so `annotate_is_stale` becomes true and the annotate columns are replaced with an empty list. Before this branch those annotate columns were shown, so a model with `self.table_name = "legacy_users"` and an annotate block now loses its columns. The stale-annotate code is also not described in the Design of implement.md.
+- **Fix:** Mark the annotate block stale only when the declared table exists in `schema.rb`: `local annotate_is_stale = schema_table and ann.table_name and table_name ~= ann.table_name`. Optionally pass `annotate_is_stale and {} or ann.columns` to `merge_columns` instead of building a stand-in table. Add a test: declared table missing from `schema.rb` keeps the annotate columns. Add one line about the stale rule to the Design in implement.md. (sketch, not compiled)
+
+### 2. MUST [FIXED, staged, not committed; make test and make lint pass] — Regression test checks only one column
+- **Source:** `spec-review`
+- **Classification:** In scope · Verified · Diff touches: yes · Related: yes
+- **File:** tests/core/schema_spec.lua:230-239
+- **Problem:** The acceptance criterion says the un-annotated model has every column of `users`, but the test checks only `email`.
+- **Fix:** Also assert the remaining `users` columns from the sample schema (name, status, created_at, updated_at) in the same test.
+
+### 3. SHOULD — Nested class can win the table name
+- **Source:** `code-review`
+- **Classification:** In scope · Assumption · Diff touches: yes · Related: yes
+- **File:** lua/rails-tools/core/annotate.lua:53-62
+- **Problem:** `declared_table_name` returns the first `self.table_name = "..."` line anywhere in the file, so a nested class, heredoc or `=begin` block can give the outer model the wrong table.
+- **Fix:** Verify first whether model files with a nested class that sets `self.table_name` occur in real apps. If not, skip; the already-recorded low risk is enough. Doing it right needs more than a line match, so do not fix in this PR.
+
+### 4. SHOULD — Annotate block without a `# Table name:` line is not treated as stale
+- **Source:** `code-review`
+- **Classification:** In scope · Assumption · Diff touches: yes · Related: yes
+- **File:** lua/rails-tools/core/schema.lua:144
+- **Problem:** With `self.table_name = "orders"` and an annotate block that has columns but no `Table name:` line, the annotate columns are merged into `orders`.
+- **Fix:** Verify first that the annotate gem can write a block without a `Table name:` line (the usual format always has it). If it cannot, skip.
+
+## Spec to review
+
+### A. Declared table name is read in the annotate module
+- **Source:** `review-branch`
+- **File:** lua/rails-tools/core/annotate.lua:49-60
+- **Spec:** implement.md Design: new `annotate.declared_table_name(lines)` so files are not read twice.
+- **Question:** The spec chose to put `self.table_name` parsing in the annotate module, the code shows a model-source helper living in an annotate-block parser — does that still hold, or move it to `model_context`?
+
+### B. Namespaced name is tried before the last segment
+- **Source:** `review-branch`, `code-review`
+- **File:** lua/rails-tools/core/model_context.lua:140-143
+- **Spec:** implement.md decisions: "Accepted limit: if the app has both `admin_users` and `users` tables and `Admin::User` has no prefix, it picks `admin_users`."
+- **Question:** The spec accepted picking `admin_users` first, the reviewers show plain Rails uses `users` without `table_name_prefix` — does that limit still hold?
+
+### C. "Go to schema" still ignores `self.table_name` and namespaces
+- **Source:** `review-branch`, `code-review`
+- **File:** lua/rails-tools/core/related_files.lua:243-247
+- **Spec:** implement.md Design: `related_files.table_of_model` and `rails_paths.model_file_for_table` are out of scope; follow-up candidate.
+- **Question:** The spec left them unchanged, the code shows hover and "go to schema" can now disagree for such models — is a follow-up issue wanted?
