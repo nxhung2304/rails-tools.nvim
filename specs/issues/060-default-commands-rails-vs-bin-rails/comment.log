@@ -1,0 +1,55 @@
+Tổng kết: MUST 0 / SHOULD 1 / NIT 1. Dựa trên giả định: 0. Chờ xác nhận: 1. Cần xem lại spec: 4. Ngoài phạm vi / không cần sửa: 2.
+Số phát hiện theo nguồn: review-branch 8 (2 trùng với code-review) / code-review 6 / spec-review 1.
+Ghi chú: review-branch và code-review chạy ngay trong worktree của task (không dùng worktree cách ly vì có thay đổi đã stage), nên hai nguồn này có thể thấy spec dù đã dặn không đọc.
+
+### 1. SHOULD — Chưa có test mức routes cho lệnh mặc định
+- **Nguồn:** `review-branch`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** tests/core/routes_spec.lua (toàn bộ file)
+- **Vấn đề:** Mọi test của routes đều tự đặt `routes.command`, nên không có test nào kiểm tra lệnh mặc định `bin/rails routes --expanded` và nhánh `script/rails` ở mức module routes. Chỉ `tests/config_spec.lua` kiểm tra `rails_command("routes")`.
+- **Sửa:** Thêm 1 test trong routes_spec chạy khi không đặt `routes.command` và kiểm tra lệnh được chạy là `bin/rails routes --expanded` (sketch, chưa biên dịch). Nếu coi test ở config_spec là đủ thì bỏ qua, ghi lý do vào PR.
+
+### 2. NIT — `is_console_active` tính lại lệnh mỗi lần toggle
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Đã kiểm chứng (đọc code) · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** lua/rails-tools/core/console.lua:18
+- **Vấn đề:** Mỗi lần mở hoặc toggle, lệnh console được tính lại (2 lần kiểm tra file). Nếu app đổi từ `script/rails` sang `bin/rails` khi console đang chạy thì lệnh không khớp và plugin hỏi thay thế terminal. Tình huống này hiếm và hậu quả chỉ là một lần hỏi.
+- **Sửa:** Không sửa trong PR này. Gợi ý trả lời reviewer: "Chỉ xảy ra khi thêm `bin/rails` lúc console đang chạy; hậu quả là một lần hỏi thay thế; chi phí kiểm tra file không đáng kể." Spec đã có mục kiểm tra việc dùng lại console (implement.md, mục Risks to test).
+
+## Chờ xác nhận
+
+### Windows không chạy trực tiếp được `bin/rails`
+- **Nguồn:** `code-review`
+- **File:** lua/rails-tools/config.lua:167
+- **Câu hỏi:** Lệnh mặc định giờ chạy thẳng `bin/rails` (cần dòng `#!`), trước đây `rails` đi qua `rails.bat` trên Windows. Dự án có hỗ trợ Windows không? Người trả lời: chủ dự án.
+- **Nếu "có":** thêm ghi chú trong README rằng Windows cần đặt `console.command` / `runner.command` / `generators.command`, hoặc đổi cách chọn lệnh mặc định. Chưa kiểm tra trên Windows, repo không có code riêng cho Windows (giả định).
+
+## Cần xem lại spec
+
+### A. Lệnh `bin/rails` không có quyền thực thi
+- **Nguồn:** `code-review`, `review-branch`
+- **File:** lua/rails-tools/detectors/rails.lua:70-75
+- **Trích spec:** implement.md:113 "`bin/rails` without the executable bit ... Behaviour change by design; user can set the command."
+- **Câu hỏi:** Spec chấp nhận hành vi này và chỉ nói người dùng tự đặt lệnh. README chưa nhắc điều đó; có cần thêm một dòng vào README không?
+
+### B. Hàm `executable` lặp lại lựa chọn của health và `find_root`
+- **Nguồn:** `code-review`, `review-branch`
+- **File:** lua/rails-tools/detectors/rails.lua:3-4 và :23, lua/rails-tools/health.lua:124
+- **Trích spec:** implement.md:12 "`health.lua:124` keeps its own check (no refactor)"; implement.md:55 "Leave `find_root` (line 20) untouched."
+- **Câu hỏi:** Spec chọn không gộp để giữ phạm vi nhỏ. Hai nơi có thể lệch nhau về sau; có muốn gộp ở một issue riêng không?
+
+### C. LuaDoc ghi sai lệnh mặc định
+- **Nguồn:** `code-review`, `review-branch`
+- **File:** lua/rails-tools/core/generators.lua:22 và :44, lua/rails-tools/core/runner.lua:52, 74, 85, 95, lua/rails-tools/integrations/grape.lua:327
+- **Trích spec:** implement.md:119 "LuaDoc that becomes inaccurate (NOT edited, flag in the final report)"
+- **Câu hỏi:** Theo quy tắc của anh, không tự sửa comment cũ. Có đồng ý cho sửa các dòng doc này trong PR không?
+
+### D. Config giờ phụ thuộc detector để dựng lệnh
+- **Nguồn:** `review-branch`
+- **File:** lua/rails-tools/config.lua:3 và :158-166
+- **Trích spec:** implement.md:32 (thêm `M.rails_command(section, root)` trong config, require detector bên trong hàm)
+- **Câu hỏi:** Spec đã chọn đặt hàm dựng lệnh trong config; có muốn chuyển sang gần `executable()` không? Đây chỉ là nhận xét thiết kế, không phải lỗi.
+
+## Ngoài phạm vi / không cần sửa
+- lua/rails-tools/config.lua:167 — `script/rails routes` không chạy được trên Rails 3 (cần `rake routes`). Nguồn: `code-review`. Đã có từ trước (`bin/rails routes` cũng hỏng trên app đó) và spec đã quyết ngoài phạm vi (implement.md:6, :120). Phân loại: Ngoài phạm vi, có từ trước.
+- specs/issues/060-default-commands-rails-vs-bin-rails/issue.md — dấu tick tiêu chí chưa nằm trong diff. Nguồn: `spec-review`. Thư mục spec chưa được git theo dõi (untracked), nên không vào diff; dấu tick đã có trong bản sao ở worktree. Phân loại: không cần sửa, bước Finalize xử lý.

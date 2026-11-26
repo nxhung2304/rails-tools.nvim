@@ -1,0 +1,40 @@
+Review of branch feature/hung-#54-modules-schema-flag-ignored (staged diff against main b7d0cd9). Round 1.
+Note: A and B ran in the worktree with staged changes, so they could see the spec. GitHub issue comments and PR body were not fetched (no PR yet).
+
+Summary: 1 MUST, 0 SHOULD, 0 NIT, 0 Assumption, 0 Pending confirmation, 4 in Spec to review, 1 in Out of scope. Findings per source: review-branch 4 / code-review 5 / spec-review 2.
+
+### 1. MUST — Unneeded `modules.grape = true` setup in the routes test
+- **Source:** `review-branch`, `code-review`, `spec-review`
+- **Classification:** In scope · Verified · Diff touches: yes · Related: yes
+- **File:** tests/telescope/init_spec.lua:124 (test "routes opens the routes picker with Telescope and the picker options")
+- **Problem:** The added `config.setup({ modules = { grape = true } })` has no effect, because the routes picker never reads `modules.grape`. The spec asks for it only in the grape test, and here it implies a link between routes and the grape flag that does not exist.
+- **Fix:** Delete that one line from the routes test. Keep the line in the grape test.
+
+## Spec to review
+
+### A. Warning text duplicated between `:Rails grape` and the Telescope picker
+- **Source:** `review-branch`, `code-review`
+- **File:** lua/rails-tools/telescope/init.lua:32-35 and lua/rails-tools/commands.lua:39-40
+- **Spec line:** implement.md Design: "show the same warning as `:Rails grape`".
+- **Question for the leader:** The spec chose to copy the same warning text, the code now has it in two places and the two can drift apart. Does that still hold, or should one shared constant be used (touches `commands.lua`, which the spec lists under "Do NOT touch")?
+
+### B. `modules.schema` is checked only in `init.lua`, not inside each module
+- **Source:** `code-review`
+- **File:** lua/rails-tools/init.lua:21-29
+- **Spec line:** implement.md Design: "gate the three calls in `init.lua` ... Nothing else calls these three `setup()` functions".
+- **Question for the leader:** The spec chose one check in `init.lua`; a direct call to a module `setup()` would bypass the flag, but no current caller does that. Does that still hold?
+
+### C. Two `if schema_enabled` blocks around the `gf` setup
+- **Source:** `review-branch`, `code-review`
+- **File:** lua/rails-tools/init.lua:21-29
+- **Spec line:** implement.md Design: "read the flag once into a local and use two `if` blocks, so the `gf` line does not move".
+- **Question for the leader:** The spec chose to keep the `gf` line in place; moving it would give one block, but the setup order was not traced. Does that still hold?
+
+### D. Telescope `grape` picker still listed when Grape is off
+- **Source:** `code-review`
+- **File:** lua/rails-tools/telescope/init.lua:31
+- **Spec line:** implement.md Design: "check `modules.grape` when the picker runs ... Not 'do not export'".
+- **Question for the leader:** The spec chose to warn when run, because the export table is built before the user's `setup()` can run. Does that still hold?
+
+## Out of scope / no change needed
+- specs/issues/054-modules-schema-flag-ignored/issue.md and specs/story.md ticks: `spec-review`, spec checklist step 6. The story.md tick is in the diff; the issue folder is untracked by design (not a code defect).

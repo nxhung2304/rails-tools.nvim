@@ -1,0 +1,69 @@
+## Related
+- [Original issue](./issue.md)
+- [Plan](./implement.md)
+
+# Review BF-056 (GitHub #56) — branch feature/hung-#56-namespaced-models-collide so với main
+
+Tổng: 0 MUST / 1 SHOULD / 0 NIT. Dựa trên giả định: 0. Chờ xác nhận: 0. Cần leader xem lại spec: 5. Ngoài phạm vi: 0.
+Theo nguồn: review-branch 4, code-review 3, spec-review 0 (1 mục trùng giữa review-branch và code-review).
+
+Ghi chú: diff có thay đổi đã stage nên review-branch và code-review chạy trong chính worktree, tức là thấy được spec. Repo không có `specs/code-rules/`, rule đọc từ `~/.claude/code-rules/`. Không có comment nào trên issue #56 và chưa có PR.
+
+## Cần sửa
+
+### 1. SHOULD — `scan` đọc file concern rồi bỏ đi
+- **Nguồn:** `code-review`
+- **Phân loại:** Trong phạm vi · Đã xác minh (confidence 85, đã đọc code) · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** `lua/rails-tools/core/annotate.lua:58-60`
+- **Vấn đề:** `readfile` chạy trước `model_for_path`. Mọi file trong `app/models/concerns/` (key nil) vẫn bị đọc từ đĩa rồi bỏ, mỗi lần dựng lại cache schema. Trước thay đổi này các file đó đều được giữ, nên lãng phí này do thay đổi gây ra.
+- **Cách sửa:** Tính `model_name` trước, chỉ `readfile` khi `model_name` khác nil (sketch, chưa biên dịch):
+  ```lua
+  for _, file in ipairs(files) do
+    local model_name = model_context.model_for_path(file)
+    if model_name then
+      local ok, lines = pcall(vim.fn.readfile, file)
+      if ok then
+        local block = M.parse(lines)
+        block.file = file
+        by_model[model_name] = block
+      end
+    end
+  end
+  ```
+
+## Spec cần xem lại
+
+### 1. Receiver không còn tìm ra model có namespace khi không có model cùng tên ở top-level
+- **Nguồn:** `review-branch`, `code-review`
+- **Phân loại:** Quyết định bởi spec · Đã xác minh · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** `lua/rails-tools/core/model_context.lua:43-84` (`infer_model`, `model_for_path`)
+- **Trích spec (`implement.md`):** "`infer_model` is not changed: a receiver (`user`, `admin_user`) still only maps to top-level model names. No fallback to `Admin::User` when no top-level `User` exists" và "Known limit accepted: apps that collapse an `app/models` subfolder ... stops resolving."
+- **Câu hỏi cho leader:** Spec chọn không đổi `infer_model`, code cho thấy dự án chỉ có `app/models/admin/user.rb` sẽ mất hover/`gd`/completion cho `user.` ngoài file model — quyết định này còn đúng không?
+
+### 2. Thư mục `concerns` lồng nhau vẫn bị coi là model
+- **Nguồn:** `review-branch`
+- **Phân loại:** Quyết định bởi spec · Đã xác minh · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** `lua/rails-tools/core/model_context.lua:4-6`
+- **Trích spec:** "Concerns (`app/models/concerns/**`) are not models" và Design "Return nil when there is no match or the relative path starts with `concerns/`."
+- **Câu hỏi cho leader:** Spec chỉ loại `app/models/concerns/` ở cấp trên cùng, nên `app/models/admin/concerns/foo.rb` thành `Admin::Concerns::Foo` — có giữ nguyên không?
+
+### 3. Xử lý `&.` nằm chung trong thay đổi này
+- **Nguồn:** `review-branch`
+- **Phân loại:** Quyết định bởi spec · Đã xác minh · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** `lua/rails-tools/integrations/cmp.lua:22`, `lua/rails-tools/integrations/context.lua:40`
+- **Trích spec:** `issue.md` mục "Related: safe navigation `&.` loses the receiver" và tiêu chí "`user&.email` resolves receiver `user` for hover, `gd` and completion."
+- **Câu hỏi cho leader:** Reviewer thấy phần `&.` không thuộc "namespaced models" và đề nghị tách PR, spec lại gộp chung — có giữ chung một PR không?
+
+### 4. Pattern đường dẫn dùng greedy
+- **Nguồn:** `review-branch`
+- **Phân loại:** Quyết định bởi spec · Đã xác minh · Diff chạm: có · Liên quan mục tiêu: có
+- **File:** `lua/rails-tools/core/model_context.lua:73`
+- **Trích spec:** "Greedy prefix so a root path that itself contains `app/models/` does not leak into the name."
+- **Câu hỏi cho leader:** Spec chọn greedy để root chứa `app/models/` không rò vào tên, đổi lại `/x/app/models/app/models/foo.rb` ra `foo` thay vì `App::Models::Foo` — có chấp nhận không?
+
+### 5. Bộ lọc xóa cache khi lưu file vẫn khớp cả concern
+- **Nguồn:** `code-review`
+- **Phân loại:** Quyết định bởi spec · Đã xác minh · Diff chạm: không (`schema.lua` ngoài diff) · Liên quan mục tiêu: có
+- **File:** `lua/rails-tools/core/schema.lua:163`
+- **Trích spec:** "`schema.setup` invalidation pattern `app/models/.+%.rb$` (`schema.lua:163`) still matches concerns. Kept: an extra cache flush on concern save is harmless."
+- **Câu hỏi cho leader:** Spec chấp nhận xóa cache thừa khi lưu concern, đổi lại hai luật đường dẫn model có thể lệch nhau dần — có giữ nguyên không?

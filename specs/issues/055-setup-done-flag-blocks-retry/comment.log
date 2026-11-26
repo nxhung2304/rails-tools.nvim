@@ -1,0 +1,35 @@
+Review of branch feature/hung-#55-setup-done-flag-blocks-retry (staged diff on top of b7d0cd9). Spec source: issue.md + implement.md. A and B ran in the worktree checkout (staged changes), so they could see the spec folder. gh issue comments and PR were not available (no PR yet).
+
+Summary: 0 MUST / 1 SHOULD / 0 NIT. 1 assumption-based. 0 pending confirmation. 3 in "Spec to review". 1 moved to "Out of scope / no change needed". By source: review-branch 0, code-review 4, spec-review 1.
+
+### 1. SHOULD — New tests leave global leader keymaps behind
+- **Source:** `code-review`
+- **Classification:** In scope · Assumption · Diff touches: yes · Related: yes
+- **File:** tests/init_spec.lua:58-96
+- **Problem:** The two new tests run the real `keymaps.setup` and never delete the global `<leader>r*` maps; the existing keymaps test deletes its map. No current test is affected, so this only matters if a later test checks for an absent map.
+- **Fix:** Verify first that some test in the suite checks a leader map is absent; if none does, skip. Otherwise delete the maps in the existing `after_each`, as the keymaps test does (sketch, not compiled): `pcall(vim.keymap.del, "n", vim.g.mapleader .. "rr")`.
+
+## Spec to review
+
+### Retry runs config.setup again and resets config to defaults when retried without opts
+- **Source:** `code-review`
+- **File:** lua/rails-tools/init.lua:16
+- **Spec/leader decision:** implement.md Risks: "A retry with no opts resets config to defaults (`config.setup` rebuilds from defaults + opts). Could not happen before because a retry did nothing; low impact."
+- **Question:** The plan accepted this as low impact and out of scope — does that still hold? If not, the fix needs a design change (e.g. remember the last opts), which is beyond BF-055.
+
+### Retry with edited config leaves stale setup from the failed run
+- **Source:** `code-review`
+- **File:** lua/rails-tools/init.lua:18
+- **Spec/leader decision:** implement.md Risks: "Retry with edited config can leave stale setup from the failed run ... Same-session retry with edited config only; low impact, out of scope."
+- **Question:** Does "out of scope, low impact" still hold? If not, each sub-module would need an undo step on retry.
+
+### Autocmd-count assertions in the retry test pass even on the old code
+- **Source:** `code-review`
+- **File:** tests/init_spec.lua:80-81
+- **Spec/leader decision:** implement.md Decisions: "add the duplicate-autocmd assertions above to the retry test (cheap, covers the retry-safety claim)."
+- **Question:** The reviewer is right that these two lines do not catch the original bug (only `gf_setup_calls == 2` does). They still catch a later regression where a group loses `clear = true` and the retry duplicates autocmds. Keep them as a guard, or drop them?
+
+## Out of scope / no change needed
+- specs/issues/055-setup-done-flag-blocks-retry/issue.md: acceptance-criteria ticks are not in the diff because the spec folder is untracked in git. Source: `spec-review`. Out of scope: by design, the spec folder stays untracked and is copied back to the main checkout.
+
+Round 1 result: no MUST. Review loop ends.
