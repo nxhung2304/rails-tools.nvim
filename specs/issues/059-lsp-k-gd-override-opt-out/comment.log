@@ -27,7 +27,7 @@ Ghi chú nguồn: thay đổi chưa commit (chỉ staged) nên cả 3 nguồn ch
 - **Vấn đề:** Lỗi trong callback `vim.schedule` không ném ra khỏi `fire_attach`, nên test vẫn qua dù code index `false` và lỗi. Chưa chạy thử; đây là suy luận về cách Neovim xử lý lỗi trong schedule.
 - **Fix:** Trước khi sửa, thử tạm cho callback ném lỗi và xem test có đỏ không. Nếu vẫn xanh, kiểm tra `vim.v.errmsg` rỗng sau `fire_attach` (sketch, not compiled). Nếu test đã đỏ thì bỏ qua mục này.
 
-### 4. SHOULD — README chưa nói các phím `lsp` chỉ có tác dụng khi `modules.schema` bật
+### 4. SHOULD [đã sửa, chưa commit] — README chưa nói các phím `lsp` chỉ có tác dụng khi `modules.schema` bật
 - **Nguồn:** `code-review`
 - **Phân loại:** In scope · Verified · Diff chạm: có · Liên quan: có
 - **File:** README.md (mục "LSP keys"); căn cứ lua/rails-tools/init.lua:20-28 (`lsp.setup()` chỉ chạy khi `modules.schema` bật)
