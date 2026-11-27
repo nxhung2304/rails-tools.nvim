@@ -1,4 +1,5 @@
 local schema = require("rails-tools.core.schema")
+local config = require("rails-tools.config")
 local model_context = require("rails-tools.core.model_context")
 local context = require("rails-tools.integrations.context")
 
@@ -58,36 +59,44 @@ local function current_model()
   return model_context.model_for_path(vim.api.nvim_buf_get_name(0))
 end
 
----@param bufnr integer
-local function attach_hover(bufnr)
-  vim.keymap.set("n", "K", function()
-    local receiver, word = context.at_cursor()
-    if word then
-      local lines = M.hover_lines(receiver, word, current_model())
-      if lines then
-        vim.lsp.util.open_floating_preview(lines, "markdown", { border = "rounded", focusable = false })
-        return
-      end
+---Rails-aware hover; falls back to `vim.lsp.buf.hover()`.
+function M.hover()
+  local receiver, word = context.at_cursor()
+  if word then
+    local lines = M.hover_lines(receiver, word, current_model())
+    if lines then
+      vim.lsp.util.open_floating_preview(lines, "markdown", { border = "rounded", focusable = false })
+      return
     end
-    vim.lsp.buf.hover()
-  end, { buffer = bufnr, desc = "Hover Documentation (Rails-aware)" })
+  end
+  vim.lsp.buf.hover()
+end
+
+---Rails-aware go-to-definition; falls back to `vim.lsp.buf.definition()`.
+function M.definition()
+  local receiver, word = context.at_cursor()
+  if word then
+    local loc = M.definition_location(receiver, word, current_model())
+    if loc then
+      vim.cmd("edit " .. vim.fn.fnameescape(loc.file))
+      vim.api.nvim_win_set_cursor(0, { loc.lnum, loc.col })
+      vim.cmd("normal! zz")
+      return
+    end
+  end
+  vim.lsp.buf.definition()
 end
 
 ---@param bufnr integer
-local function attach_goto_definition(bufnr)
-  vim.keymap.set("n", "gd", function()
-    local receiver, word = context.at_cursor()
-    if word then
-      local loc = M.definition_location(receiver, word, current_model())
-      if loc then
-        vim.cmd("edit " .. vim.fn.fnameescape(loc.file))
-        vim.api.nvim_win_set_cursor(0, { loc.lnum, loc.col })
-        vim.cmd("normal! zz")
-        return
-      end
-    end
-    vim.lsp.buf.definition()
-  end, { buffer = bufnr, desc = "Go to Definition (Rails-aware)" })
+---@param lhs string
+local function attach_hover(bufnr, lhs)
+  vim.keymap.set("n", lhs, M.hover, { buffer = bufnr, desc = "Hover Documentation (Rails-aware)" })
+end
+
+---@param bufnr integer
+---@param lhs string
+local function attach_goto_definition(bufnr, lhs)
+  vim.keymap.set("n", lhs, M.definition, { buffer = bufnr, desc = "Go to Definition (Rails-aware)" })
 end
 
 ---Wire the Rails-aware `K` / `gd` overrides for ruby/eruby buffers that
@@ -108,8 +117,16 @@ function M.setup()
       -- right after this callback returns. Deferring to the next tick makes
       -- ours the last write, regardless of registration order.
       vim.schedule(function()
-        attach_hover(args.buf)
-        attach_goto_definition(args.buf)
+        local keys = config.get().lsp
+        if type(keys) ~= "table" then
+          return
+        end
+        if type(keys.hover) == "string" and keys.hover ~= "" then
+          attach_hover(args.buf, keys.hover)
+        end
+        if type(keys.definition) == "string" and keys.definition ~= "" then
+          attach_goto_definition(args.buf, keys.definition)
+        end
       end)
     end,
   })

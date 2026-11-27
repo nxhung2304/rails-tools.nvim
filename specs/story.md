@@ -36,7 +36,7 @@ Layer 5: Polish & Integrations (Phase 3)
 | Layer 2 - Detection | 4 tasks | 4 | 100% |
 | Layer 3 - Core Features | 8 tasks | 8 | 100% |
 | Layer 4 - Enhanced | 6 tasks | 6 | 100% |
-| Bug Fixes - Review | 11 tasks | 0 | 0% |
+| Bug Fixes - Review | 11 tasks | 10 | 91% |
 | Layer 5 - Polish | 4 tasks | 1 | 25% |
 | Backlog - Experimental | 4 tasks | — | not scheduled |
 
@@ -397,10 +397,10 @@ Each task links its GitHub issue, which holds the evidence and full acceptance c
 - [x] Regression test: detect in empty dir, add `Gemfile` + `bin/rails`, detect again
 
 ### BF-059. Opt-out and custom keys for the LSP `K`/`gd` override (GitHub #59)
-- [ ] Config option to disable the override or choose the keys
-- [ ] Keep an existing user buffer mapping, or document the chosen behaviour
-- [ ] Expose Rails-aware hover/definition as functions users can map
-- [ ] Regression tests for enabled, disabled and custom-key cases
+- [x] Config option to disable the override or choose the keys
+- [x] Keep an existing user buffer mapping, or document the chosen behaviour
+- [x] Expose Rails-aware hover/definition as functions users can map
+- [x] Regression tests for enabled, disabled and custom-key cases
 
 ### BF-060. One Rails executable for all default commands (GitHub #60)
 - [x] Console, runner, generators and routes use the same executable, preferring `bin/rails`

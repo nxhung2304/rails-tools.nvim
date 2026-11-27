@@ -124,6 +124,10 @@ M.defaults = {
   cmp = {
     dedupe_with_lsp = {},
   },
+  lsp = {
+    hover = "K",
+    definition = "gd",
+  },
 }
 
 ---@type table|nil

@@ -121,6 +121,7 @@ describe("rails-tools.config", function()
       "view",
       "rspec",
       "cmp",
+      "lsp",
     }
     for _, key in ipairs(expected_keys) do
       assert.is_not_nil(config.defaults[key])

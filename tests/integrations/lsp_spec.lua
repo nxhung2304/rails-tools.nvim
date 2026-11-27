@@ -171,3 +171,115 @@ describe("integrations.lsp", function()
     end)
   end)
 end)
+
+describe("integrations.lsp setup()", function()
+  local config = require("rails-tools.config")
+  local HOVER_DESC = "Hover Documentation (Rails-aware)"
+  local DEFINITION_DESC = "Go to Definition (Rails-aware)"
+  local buf
+  local original_hover = vim.lsp.buf.hover
+  local original_definition = vim.lsp.buf.definition
+
+  local function attach_ruby_buffer()
+    buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_set_current_buf(buf)
+    vim.bo[buf].filetype = "ruby"
+    return buf
+  end
+
+  local function fire_attach()
+    vim.api.nvim_exec_autocmds("LspAttach", {
+      group = "rails_tools_lsp_schema",
+      buffer = buf,
+      data = { client_id = 0 },
+    })
+    local flushed = false
+    vim.schedule(function()
+      flushed = true
+    end)
+    vim.wait(1000, function()
+      return flushed
+    end)
+  end
+
+  local function desc_of(lhs)
+    return vim.fn.maparg(lhs, "n", false, true).desc
+  end
+
+  before_each(function()
+    config.setup()
+    lsp.setup()
+    attach_ruby_buffer()
+  end)
+
+  after_each(function()
+    vim.lsp.buf.hover = original_hover
+    vim.lsp.buf.definition = original_definition
+    if buf and vim.api.nvim_buf_is_valid(buf) then
+      vim.api.nvim_buf_delete(buf, { force = true })
+    end
+    config.setup()
+  end)
+
+  it("maps K and gd with the Rails descs by default", function()
+    fire_attach()
+    assert.are.equal(HOVER_DESC, desc_of("K"))
+    assert.are.equal(DEFINITION_DESC, desc_of("gd"))
+    assert.are.equal(1, vim.fn.maparg("K", "n", false, true).buffer)
+    assert.are.equal(1, vim.fn.maparg("gd", "n", false, true).buffer)
+  end)
+
+  it("keeps the user's own K mapping when both keys are false", function()
+    config.setup({ lsp = { hover = false, definition = false } })
+    vim.keymap.set("n", "K", function() end, { buffer = buf, desc = "user hover" })
+    fire_attach()
+    assert.are.equal("user hover", desc_of("K"))
+    assert.are_not.equal(DEFINITION_DESC, desc_of("gd"))
+  end)
+
+  it("maps custom keys instead of K and gd", function()
+    config.setup({ lsp = { hover = "gh", definition = "gD" } })
+    fire_attach()
+    assert.are.equal(HOVER_DESC, desc_of("gh"))
+    assert.are.equal(DEFINITION_DESC, desc_of("gD"))
+    assert.are_not.equal(HOVER_DESC, desc_of("K"))
+    assert.are_not.equal(DEFINITION_DESC, desc_of("gd"))
+  end)
+
+  it("treats an empty string as no mapping", function()
+    config.setup({ lsp = { hover = "", definition = "gd" } })
+    fire_attach()
+    assert.are_not.equal(HOVER_DESC, desc_of("K"))
+    assert.are.equal(DEFINITION_DESC, desc_of("gd"))
+  end)
+
+  it("disables only the key set to false", function()
+    config.setup({ lsp = { hover = false } })
+    fire_attach()
+    assert.are_not.equal(HOVER_DESC, desc_of("K"))
+    assert.are.equal(DEFINITION_DESC, desc_of("gd"))
+  end)
+
+  it("maps nothing and raises no error when lsp = false", function()
+    config.setup({ lsp = false })
+    assert.has_no.errors(fire_attach)
+    assert.are_not.equal(HOVER_DESC, desc_of("K"))
+    assert.are_not.equal(DEFINITION_DESC, desc_of("gd"))
+  end)
+
+  it("exposes hover() and definition() that fall back to the LSP functions", function()
+    local hover_calls, definition_calls = 0, 0
+    vim.lsp.buf.hover = function()
+      hover_calls = hover_calls + 1
+    end
+    vim.lsp.buf.definition = function()
+      definition_calls = definition_calls + 1
+    end
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "foo" })
+    vim.api.nvim_win_set_cursor(0, { 1, 0 })
+    lsp.hover()
+    lsp.definition()
+    assert.are.equal(1, hover_calls)
+    assert.are.equal(1, definition_calls)
+  end)
+end)
