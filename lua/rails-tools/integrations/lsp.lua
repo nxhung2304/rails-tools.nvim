@@ -149,6 +149,14 @@ function M.setup()
           attach_hover(args.buf, hover_key)
         end
         local definition_key = key_or_warn("lsp.definition", keys.definition)
+        if hover_key and hover_key == definition_key then
+          vim.notify_once(
+            ("rails-tools: lsp.hover and lsp.definition are both set to %q, the definition mapping wins"):format(
+              hover_key
+            ),
+            vim.log.levels.WARN
+          )
+        end
         if definition_key then
           attach_goto_definition(args.buf, definition_key)
         end
