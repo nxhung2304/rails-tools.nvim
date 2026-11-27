@@ -20,12 +20,13 @@ Ghi chú nguồn: thay đổi chưa commit (chỉ staged) nên cả 3 nguồn ch
 - **Vấn đề:** Chỉ kiểm tra `.buffer == 1` cho `K`. Nếu `gd` bị map toàn cục nhầm, test vẫn qua. Spec yêu cầu kiểm tra `.buffer` ở mặc định.
 - **Fix:** Thêm cùng assertion cho `gd` ngay dưới dòng của `K`.
 
-### 3. SHOULD — Test `lsp = false` không bắt được lỗi trong callback `vim.schedule`
+### 3. SHOULD [đã sửa, dcb4547] — Test `lsp = false` không bắt được lỗi trong callback `vim.schedule`
 - **Nguồn:** `code-review`
 - **Phân loại:** In scope · Assumption · Diff chạm: có · Liên quan: có
 - **File:** tests/integrations/lsp_spec.lua:253 (`assert.has_no.errors(fire_attach)`)
 - **Vấn đề:** Lỗi trong callback `vim.schedule` không ném ra khỏi `fire_attach`, nên test vẫn qua dù code index `false` và lỗi. Chưa chạy thử; đây là suy luận về cách Neovim xử lý lỗi trong schedule.
 - **Fix:** Trước khi sửa, thử tạm cho callback ném lỗi và xem test có đỏ không. Nếu vẫn xanh, kiểm tra `vim.v.errmsg` rỗng sau `fire_attach` (sketch, not compiled). Nếu test đã đỏ thì bỏ qua mục này.
+- **Kết quả:** Giả định đúng. Cho callback ném lỗi tạm (`keys.hover.x`), test `lsp = false` vẫn xanh. Đã thêm `vim.v.errmsg = ""` trước và `assert.are.equal("", vim.v.errmsg)` sau `fire_attach` (tests/integrations/lsp_spec.lua); với lỗi tạm test đỏ, bỏ lỗi thì xanh. Đã hoàn tác lỗi tạm. Bằng chứng: commit dcb4547, make test 0 lỗi.
 
 ### 4. SHOULD [đã sửa, chưa commit] — README chưa nói các phím `lsp` chỉ có tác dụng khi `modules.schema` bật
 - **Nguồn:** `code-review`
@@ -34,19 +35,21 @@ Ghi chú nguồn: thay đổi chưa commit (chỉ staged) nên cả 3 nguồn ch
 - **Vấn đề:** User đặt `modules.schema = false` cùng `lsp.hover = "gh"` sẽ không có mapping nào mà không có giải thích.
 - **Fix:** Thêm một bullet vào "LSP keys": các phím `lsp` chỉ áp dụng khi `modules.schema` bật; khi tắt thì tự map `hover()` / `definition()`.
 
-### 5. NIT — `hover` và `definition` đặt cùng một phím thì phím thứ hai ghi đè phím thứ nhất không báo
+### 5. NIT [đã sửa, dcb4547] — `hover` và `definition` đặt cùng một phím thì phím thứ hai ghi đè phím thứ nhất không báo
 - **Nguồn:** `code-review`
 - **Phân loại:** In scope · Verified · Diff chạm: có · Liên quan: có
 - **File:** lua/rails-tools/integrations/lsp.lua:124-129
 - **Vấn đề:** `lsp = { hover = "gh", definition = "gh" }` chỉ còn go-to-definition. Chỉ xảy ra khi user cấu hình thế này; trước thay đổi không có tùy chọn nên chưa thể xảy ra.
 - **Fix:** Không sửa trong PR này, hoặc ghi thêm một dòng vào README. Lý do: cảnh báo cần thêm logic ngoài checklist.
+- **Kết quả:** User chọn sửa. `M.setup` gọi `vim.notify_once` (WARN) khi hai phím cùng giá trị, phím definition vẫn thắng. Thêm test (stub `vim.notify_once`) và một bullet README. Bằng chứng: lua/rails-tools/integrations/lsp.lua:152-159, commit dcb4547.
 
-### 6. NIT — Điều kiện `type(x) == "string" and x ~= ""` viết hai lần
+### 6. NIT [đã giải quyết, 814ee21] — Điều kiện `type(x) == "string" and x ~= ""` viết hai lần
 - **Nguồn:** `review-branch`
 - **Phân loại:** In scope · Verified · Diff chạm: có · Liên quan: có
 - **File:** lua/rails-tools/integrations/lsp.lua:127-132
 - **Vấn đề:** Trùng lặp nhỏ; thêm phím thứ ba sẽ phải copy tiếp.
 - **Fix:** Giữ nguyên. Chỉ có hai phím và code đang đơn giản; tách helper là mở rộng ngoài spec.
+- **Kết quả:** Việc kiểm tra "phím dùng được" đã nằm trong một helper `key_or_warn` duy nhất (lsp.lua:111-123, từ commit 814ee21), dùng cho cả hai phím; không còn trùng lặp nên không đổi thêm code ở commit dcb4547.
 
 ## Spec cần xem lại
 
