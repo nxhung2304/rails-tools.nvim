@@ -1,4 +1,5 @@
 local schema = require("rails-tools.core.schema")
+local config = require("rails-tools.config")
 local model_context = require("rails-tools.core.model_context")
 local context = require("rails-tools.integrations.context")
 
@@ -58,42 +59,67 @@ local function current_model()
   return model_context.model_for_path(vim.api.nvim_buf_get_name(0))
 end
 
----@param bufnr integer
-local function attach_hover(bufnr)
-  vim.keymap.set("n", "K", function()
-    local receiver, word = context.at_cursor()
-    if word then
-      local lines = M.hover_lines(receiver, word, current_model())
-      if lines then
-        vim.lsp.util.open_floating_preview(lines, "markdown", { border = "rounded", focusable = false })
-        return
-      end
+---Rails-aware hover; falls back to `vim.lsp.buf.hover()`.
+function M.hover()
+  local receiver, word = context.at_cursor()
+  if word then
+    local lines = M.hover_lines(receiver, word, current_model())
+    if lines then
+      vim.lsp.util.open_floating_preview(lines, "markdown", { border = "rounded", focusable = false })
+      return
     end
-    vim.lsp.buf.hover()
-  end, { buffer = bufnr, desc = "Hover Documentation (Rails-aware)" })
+  end
+  vim.lsp.buf.hover()
+end
+
+---Rails-aware go-to-definition; falls back to `vim.lsp.buf.definition()`.
+function M.definition()
+  local receiver, word = context.at_cursor()
+  if word then
+    local loc = M.definition_location(receiver, word, current_model())
+    if loc then
+      vim.cmd("edit " .. vim.fn.fnameescape(loc.file))
+      vim.api.nvim_win_set_cursor(0, { loc.lnum, loc.col })
+      vim.cmd("normal! zz")
+      return
+    end
+  end
+  vim.lsp.buf.definition()
 end
 
 ---@param bufnr integer
-local function attach_goto_definition(bufnr)
-  vim.keymap.set("n", "gd", function()
-    local receiver, word = context.at_cursor()
-    if word then
-      local loc = M.definition_location(receiver, word, current_model())
-      if loc then
-        vim.cmd("edit " .. vim.fn.fnameescape(loc.file))
-        vim.api.nvim_win_set_cursor(0, { loc.lnum, loc.col })
-        vim.cmd("normal! zz")
-        return
-      end
-    end
-    vim.lsp.buf.definition()
-  end, { buffer = bufnr, desc = "Go to Definition (Rails-aware)" })
+---@param lhs string
+local function attach_hover(bufnr, lhs)
+  vim.keymap.set("n", lhs, M.hover, { buffer = bufnr, desc = "Hover Documentation (Rails-aware)" })
 end
 
----Wire the Rails-aware `K` / `gd` overrides for ruby/eruby buffers that
----have an LSP client attached. Falls back to the normal
----`vim.lsp.buf.hover()` / `vim.lsp.buf.definition()` for anything that
----isn't a recognized ActiveRecord column.
+---@param bufnr integer
+---@param lhs string
+local function attach_goto_definition(bufnr, lhs)
+  vim.keymap.set("n", lhs, M.definition, { buffer = bufnr, desc = "Go to Definition (Rails-aware)" })
+end
+
+---@param option string
+---@param value any
+---@return string|nil
+local function key_or_warn(option, value)
+  if type(value) == "string" then
+    return value ~= "" and value or nil
+  end
+  if value ~= false then
+    vim.notify_once(
+      ("rails-tools: %s must be a key string or false, got %s"):format(option, type(value)),
+      vim.log.levels.WARN
+    )
+  end
+  return nil
+end
+
+---Wire the Rails-aware hover / go-to-definition keys for ruby/eruby buffers
+---that have an LSP client attached.
+---The keys come from `config.lsp` (`hover`, `definition`); `false` disables one.
+---Falls back to the normal `vim.lsp.buf.hover()` / `vim.lsp.buf.definition()`
+---for anything that isn't a recognized ActiveRecord column.
 function M.setup()
   vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("rails_tools_lsp_schema", { clear = true }),
@@ -108,8 +134,32 @@ function M.setup()
       -- right after this callback returns. Deferring to the next tick makes
       -- ours the last write, regardless of registration order.
       vim.schedule(function()
-        attach_hover(args.buf)
-        attach_goto_definition(args.buf)
+        local keys = config.get().lsp
+        if type(keys) ~= "table" then
+          if keys ~= false then
+            vim.notify_once(
+              ("rails-tools: lsp must be a table or false, got %s"):format(type(keys)),
+              vim.log.levels.WARN
+            )
+          end
+          return
+        end
+        local hover_key = key_or_warn("lsp.hover", keys.hover)
+        if hover_key then
+          attach_hover(args.buf, hover_key)
+        end
+        local definition_key = key_or_warn("lsp.definition", keys.definition)
+        if hover_key and hover_key == definition_key then
+          vim.notify_once(
+            ("rails-tools: lsp.hover and lsp.definition are both set to %q, the definition mapping wins"):format(
+              hover_key
+            ),
+            vim.log.levels.WARN
+          )
+        end
+        if definition_key then
+          attach_goto_definition(args.buf, definition_key)
+        end
       end)
     end,
   })

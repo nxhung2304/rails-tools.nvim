@@ -1,0 +1,70 @@
+# Review comment.log — issue #59 (tùy chọn tắt / đổi phím cho override K/gd của LSP)
+
+Tóm tắt (vòng 1): 2 MUST (đã sửa ở vòng fix, xác nhận bằng diff staged tests/integrations/lsp_spec.lua + make test 0 lỗi, chưa chạy lại review đầy đủ), 2 SHOULD, 2 NIT. 1 mục dựa trên giả định. 0 mục chờ xác nhận. 2 mục ở "Spec cần xem lại". 2 mục chuyển sang "Ngoài phạm vi". Theo nguồn: review-branch 3, code-review 5, spec-review 2 (một mục có thể do nhiều nguồn cùng tìm ra).
+
+Ghi chú nguồn: thay đổi chưa commit (chỉ staged) nên cả 3 nguồn chạy trên main checkout của worktree, có thể thấy spec. Nguồn code-review lần đầu trả về rỗng, lần sau trả đủ. Nó đã tự sửa một file test (không đúng yêu cầu chỉ đọc); phần sửa đó đã được hoàn tác, bản staged giữ nguyên.
+
+## Cần sửa
+
+### 1. MUST [đã sửa, chưa commit] — Test gọi `lsp.hover()` / `lsp.definition()` khôi phục stub không an toàn khi lỗi
+- **Nguồn:** `review-branch`, `code-review`, `spec-review` (3 nguồn cùng tìm ra)
+- **Phân loại:** In scope · Verified · Diff chạm: có · Liên quan: có
+- **File:** tests/integrations/lsp_spec.lua:267-268 (test "exposes hover() and definition() ...")
+- **Vấn đề:** Hai dòng khôi phục `vim.lsp.buf.hover` / `definition` nằm sau lời gọi. Nếu một lời gọi ném lỗi, stub bị giữ lại và làm hỏng các spec sau. Spec ghi "restore after".
+- **Fix:** Lưu bản gốc ở phạm vi `describe` rồi khôi phục trong `after_each` (sketch, not compiled): `local original = {}` → trong test gán `original.hover = vim.lsp.buf.hover` → `after_each` đặt lại nếu `original.hover` có giá trị.
+
+### 2. MUST [đã sửa, chưa commit] — Test mặc định không kiểm tra `gd` là mapping theo buffer
+- **Nguồn:** `review-branch`, `spec-review` (2 nguồn)
+- **Phân loại:** In scope · Verified · Diff chạm: có · Liên quan: có
+- **File:** tests/integrations/lsp_spec.lua:224 (test "maps K and gd with the Rails descs by default")
+- **Vấn đề:** Chỉ kiểm tra `.buffer == 1` cho `K`. Nếu `gd` bị map toàn cục nhầm, test vẫn qua. Spec yêu cầu kiểm tra `.buffer` ở mặc định.
+- **Fix:** Thêm cùng assertion cho `gd` ngay dưới dòng của `K`.
+
+### 3. SHOULD [đã sửa, dcb4547] — Test `lsp = false` không bắt được lỗi trong callback `vim.schedule`
+- **Nguồn:** `code-review`
+- **Phân loại:** In scope · Assumption · Diff chạm: có · Liên quan: có
+- **File:** tests/integrations/lsp_spec.lua:253 (`assert.has_no.errors(fire_attach)`)
+- **Vấn đề:** Lỗi trong callback `vim.schedule` không ném ra khỏi `fire_attach`, nên test vẫn qua dù code index `false` và lỗi. Chưa chạy thử; đây là suy luận về cách Neovim xử lý lỗi trong schedule.
+- **Fix:** Trước khi sửa, thử tạm cho callback ném lỗi và xem test có đỏ không. Nếu vẫn xanh, kiểm tra `vim.v.errmsg` rỗng sau `fire_attach` (sketch, not compiled). Nếu test đã đỏ thì bỏ qua mục này.
+- **Kết quả:** Giả định đúng. Cho callback ném lỗi tạm (`keys.hover.x`), test `lsp = false` vẫn xanh. Đã thêm `vim.v.errmsg = ""` trước và `assert.are.equal("", vim.v.errmsg)` sau `fire_attach` (tests/integrations/lsp_spec.lua); với lỗi tạm test đỏ, bỏ lỗi thì xanh. Đã hoàn tác lỗi tạm. Bằng chứng: commit dcb4547, make test 0 lỗi.
+
+### 4. SHOULD [đã sửa, chưa commit] — README chưa nói các phím `lsp` chỉ có tác dụng khi `modules.schema` bật
+- **Nguồn:** `code-review`
+- **Phân loại:** In scope · Verified · Diff chạm: có · Liên quan: có
+- **File:** README.md (mục "LSP keys"); căn cứ lua/rails-tools/init.lua:20-28 (`lsp.setup()` chỉ chạy khi `modules.schema` bật)
+- **Vấn đề:** User đặt `modules.schema = false` cùng `lsp.hover = "gh"` sẽ không có mapping nào mà không có giải thích.
+- **Fix:** Thêm một bullet vào "LSP keys": các phím `lsp` chỉ áp dụng khi `modules.schema` bật; khi tắt thì tự map `hover()` / `definition()`.
+
+### 5. NIT [đã sửa, dcb4547] — `hover` và `definition` đặt cùng một phím thì phím thứ hai ghi đè phím thứ nhất không báo
+- **Nguồn:** `code-review`
+- **Phân loại:** In scope · Verified · Diff chạm: có · Liên quan: có
+- **File:** lua/rails-tools/integrations/lsp.lua:124-129
+- **Vấn đề:** `lsp = { hover = "gh", definition = "gh" }` chỉ còn go-to-definition. Chỉ xảy ra khi user cấu hình thế này; trước thay đổi không có tùy chọn nên chưa thể xảy ra.
+- **Fix:** Không sửa trong PR này, hoặc ghi thêm một dòng vào README. Lý do: cảnh báo cần thêm logic ngoài checklist.
+- **Kết quả:** User chọn sửa. `M.setup` gọi `vim.notify_once` (WARN) khi hai phím cùng giá trị, phím definition vẫn thắng. Thêm test (stub `vim.notify_once`) và một bullet README. Bằng chứng: lua/rails-tools/integrations/lsp.lua:152-159, commit dcb4547.
+
+### 6. NIT [đã giải quyết, 814ee21] — Điều kiện `type(x) == "string" and x ~= ""` viết hai lần
+- **Nguồn:** `review-branch`
+- **Phân loại:** In scope · Verified · Diff chạm: có · Liên quan: có
+- **File:** lua/rails-tools/integrations/lsp.lua:127-132
+- **Vấn đề:** Trùng lặp nhỏ; thêm phím thứ ba sẽ phải copy tiếp.
+- **Fix:** Giữ nguyên. Chỉ có hai phím và code đang đơn giản; tách helper là mở rộng ngoài spec.
+- **Kết quả:** Việc kiểm tra "phím dùng được" đã nằm trong một helper `key_or_warn` duy nhất (lsp.lua:111-123, từ commit 814ee21), dùng cho cả hai phím; không còn trùng lặp nên không đổi thêm code ở commit dcb4547.
+
+## Spec cần xem lại
+
+### A. [đã giải quyết theo quyết định của user: dùng `vim.notify_once` cảnh báo, commit: 814ee21] Giá trị sai kiểu (`hover = true`, `lsp = true`) làm tắt mapping im lặng
+- **Nguồn:** `code-review`
+- **File:** lua/rails-tools/integrations/lsp.lua:121-132
+- **Spec:** "Non-string truthy values (Q2, decided): no fallback to the default key; treated as 'no mapping'" (implement.md:14)
+- **Câu hỏi cho leader:** Spec chọn "không có mapping, không báo", code đúng như vậy; user gõ nhầm kiểu có còn chấp nhận không, hay cần một cảnh báo `vim.notify`?
+
+### B. [đã giải quyết, chưa commit] Doc comment của `M.setup` còn nói K/gd cố định (user chọn sửa lại câu chữ)
+- **Nguồn:** `review-branch`, `code-review`
+- **File:** lua/rails-tools/integrations/lsp.lua:102-105
+- **Spec:** "the `M.setup` LuaDoc (`lsp.lua:93-96`) is not rewritten, because existing comments are changed only when the user asks" (implement.md:81)
+- **Câu hỏi:** Comment này nay sai (phím lấy từ `config.lsp`); anh có muốn sửa lại câu chữ không?
+
+## Ngoài phạm vi / không cần đổi
+- lua/rails-tools/integrations/lsp.lua:119 — buffer bị xóa trước khi callback chạy làm `vim.keymap.set` lỗi. Nguồn: `code-review`. Out of scope — pre-existing; spec đã ghi "Pre-existing, unrelated to this change ... Not in scope" (implement.md:82).
+- Makefile — dò đường dẫn plenary chọn nhầm worktree khác nên `make test` cần `PLENARY=...`. Nguồn: `review-branch`. Out of scope — pre-existing, không do thay đổi này.

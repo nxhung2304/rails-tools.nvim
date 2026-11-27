@@ -99,7 +99,22 @@ require("rails-tools").setup({
   cmp = {
     dedupe_with_lsp = { "ruby_lsp" },  -- skip the rails_schema source when these LSP clients are attached
   },
+  lsp = { hover = "K", definition = "gd" },  -- keys for Rails-aware hover / go-to-definition
 })
+```
+
+LSP keys:
+- Set a key to `false` to disable it, or to another string to change it. `lsp = false` disables both. `""` also disables a key.
+- A value of the wrong type (e.g. `hover = true`) shows a warning once and maps nothing; `false` and `""` disable silently.
+- If `hover` and `definition` are set to the same key, a warning is shown once and the definition mapping wins.
+- The keys are only set when `modules.schema` is on; when it is off, map `hover()` / `definition()` yourself (see below).
+- The plugin replaces any `K` / `gd` (or the configured keys) set in your own `on_attach`.
+- With `hover = false` and no `K` of your own, Neovim 0.10+ keeps its built-in `K` (plain LSP hover); on 0.9 `K` falls back to `'keywordprg'`.
+- To use the Rails-aware actions on your own keys, map them in your `on_attach`:
+
+```lua
+vim.keymap.set("n", "gh", require("rails-tools.integrations.lsp").hover, { buffer = bufnr })
+vim.keymap.set("n", "gD", require("rails-tools.integrations.lsp").definition, { buffer = bufnr })
 ```
 
 ## Usage
