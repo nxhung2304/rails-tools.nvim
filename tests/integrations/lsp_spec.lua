@@ -179,6 +179,8 @@ describe("integrations.lsp setup()", function()
   local buf
   local original_hover = vim.lsp.buf.hover
   local original_definition = vim.lsp.buf.definition
+  local original_notify_once = vim.notify_once
+  local warnings
 
   local function attach_ruby_buffer()
     buf = vim.api.nvim_create_buf(false, true)
@@ -210,9 +212,14 @@ describe("integrations.lsp setup()", function()
     config.setup()
     lsp.setup()
     attach_ruby_buffer()
+    warnings = {}
+    vim.notify_once = function(message, level)
+      table.insert(warnings, { message = message, level = level })
+    end
   end)
 
   after_each(function()
+    vim.notify_once = original_notify_once
     vim.lsp.buf.hover = original_hover
     vim.lsp.buf.definition = original_definition
     if buf and vim.api.nvim_buf_is_valid(buf) then
@@ -265,6 +272,34 @@ describe("integrations.lsp setup()", function()
     assert.has_no.errors(fire_attach)
     assert.are_not.equal(HOVER_DESC, desc_of("K"))
     assert.are_not.equal(DEFINITION_DESC, desc_of("gd"))
+  end)
+
+  it("warns and maps nothing for hover when it is not a string or false", function()
+    config.setup({ lsp = { hover = true } })
+    fire_attach()
+    assert.are.equal(1, #warnings)
+    assert.matches("lsp.hover", warnings[1].message)
+    assert.matches("got boolean", warnings[1].message)
+    assert.are.equal(vim.log.levels.WARN, warnings[1].level)
+    assert.are_not.equal(HOVER_DESC, desc_of("K"))
+    assert.are.equal(DEFINITION_DESC, desc_of("gd"))
+  end)
+
+  it("warns and maps nothing when lsp is not a table or false", function()
+    config.setup({ lsp = true })
+    fire_attach()
+    assert.are.equal(1, #warnings)
+    assert.matches("lsp must be", warnings[1].message)
+    assert.are_not.equal(HOVER_DESC, desc_of("K"))
+    assert.are_not.equal(DEFINITION_DESC, desc_of("gd"))
+  end)
+
+  it("does not warn for false or an empty string", function()
+    config.setup({ lsp = { hover = false, definition = "" } })
+    fire_attach()
+    config.setup({ lsp = false })
+    fire_attach()
+    assert.are.equal(0, #warnings)
   end)
 
   it("exposes hover() and definition() that fall back to the LSP functions", function()

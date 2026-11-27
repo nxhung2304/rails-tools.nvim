@@ -99,6 +99,22 @@ local function attach_goto_definition(bufnr, lhs)
   vim.keymap.set("n", lhs, M.definition, { buffer = bufnr, desc = "Go to Definition (Rails-aware)" })
 end
 
+---@param option string
+---@param value any
+---@return string|nil
+local function key_or_warn(option, value)
+  if type(value) == "string" then
+    return value ~= "" and value or nil
+  end
+  if value ~= false then
+    vim.notify_once(
+      ("rails-tools: %s must be a key string or false, got %s"):format(option, type(value)),
+      vim.log.levels.WARN
+    )
+  end
+  return nil
+end
+
 ---Wire the Rails-aware `K` / `gd` overrides for ruby/eruby buffers that
 ---have an LSP client attached. Falls back to the normal
 ---`vim.lsp.buf.hover()` / `vim.lsp.buf.definition()` for anything that
@@ -119,13 +135,21 @@ function M.setup()
       vim.schedule(function()
         local keys = config.get().lsp
         if type(keys) ~= "table" then
+          if keys ~= false then
+            vim.notify_once(
+              ("rails-tools: lsp must be a table or false, got %s"):format(type(keys)),
+              vim.log.levels.WARN
+            )
+          end
           return
         end
-        if type(keys.hover) == "string" and keys.hover ~= "" then
-          attach_hover(args.buf, keys.hover)
+        local hover_key = key_or_warn("lsp.hover", keys.hover)
+        if hover_key then
+          attach_hover(args.buf, hover_key)
         end
-        if type(keys.definition) == "string" and keys.definition ~= "" then
-          attach_goto_definition(args.buf, keys.definition)
+        local definition_key = key_or_warn("lsp.definition", keys.definition)
+        if definition_key then
+          attach_goto_definition(args.buf, definition_key)
         end
       end)
     end,

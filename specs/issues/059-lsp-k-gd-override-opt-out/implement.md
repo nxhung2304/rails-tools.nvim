@@ -4,14 +4,14 @@
 - [Original issue](./issue.md)
 
 ## Decisions made without you
-- New config block `lsp = { hover = "K", definition = "gd" }`. Only a non-empty string maps that key; `false`, `""` and any other non-string value (e.g. `true`) mean "no mapping". Check: `type(v) == "string" and v ~= ""`.
+- New config block `lsp = { hover = "K", definition = "gd" }`. Only a non-empty string maps that key; `false` and `""` mean "no mapping" silently; any other value (e.g. `true`, number, table) warns via `vim.notify_once` and maps nothing.
   - Reason: `vim.tbl_deep_extend("force", ...)` cannot set a key to `nil`, so `false` is the only way to opt out; per-key control covers both "disable" and "choose the keys".
 - Default stays `K` / `gd`, still applied with `vim.schedule` after `on_attach` (same as today), so zero-config users see no change.
-- If the whole `lsp` value is not a table (e.g. `lsp = false`), both mappings are disabled: guard `type(keys) == "table"` before reading `keys.hover` / `keys.definition`.
+- If the whole `lsp` value is not a table, both mappings are disabled (`lsp = false` silently; any other non-table value warns via `vim.notify_once`): guard `type(keys) == "table"` before reading `keys.hover` / `keys.definition`.
   - Reason: `vim.tbl_deep_extend` keeps `lsp = false`, and indexing it would raise on every Ruby `LspAttach`.
 - Existing buffer mapping (Q1, decided): not detected; override and document. The plugin overrides the configured keys; users who want their own mapping set the key to `false` (or another key) and map the public functions.
   - Reason: Neovim's own default `K` is buffer-local (see Description), so "keep any existing mapping" would disable Rails hover for most users, and telling it apart from a user mapping needs fragile desc matching. The issue allows "or the chosen behaviour is documented".
-- Non-string truthy values (Q2, decided): no fallback to the default key; treated as "no mapping" (see first bullet).
+- Non-string non-false values (Q2, decided by the user): no fallback to the default key; they warn via `vim.notify_once` and map nothing (see first bullet).
 - Rails-aware actions become public: `M.hover()` and `M.definition()` in `integrations/lsp.lua` (the current bodies of the `K` / `gd` callbacks, unchanged).
 - The existing comment at `lsp.lua:105-109` is kept as is; it stays accurate.
 - `modules.schema = false` already skips the whole LSP integration (`init.lua:20-28`); no change there.
@@ -31,10 +31,10 @@ Checked against `main` (82bb64e; `lsp.lua` unchanged on df73693):
   - New public `M.hover()`: body of today's `K` callback (`lsp.lua:64-72`). LuaDoc one-liner.
   - New public `M.definition()`: body of today's `gd` callback (`lsp.lua:79-89`). LuaDoc one-liner.
   - `attach_hover(bufnr, lhs)` / `attach_goto_definition(bufnr, lhs)`: `vim.keymap.set("n", lhs, M.hover, {...same desc...})` / `M.definition`.
-  - `M.setup`: inside the scheduled function, read `config.get().lsp`; return if it is not a table; call `attach_hover(args.buf, keys.hover)` only when `keys.hover` is a non-empty string, same for `definition`. Autocmd, filetype check and `vim.schedule` unchanged.
+  - `M.setup`: inside the scheduled function, read `config.get().lsp`; return if it is not a table; call `attach_hover(args.buf, keys.hover)` only when `keys.hover` is a non-empty string, same for `definition`; warn once via `vim.notify_once` for a non-table `lsp` (other than `false`) or a key value that is neither a string nor `false`. Autocmd, filetype check and `vim.schedule` unchanged.
   - Leave the `M.setup` LuaDoc (`lsp.lua:93-96`) unchanged: rewriting an existing comment needs the user's approval, which was not given. Flag it in the result as outdated (it still names `K`/`gd`).
 - `README.md` Configuration block: add `lsp = { hover = "K", definition = "gd" }` with short notes:
-  - `false` disables that key; `lsp = false` disables both.
+  - `false` or `""` disables that key silently; `lsp = false` disables both; a wrong-typed value warns once and maps nothing.
   - The plugin replaces any `K`/`gd` (or configured keys) set in the user's own `on_attach`.
   - With `hover = false` and no `K` of the user's own: on Neovim 0.10+ the built-in `K` (plain LSP hover) remains (`$VIMRUNTIME/doc/news-0.10.txt:199`); on 0.9 `K` falls back to `'keywordprg'`.
   - A 2-line example mapping `require("rails-tools.integrations.lsp").hover` in the user's own `on_attach`.
@@ -43,7 +43,7 @@ Checked against `main` (82bb64e; `lsp.lua` unchanged on df73693):
 - [ ] Default config: after `LspAttach` on a ruby buffer, `K` and `gd` are buffer-local with descs `Hover Documentation (Rails-aware)` / `Go to Definition (Rails-aware)`.
 - [ ] `lsp = { hover = false, definition = false }`: no Rails-aware `K`/`gd`; a user buffer mapping on `K` set before the attach is still there afterwards.
 - [ ] `lsp = { hover = "gh", definition = "gD" }`: those keys are mapped with the Rails descs; `K`/`gd` are not.
-- [ ] `lsp = false`: attach raises no error and no Rails-aware `K`/`gd` is mapped. `hover = ""` behaves as no mapping.
+- [ ] `lsp = false`: attach raises no error and no Rails-aware `K`/`gd` is mapped. `hover = ""` behaves as no mapping. A wrong-typed value (`hover = true`, `lsp = true`) shows one `vim.notify_once` warning and maps nothing.
 - [ ] `require("rails-tools.integrations.lsp").hover` and `.definition` are callable and fall back to `vim.lsp.buf.hover()` / `vim.lsp.buf.definition()` outside a recognized column.
 - [ ] README documents the option and the override behaviour.
 - [ ] All existing `lsp_spec.lua` tests pass unchanged; `make test` and `make lint` pass.
@@ -55,7 +55,7 @@ Checked against `main` (82bb64e; `lsp.lua` unchanged on df73693):
    - Add `local config = require("rails-tools.config")` with the other requires.
    - Add `M.hover()` and `M.definition()` (moved callback bodies, LuaDoc) above `attach_hover`.
    - Change `attach_hover` / `attach_goto_definition` to take `lhs` (add `---@param lhs string` under the existing `---@param bufnr integer`) and pass `M.hover` / `M.definition` as the rhs; keep `buffer` and `desc`.
-   - In `M.setup`'s scheduled function, read `config.get().lsp`; skip both if it is not a table; attach each mapping only when its value is a non-empty string.
+   - In `M.setup`'s scheduled function, read `config.get().lsp`; skip both if it is not a table; attach each mapping only when its value is a non-empty string; warn once via `vim.notify_once` for any other value except `false`.
 4. `tests/integrations/lsp_spec.lua`: new top-level `describe("integrations.lsp setup()")`:
    - Helper `attach_ruby_buffer()`: new scratch buffer made current with `nvim_set_current_buf(buf)`, `vim.bo[buf].filetype = "ruby"`, `nvim_exec_autocmds("LspAttach", { group = "rails_tools_lsp_schema", buffer = buf, data = { client_id = 0 } })` (the `group` limits the fake event to the plugin's own handler, see Notes), then flush the schedule deterministically: `vim.schedule` a sentinel flag and `vim.wait(1000, function() return flag end)`.
    - `before_each`: `config.setup()`, then `require("rails-tools.integrations.lsp").setup()` (augroup uses `clear = true`, so repeated calls are safe); `after_each`: delete the buffer, `config.setup()`.
@@ -65,6 +65,7 @@ Checked against `main` (82bb64e; `lsp.lua` unchanged on df73693):
    - Empty string: `{ hover = "", definition = "gd" }` → `K` desc is not the Rails one; `gd` has the Rails desc.
    - Per-key merge: `{ hover = false }` (definition left at default) → `K` desc is not the Rails one; `gd` has the Rails desc.
    - Whole block off: `config.setup({ lsp = false })` → attach helper raises no error; `K`/`gd` descs are not the Rails ones.
+   - Wrong type: `{ hover = true }` → one warning naming `lsp.hover`, `K` not mapped, `gd` mapped; `lsp = true` → one warning, nothing mapped; `false` / `""` → no warning. `vim.notify_once` is stubbed and restored in `after_each`.
    - Public functions: stub `vim.lsp.buf.hover` / `vim.lsp.buf.definition` (restore after), buffer line `foo`, cursor on it, call `lsp.hover()` / `lsp.definition()` → each stub called once.
 5. `README.md`: add the `lsp` block to the Configuration example and the notes from Design: `false` disables a key, `lsp = false` disables both, the plugin replaces any `K`/`gd` set in the user's `on_attach`, built-in `K` with `hover = false` (Neovim 0.10+), mapping example.
 6. Check the diff against `~/.claude/code-rules/` (core, general, `lua/lua.md`: LuaDoc on public functions, no new comments, 2-space indent as in these files).
