@@ -56,7 +56,7 @@ Ghi chú nguồn: thay đổi chưa commit (chỉ staged) nên cả 3 nguồn ch
 - **Spec:** "Non-string truthy values (Q2, decided): no fallback to the default key; treated as 'no mapping'" (implement.md:14)
 - **Câu hỏi cho leader:** Spec chọn "không có mapping, không báo", code đúng như vậy; user gõ nhầm kiểu có còn chấp nhận không, hay cần một cảnh báo `vim.notify`?
 
-### B. Doc comment của `M.setup` còn nói K/gd cố định
+### B. [đã giải quyết, chưa commit] Doc comment của `M.setup` còn nói K/gd cố định (user chọn sửa lại câu chữ)
 - **Nguồn:** `review-branch`, `code-review`
 - **File:** lua/rails-tools/integrations/lsp.lua:102-105
 - **Spec:** "the `M.setup` LuaDoc (`lsp.lua:93-96`) is not rewritten, because existing comments are changed only when the user asks" (implement.md:81)

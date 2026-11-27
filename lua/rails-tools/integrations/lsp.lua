@@ -115,10 +115,11 @@ local function key_or_warn(option, value)
   return nil
 end
 
----Wire the Rails-aware `K` / `gd` overrides for ruby/eruby buffers that
----have an LSP client attached. Falls back to the normal
----`vim.lsp.buf.hover()` / `vim.lsp.buf.definition()` for anything that
----isn't a recognized ActiveRecord column.
+---Wire the Rails-aware hover / go-to-definition keys for ruby/eruby buffers
+---that have an LSP client attached.
+---The keys come from `config.lsp` (`hover`, `definition`); `false` disables one.
+---Falls back to the normal `vim.lsp.buf.hover()` / `vim.lsp.buf.definition()`
+---for anything that isn't a recognized ActiveRecord column.
 function M.setup()
   vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("rails_tools_lsp_schema", { clear = true }),

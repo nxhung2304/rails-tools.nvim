@@ -32,7 +32,7 @@ Checked against `main` (82bb64e; `lsp.lua` unchanged on df73693):
   - New public `M.definition()`: body of today's `gd` callback (`lsp.lua:79-89`). LuaDoc one-liner.
   - `attach_hover(bufnr, lhs)` / `attach_goto_definition(bufnr, lhs)`: `vim.keymap.set("n", lhs, M.hover, {...same desc...})` / `M.definition`.
   - `M.setup`: inside the scheduled function, read `config.get().lsp`; return if it is not a table; call `attach_hover(args.buf, keys.hover)` only when `keys.hover` is a non-empty string, same for `definition`; warn once via `vim.notify_once` for a non-table `lsp` (other than `false`) or a key value that is neither a string nor `false`. Autocmd, filetype check and `vim.schedule` unchanged.
-  - Leave the `M.setup` LuaDoc (`lsp.lua:93-96`) unchanged: rewriting an existing comment needs the user's approval, which was not given. Flag it in the result as outdated (it still names `K`/`gd`).
+  - Reword the `M.setup` LuaDoc (`lsp.lua:93-96`) to say the keys come from `config.lsp` (`hover`, `definition`) and `false` disables one. The user approved this rewrite after review.
 - `README.md` Configuration block: add `lsp = { hover = "K", definition = "gd" }` with short notes:
   - `false` or `""` disables that key silently; `lsp = false` disables both; a wrong-typed value warns once and maps nothing.
   - The plugin replaces any `K`/`gd` (or configured keys) set in the user's own `on_attach`.
@@ -79,7 +79,7 @@ Checked against `main` (82bb64e; `lsp.lua` unchanged on df73693):
 - Checked headless: `require("rails-tools.detectors.rails").root()` returns nil in the plugin repo, so `schema.resolve()` returns nil and `M.hover()` / `M.definition()` take the LSP fallback in step 4.
 - Confirmed (headless probe, Neovim v0.13-dev): firing `LspAttach` with a fake `client_id = 0` and no `group` runs Neovim's own global `LspAttach` handler in `$VIMRUNTIME/lua/vim/lsp/on_type_formatting.lua:170-178`, whose `assert(lsp.get_client_by_id(...))` fails and prints a stack trace once that module is loaded. With `group = "rails_tools_lsp_schema"` only the plugin's handler runs and no error is printed. CI runs `v0.9.5` and `stable` (`.github/workflows/ci.yml:15`), so the `group` option is required for a deterministic test.
 - `nvim_exec_autocmds` support for the `group` and `data` options on Neovim v0.9.5 is an assumption (not checked locally); the CI `v0.9.5` job is left to confirm it.
-- Decision (orchestrator, auto-approve): the `M.setup` LuaDoc (`lsp.lua:93-96`) is not rewritten, because existing comments are changed only when the user asks. Flag it as outdated in the result.
+- Decision (user, after review): the `M.setup` LuaDoc (`lsp.lua:93-96`) is reworded because it still named fixed `K`/`gd` keys.
 - Pre-existing, unrelated to this change: if the buffer is wiped between `LspAttach` and the scheduled callback, `vim.keymap.set` with `buffer = <invalid>` raises (`lsp.lua:110-113`). Not reproduced; not in scope.
 - Known limitation (from risk check): with `modules.schema = false`, `schema.setup()` is skipped (`init.lua:20-23`), so a user who maps `M.hover` / `M.definition` themselves gets schema data cached up to 300s (`core/schema.lua:7`) without the save-time invalidation (`core/schema.lua:180-190`). Not fixed here; open question Q3.
 - `story.md` BF-059 checkboxes are ticked at finalize, not in this checklist.
